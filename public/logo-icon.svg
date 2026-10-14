@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Soft Circular Glow Backdrop -->
+  <circle cx="50" cy="50" r="48" fill="#FAF5F0" stroke="#C07474" stroke-width="1.5" stroke-dasharray="3 3"/>
+  
+  <!-- Stylized Woman Profile Silhouette with Organic Flowing Hair -->
+  <g fill="#C07474">
+    <!-- Leaves at Crown -->
+    <path d="M48 18 C54 13 62 16 63 23 C58 25 50 23 48 18 Z" opacity="0.9"/>
+    <path d="M56 22 C64 21 68 28 66 33 C60 33 55 28 56 22 Z" opacity="0.85"/>
+    
+    <!-- Face Profile Line -->
+    <path d="M54 36 C54 39 56 42 58 44 C61 45.5 62 47 62 49 C60 50 58 50.5 57 51.5 C56 52.5 58 54 60 55 C57 56.5 56 58 58 60 C60 61.5 59 63 56 65 C52 67.5 49 68 47 70 C47 67 49 65 52 63 C50 63 48 61 49 58 C45 56 45 52 48 48 C49 44 49 40 52 36 Z"/>
+    
+    <!-- Flowing Hair Strands (Left Arch) -->
+    <path d="M48 24 C40 26 31 34 30 45 C29 55 33 63 39 70 C34 65 31 56 34 47 C37 38 43 31 50 27 Z"/>
+    <path d="M43 35 C36 41 34 50 37 59 C40 68 47 75 54 81 C48 76 40 68 38 58 C36 49 39 42 45 36 Z"/>
+    <path d="M40 50 C37 56 38 64 42 71 C45 77 50 82 56 86 C51 82 45 76 43 69 C41 62 41 56 43 51 Z" opacity="0.8"/>
+  </g>
+
+  <!-- Restrained Gold Star Accents -->
+  <path d="M68 42 L69 45 L72 46 L69 47 L68 50 L67 47 L64 46 L67 45 Z" fill="#CAA454"/>
+  <circle cx="68" cy="28" r="1.5" fill="#CAA454"/>
+  <circle cx="74" cy="37" r="1.2" fill="#CAA454"/>
+</svg>
