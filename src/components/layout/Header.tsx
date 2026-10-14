@@ -5,6 +5,7 @@ import { BrandLogo } from '../ui/BrandLogo';
 import { Button } from '../ui/Button';
 import { MobileDrawer } from './MobileDrawer';
 import { BRAND } from '../../data/brandData';
+import { trackContactAction } from '../../services/analytics';
 
 export const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -88,6 +89,7 @@ export const Header: React.FC = () => {
             <div className="hidden lg:flex items-center gap-4">
               <a
                 href={`tel:${BRAND.whatsappNumber}`}
+                onClick={() => trackContactAction({ method: 'phone', touchpoint: 'header_call_link' })}
                 className={`text-xs uppercase tracking-widest font-sans font-medium flex items-center gap-1.5 transition-colors ${
                   isHeaderTransparent ? 'text-ivory-300 hover:text-ivory-100' : 'text-forest-700 hover:text-forest-950'
                 }`}

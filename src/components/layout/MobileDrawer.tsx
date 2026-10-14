@@ -4,6 +4,7 @@ import { X, Phone, MessageCircle, Instagram, MapPin, Calendar } from 'lucide-rea
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
 import { BrandLogo } from '../ui/BrandLogo';
 import { Button } from '../ui/Button';
+import { trackContactAction, trackWhatsAppClick } from '../../services/analytics';
 
 interface MobileDrawerProps {
   isOpen: boolean;
@@ -101,6 +102,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose }) =
           <div className="flex items-center justify-between pt-2 border-t border-forest-900/10">
             <a
               href={`tel:${BRAND.whatsappNumber}`}
+              onClick={() => trackContactAction({ method: 'phone', touchpoint: 'mobile_drawer_call' })}
               className="flex items-center gap-1.5 font-medium text-forest-900 hover:text-forest-700"
             >
               <Phone size={14} className="text-forest-600" />
@@ -111,6 +113,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose }) =
               href={buildWhatsAppUrl(WhatsAppMessages.general())}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackWhatsAppClick('mobile_drawer', 'General Chat')}
               className="flex items-center gap-1.5 font-medium text-forest-900 hover:text-forest-700"
             >
               <MessageCircle size={14} className="text-emerald-600" />
@@ -121,6 +124,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose }) =
               href={BRAND.instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackContactAction({ method: 'instagram', touchpoint: 'mobile_drawer_instagram' })}
               className="flex items-center gap-1.5 font-medium text-forest-900 hover:text-forest-700"
             >
               <Instagram size={14} className="text-rose-600" />

@@ -10,10 +10,22 @@ import {
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { ContactForm } from '../components/forms/ContactForm';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
+import { generateLocalBusinessSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
 
 export const ContactPage: React.FC = () => {
-  useDocumentTitle('Contact & Location', 'Contact SK Relax Beauty Academy & Salon in Satara, Maharashtra. Call +91 8459890270 or message us on WhatsApp.');
+  usePageSEO({
+    title: 'Contact SK Relax Beauty Academy & Salon | Satara',
+    description: 'Contact SK Relax in Satara for salon enquiries, appointments, and beauty academy course information.',
+    path: '/contact',
+    schema: [
+      generateLocalBusinessSchema(),
+      generateBreadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Contact', path: '/contact' }
+      ])
+    ]
+  });
 
   return (
     <div className="bg-ivory text-forest-900 min-h-screen">

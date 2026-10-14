@@ -4,10 +4,22 @@ import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { GalleryGrid } from '../components/gallery/GalleryGrid';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
+import { generateLocalBusinessSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
 
 export const GalleryPage: React.FC = () => {
-  useDocumentTitle('Studio Portfolio & Gallery', 'Visual portfolio of haircuts, masterclass sessions, bridal styling, and salon ambience at SK Relax Beauty Studio Satara.');
+  usePageSEO({
+    title: 'Salon Gallery | SK Relax Beauty Academy, Satara',
+    description: 'Explore salon interiors, hair styling, beauty work, and academy activities at SK Relax, Satara.',
+    path: '/gallery',
+    schema: [
+      generateLocalBusinessSchema(),
+      generateBreadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Gallery', path: '/gallery' }
+      ])
+    ]
+  });
 
   return (
     <div className="bg-ivory text-forest-900 min-h-screen">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Phone, MessageCircle, Instagram, MapPin, Clock, ArrowRight, Heart } from 'lucide-react';
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
 import { BrandLogo } from '../ui/BrandLogo';
+import { trackContactAction, trackWhatsAppClick } from '../../services/analytics';
 
 export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -22,6 +23,7 @@ export const Footer: React.FC = () => {
                 href={BRAND.instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackContactAction({ method: 'instagram', touchpoint: 'footer_instagram' })}
                 className="w-9 h-9 rounded-full bg-forest-900 border border-forest-800 flex items-center justify-center text-ivory-200 hover:text-gold-300 hover:border-gold-500/50 transition-all"
                 aria-label="Follow SK Relax on Instagram"
               >
@@ -31,6 +33,7 @@ export const Footer: React.FC = () => {
                 href={buildWhatsAppUrl(WhatsAppMessages.general())}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick('footer_whatsapp', 'General Inquiry')}
                 className="w-9 h-9 rounded-full bg-forest-900 border border-forest-800 flex items-center justify-center text-ivory-200 hover:text-emerald-400 hover:border-emerald-500/50 transition-all"
                 aria-label="Chat on WhatsApp"
               >
@@ -38,6 +41,7 @@ export const Footer: React.FC = () => {
               </a>
               <a
                 href={`tel:${BRAND.whatsappNumber}`}
+                onClick={() => trackContactAction({ method: 'phone', touchpoint: 'footer_call' })}
                 className="w-9 h-9 rounded-full bg-forest-900 border border-forest-800 flex items-center justify-center text-ivory-200 hover:text-rose-300 hover:border-rose-500/50 transition-all"
                 aria-label="Call salon"
               >

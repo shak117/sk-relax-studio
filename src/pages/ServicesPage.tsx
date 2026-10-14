@@ -7,11 +7,25 @@ import { ServiceCard } from '../components/services/ServiceCard';
 import { CategoryFilter } from '../components/services/CategoryFilter';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
+import { generateLocalBusinessSchema, generateServicesCatalogSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
+import { trackViewContent } from '../services/analytics';
 import { ServiceCategory } from '../types';
 
 export const ServicesPage: React.FC = () => {
-  useDocumentTitle('Services Catalogue', 'Explore hair styling, butterfly haircuts, long layers, bridal beauty, skin facials, and hair treatments at SK Relax Salon Satara.');
+  usePageSEO({
+    title: 'Salon Services in Satara | SK Relax',
+    description: 'Explore available beauty and salon services at SK Relax in Satara and enquire directly through WhatsApp.',
+    path: '/services',
+    schema: [
+      generateLocalBusinessSchema(),
+      generateServicesCatalogSchema(),
+      generateBreadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Services', path: '/services' }
+      ])
+    ]
+  });
 
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = (searchParams.get('cat') as ServiceCategory) || 'all';
@@ -23,6 +37,13 @@ export const ServicesPage: React.FC = () => {
       setActiveCategory(cat);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    trackViewContent({
+      content_name: activeCategory === 'all' ? 'All Salon Services' : `Services Category: ${activeCategory}`,
+      content_category: 'Salon Services Catalogue'
+    });
+  }, [activeCategory]);
 
   const handleCategorySelect = (category: ServiceCategory) => {
     setActiveCategory(category);

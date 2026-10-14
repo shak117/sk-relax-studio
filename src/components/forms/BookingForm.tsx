@@ -3,6 +3,7 @@ import { MessageCircle, CheckCircle, AlertCircle, Calendar, Clock, User, Phone, 
 import { buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
 import { COURSES } from '../../data/academyData';
 import { BookingFormData } from '../../types';
+import { trackLeadSubmission } from '../../services/analytics';
 
 interface BookingFormProps {
   initialService?: string;
@@ -84,6 +85,14 @@ export const BookingForm: React.FC<BookingFormProps> = ({
     const targetUrl = buildWhatsAppUrl(message);
 
     setSubmittedUrl(targetUrl);
+
+    // Track Lead & WhatsApp handoff without PII
+    trackLeadSubmission({
+      service_name: formData.preferredService,
+      preferred_date: formData.preferredDate,
+      preferred_time: formData.preferredTime,
+      category: isAcademyMode ? 'Beauty Academy Masterclass' : 'Salon Appointment'
+    });
 
     // Attempt to open in a new window/tab safely
     const win = window.open(targetUrl, '_blank', 'noopener,noreferrer');

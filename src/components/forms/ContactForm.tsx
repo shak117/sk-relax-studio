@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MessageCircle, ExternalLink } from 'lucide-react';
 import { buildWhatsAppUrl } from '../../data/brandData';
+import { trackContactAction } from '../../services/analytics';
 
 export const ContactForm: React.FC = () => {
   const [name, setName] = useState('');
@@ -31,6 +32,14 @@ export const ContactForm: React.FC = () => {
 
     const url = buildWhatsAppUrl(text);
     setSubmittedUrl(url);
+
+    // Track contact enquiry
+    trackContactAction({
+      method: 'whatsapp',
+      touchpoint: 'contact_page_form',
+      label: subject
+    });
+
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 

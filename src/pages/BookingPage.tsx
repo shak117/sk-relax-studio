@@ -4,10 +4,22 @@ import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { BookingForm } from '../components/forms/BookingForm';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
+import { generateLocalBusinessSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
 
 export const BookingPage: React.FC = () => {
-  useDocumentTitle('Book an Appointment', 'Reserve your haircut, bridal makeover, skin treatment, or academy masterclass seat at SK Relax Salon Satara via WhatsApp.');
+  usePageSEO({
+    title: 'Book a Salon Appointment in Satara | SK Relax',
+    description: 'Enquire about salon appointments and available services at SK Relax through WhatsApp.',
+    path: '/booking',
+    schema: [
+      generateLocalBusinessSchema(),
+      generateBreadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Book Appointment', path: '/booking' }
+      ])
+    ]
+  });
 
   return (
     <div className="bg-ivory text-forest-900 min-h-screen">

@@ -16,13 +16,37 @@ import { BookingForm } from '../components/forms/BookingForm';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
+import { generateLocalBusinessSchema, generateAcademyCourseSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
+import { trackViewContent } from '../services/analytics';
 
 export const AcademyPage: React.FC = () => {
-  useDocumentTitle('Beauty Academy', 'SK Relax Beauty Academy, Satara. Learn trending butterfly haircuts, long layers, angles, and blow dry styling with hands-on dummy practice.');
+  usePageSEO({
+    title: 'Beauty Academy in Satara | SK Relax',
+    description: 'Discover beauty education and upcoming training opportunities at SK Relax Beauty Academy in Satara.',
+    path: '/academy',
+    image: '/images/academy/hair-cutting-masterclass-poster.jpg',
+    schema: [
+      generateLocalBusinessSchema(),
+      generateAcademyCourseSchema(),
+      generateBreadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Beauty Academy', path: '/academy' }
+      ])
+    ]
+  });
 
   const masterclass = COURSES[0];
   const otherCourses = COURSES.slice(1);
+
+  React.useEffect(() => {
+    trackViewContent({
+      content_name: '3 Days Hair Cutting Masterclass',
+      content_category: 'Beauty Academy Training',
+      value: 4000,
+      currency: 'INR'
+    });
+  }, []);
 
   return (
     <div className="bg-ivory text-forest-900 min-h-screen">
@@ -39,7 +63,7 @@ export const AcademyPage: React.FC = () => {
           </h1>
 
           <p className="mt-4 text-sm sm:text-base text-ivory-200/85 max-w-2xl mx-auto font-sans leading-relaxed">
-            {BRAND.academyTagline} — Empowering the next generation of salon artists in Satara through practical, intensive masterclasses with genuine hands-on mannequin dummy training.
+            {BRAND.academyTagline} — Empowering aspiring hairstylists and beauty artists in Satara through practical hair cutting courses and intensive masterclasses with hands-on mannequin dummy training.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">

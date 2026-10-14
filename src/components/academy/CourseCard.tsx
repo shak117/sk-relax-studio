@@ -3,6 +3,7 @@ import { MessageCircle, CheckCircle2, Clock, Calendar, BookOpen, ChevronDown, Ch
 import { AcademyCourse } from '../../types';
 import { buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
 import { Button } from '../ui/Button';
+import { trackWhatsAppClick } from '../../services/analytics';
 
 interface CourseCardProps {
   course: AcademyCourse;
@@ -139,6 +140,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, isFeatured = fal
             size="md"
             className="w-full justify-center"
             icon={<MessageCircle size={15} />}
+            onClick={() => trackWhatsAppClick('academy_course_card', course.title)}
           >
             Enquire Batch on WhatsApp
           </Button>

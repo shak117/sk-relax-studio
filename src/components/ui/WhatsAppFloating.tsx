@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
+import { trackWhatsAppClick } from '../../services/analytics';
 
 export const WhatsAppFloating: React.FC = () => {
   const [showTooltip, setShowTooltip] = useState(true);
@@ -29,6 +30,7 @@ export const WhatsAppFloating: React.FC = () => {
         href={defaultUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => trackWhatsAppClick('floating_button', 'General WhatsApp Chat')}
         className="group relative flex items-center justify-center w-14 h-14 bg-[#1E3B2C] hover:bg-[#142B1F] text-ivory rounded-full shadow-luxury hover:shadow-elevated transition-all duration-300 hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/30 border border-emerald-600/40"
         aria-label="Chat on WhatsApp with SK Relax Beauty Academy & Salon, Satara"
       >

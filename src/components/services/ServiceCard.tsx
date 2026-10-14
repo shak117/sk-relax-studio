@@ -3,6 +3,7 @@ import { MessageCircle, Check, ArrowRight } from 'lucide-react';
 import { ServiceItem } from '../../types';
 import { buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
 import { Badge } from '../ui/Badge';
+import { trackWhatsAppClick } from '../../services/analytics';
 
 interface ServiceCardProps {
   service: ServiceItem;
@@ -84,6 +85,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, featured = fa
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackWhatsAppClick('service_card', service.title)}
             className="inline-flex items-center gap-1.5 text-xs font-sans font-semibold uppercase tracking-wider text-forest-900 hover:text-emerald-700 transition-colors py-1 group/btn"
             aria-label={`Enquire about ${service.title} on WhatsApp`}
           >

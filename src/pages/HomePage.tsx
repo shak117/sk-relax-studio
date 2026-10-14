@@ -18,10 +18,16 @@ import { GalleryGrid } from '../components/gallery/GalleryGrid';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
+import { generateLocalBusinessSchema } from '../utils/schemaGenerator';
 
 export const HomePage: React.FC = () => {
-  useDocumentTitle('Home', 'Welcome to SK Relax Beauty Academy & Salon, Satara. Discover bespoke haircuts, butterfly layers, bridal beauty, and certified hair-cutting masterclasses.');
+  usePageSEO({
+    title: 'SK Relax Beauty Academy & Salon | Satara',
+    description: 'Explore SK Relax Beauty Academy & Salon in Satara. Discover salon services, professional hair styling, beauty education, and appointment enquiries.',
+    path: '/',
+    schema: generateLocalBusinessSchema(),
+  });
 
   // Signature hair cuts from masterclass poster
   const signatureHaircuts = [
@@ -116,10 +122,10 @@ export const HomePage: React.FC = () => {
 
                 <div className="space-y-4 text-forest-700 font-sans text-sm sm:text-base leading-relaxed">
                   <p>
-                    Nestled in Satara, Maharashtra, <strong className="font-medium text-forest-900">{BRAND.name}</strong> was created with a quiet devotion to personalized care, thoughtful precision, and modern beauty craftsmanship.
+                    Nestled in Satara, Maharashtra, <strong className="font-medium text-forest-900">{BRAND.name}</strong> was created with a quiet devotion to personalized care, precision technique, and modern beauty craftsmanship. As a trusted hair salon and beauty parlour in Satara, our studio brings together creative hair artistry, restorative skincare, and professional beauty education.
                   </p>
                   <p>
-                    Whether visiting us for a signature haircut, a restorative skin facial, or hands-on academy education, our focus remains on thoughtful consultation, clean hygiene, and an atmosphere designed to let you unwind completely.
+                    Whether you are looking for a trending butterfly haircut in Satara, flawless bridal makeup, rejuvenating skin facials, or practical training at our beauty academy, our focus remains on unhurried consultation, sterile hygiene, and an atmosphere designed to let you unwind completely.
                   </p>
                 </div>
 

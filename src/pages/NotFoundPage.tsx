@@ -1,10 +1,14 @@
 import React from 'react';
 import { Home } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { usePageSEO } from '../hooks/usePageSEO';
 
 export const NotFoundPage: React.FC = () => {
-  useDocumentTitle('Page Not Found', 'The requested page could not be located.');
+  usePageSEO({
+    title: 'Page Not Found | SK Relax Beauty Academy & Salon, Satara',
+    description: 'The requested page could not be located.',
+    path: '/404',
+  });
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center bg-ivory px-4 py-20 text-center">

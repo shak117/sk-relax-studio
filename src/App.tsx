@@ -5,6 +5,8 @@ import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 import { WhatsAppFloating } from './components/ui/WhatsAppFloating';
 import { ScrollToTop } from './components/ui/ScrollToTop';
+import { TrackingConsent } from './components/ui/TrackingConsent';
+import { initMetaPixel } from './services/analytics';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -30,6 +32,10 @@ function ScrollToTopOnRoute() {
 }
 
 export function App() {
+  useEffect(() => {
+    initMetaPixel();
+  }, []);
+
   return (
     <div className="flex flex-col min-h-screen bg-ivory selection:bg-rose-200 selection:text-forest-950">
       <ScrollToTopOnRoute />
@@ -59,6 +65,9 @@ export function App() {
       {/* Global Interactive Float Controls */}
       <WhatsAppFloating />
       <ScrollToTop />
+      
+      {/* Privacy & Cookie Consent Banner */}
+      <TrackingConsent />
     </div>
   );
 }
