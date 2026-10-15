@@ -38,6 +38,44 @@
   </head>
   <body class="bg-ivory text-forest-900 font-sans antialiased selection:bg-rose-200 selection:text-forest-900 overflow-x-hidden min-h-screen">
     <div id="root"></div>
+
+    <noscript>
+      <div style="min-height:100vh; background:#FAF7F2; color:#173222; display:flex; align-items:center; justify-content:center; padding:24px; font-family:system-ui,-apple-system,sans-serif; text-align:center;">
+        <div style="max-width:500px; width:100%; background:#fff; padding:32px; border-radius:4px; box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+          <h1 style="font-family:Georgia,serif; font-size:24px; color:#173222; margin-bottom:12px;">SK RELAX BEAUTY ACADEMY &amp; SALON</h1>
+          <p style="font-size:14px; line-height:1.6; color:#4A554E;">Please enable JavaScript in your browser to experience our salon website.</p>
+        </div>
+      </div>
+    </noscript>
+
+    <script>
+      // Graceful fallback if opened via file:// instead of a local HTTP server
+      if (window.location.protocol === 'file:') {
+        document.addEventListener('DOMContentLoaded', function() {
+          var root = document.getElementById('root');
+          if (root && (!root.innerHTML || root.innerHTML.trim() === '')) {
+            root.innerHTML = [
+              '<div style="min-height:100vh; background:#FAF7F2; color:#173222; display:flex; align-items:center; justify-content:center; padding:24px; font-family:system-ui,-apple-system,sans-serif; text-align:center;">',
+              '  <div style="max-width:580px; width:100%; background:#fff; padding:36px; border-radius:4px; box-shadow:0 10px 30px rgba(23,50,34,0.08); border:1px solid rgba(23,50,34,0.12);">',
+              '    <div style="font-size:11px; letter-spacing:0.25em; text-transform:uppercase; color:#C07474; font-weight:700; margin-bottom:8px;">SK Relax Beauty Academy &amp; Salon · Satara</div>',
+              '    <h1 style="font-family:Georgia,serif; font-size:26px; margin:0 0 16px; font-weight:400; color:#173222;">Local Development Notice</h1>',
+              '    <p style="font-size:14px; line-height:1.6; color:#4A554E; margin:0 0 20px;">',
+              '      You are viewing this file directly via <code>file://</code> in your browser. Modern browsers block React &amp; TypeScript modules when opened directly from local files.',
+              '    </p>',
+              '    <div style="background:#F5EFE8; border-radius:4px; padding:18px; margin-bottom:24px; text-align:left; font-size:13px; line-height:1.8; color:#173222;">',
+              '      <strong>To launch the website, choose either option:</strong><br/>',
+              '      1. <strong>Quick 1-Click:</strong> Double-click <code style="background:#fff; padding:2px 6px; border-radius:3px;">start-website.bat</code> in the project folder.<br/>',
+              '      2. <strong>Terminal:</strong> Run <code style="background:#fff; padding:2px 6px; border-radius:3px;">npm run dev</code> and open <a href="http://localhost:3000" style="color:#C07474; font-weight:600;">http://localhost:3000</a>.',
+              '    </div>',
+              '    <a href="http://localhost:3000" style="display:inline-block; background:#173222; color:#FAF7F2; text-decoration:none; padding:12px 24px; font-size:12px; letter-spacing:0.15em; text-transform:uppercase; font-weight:600; border-radius:3px;">Open http://localhost:3000</a>',
+              '  </div>',
+              '</div>'
+            ].join('');
+          }
+        });
+      }
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
