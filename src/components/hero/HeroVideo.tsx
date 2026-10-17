@@ -9,6 +9,7 @@ interface HeroVideoProps {
   posterSrc?: string;
   fallbackImageSrc?: string;
   onExploreClick?: () => void;
+  onServicesClick?: () => void;
 }
 
 export const HeroVideo: React.FC<HeroVideoProps> = ({
@@ -16,9 +17,11 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
   posterSrc = '/images/hero-poster.jpg',
   fallbackImageSrc = '/images/hero-fallback.jpg',
   onExploreClick,
+  onServicesClick,
 }) => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const reducedMotion = useReducedMotion();
 
@@ -26,23 +29,39 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
     const video = videoRef.current;
     if (!video || reducedMotion) return;
 
-    const handleCanPlay = () => {
+    let isMounted = true;
+
+    const handleVideoReady = () => {
+      if (!isMounted) return;
       setVideoLoaded(true);
-      // Ensure autoplay starts quietly
-      video.play().catch(() => {
-        // Autoplay policy fallback
-      });
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          if (isMounted) {
+            setAutoplayBlocked(true);
+          }
+        });
+      }
     };
 
     const handleError = () => {
-      setVideoFailed(true);
+      if (isMounted) {
+        setVideoFailed(true);
+      }
     };
 
-    video.addEventListener('canplay', handleCanPlay);
+    if (video.readyState >= 2) {
+      handleVideoReady();
+    }
+
+    video.addEventListener('loadeddata', handleVideoReady);
+    video.addEventListener('canplay', handleVideoReady);
     video.addEventListener('error', handleError);
 
     return () => {
-      video.removeEventListener('canplay', handleCanPlay);
+      isMounted = false;
+      video.removeEventListener('loadeddata', handleVideoReady);
+      video.removeEventListener('canplay', handleVideoReady);
       video.removeEventListener('error', handleError);
     };
   }, [reducedMotion, videoSrc]);
@@ -58,19 +77,21 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
     }
   };
 
+  const showVideo = !reducedMotion && !videoFailed && !autoplayBlocked;
+
   return (
     <section 
-      className="relative w-full h-[92vh] sm:h-[95vh] min-h-[580px] max-h-[960px] flex items-center justify-center overflow-hidden bg-forest-950 text-ivory select-none"
+      className="relative w-full min-h-[90svh] sm:min-h-[92svh] lg:min-h-[100svh] h-[92svh] sm:h-[95svh] lg:h-[100svh] max-h-[1080px] flex items-center justify-center overflow-hidden bg-forest-950 text-ivory select-none"
       aria-label="SK Relax Beauty Salon Hero"
     >
       {/* Background Media Container */}
-      <div className="absolute inset-0 w-full h-full overflow-hidden">
-        {/* Base Fallback Image (Always present underneath to prevent black screen) */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+        {/* Base Fallback Image (Underneath to prevent black screen) */}
         <img
           src={posterSrc || fallbackImageSrc}
           alt="SK Relax Beauty Salon Satara Interior & Hair Artistry"
           className="absolute inset-0 w-full h-full object-cover object-center scale-105 transition-opacity duration-1000"
-          style={{ opacity: videoLoaded && !videoFailed ? 0.35 : 0.85 }}
+          style={{ opacity: videoLoaded && showVideo ? 0.2 : 0.85 }}
           loading="eager"
         />
 
@@ -84,21 +105,23 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
             loop
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             aria-hidden="true"
+            tabIndex={-1}
             className={`absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-1000 ${
-              videoLoaded ? 'opacity-55' : 'opacity-0'
+              videoLoaded && showVideo ? 'opacity-90' : 'opacity-0'
             }`}
           />
         )}
 
-        {/* Editorial Multi-layer Gradient Overlay for Pristine Readability */}
+        {/* Subtle Dark Forest-Green Overlay */}
         <div 
-          className="absolute inset-0 bg-gradient-to-t from-forest-950 via-forest-950/60 to-forest-950/70"
+          className="absolute inset-0 bg-forest-950/45 mix-blend-multiply pointer-events-none"
           aria-hidden="true"
         />
+        {/* Refined gradient scrim: deeper at top (for navbar) and bottom (for section transition), clear in center */}
         <div 
-          className="absolute inset-0 bg-radial-gradient from-transparent via-forest-950/30 to-forest-950/80 mix-blend-multiply"
+          className="absolute inset-0 bg-gradient-to-b from-forest-950/75 via-forest-950/30 to-forest-950/85 pointer-events-none"
           aria-hidden="true"
         />
         {/* Subtle Luxury Pattern / Grain Touch */}
@@ -111,21 +134,21 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
       {/* Hero Foreground Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center pt-8 sm:pt-4">
         {/* Eyebrow */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-forest-900/70 backdrop-blur-md border border-gold-500/30 text-gold-300 text-[11px] sm:text-xs font-sans tracking-[0.25em] uppercase mb-6 sm:mb-8 animate-fade-in shadow-soft">
+        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-forest-900/75 backdrop-blur-md border border-gold-500/30 text-gold-300 text-[11px] sm:text-xs font-sans tracking-[0.25em] uppercase mb-6 sm:mb-8 animate-fade-in shadow-soft">
           <Sparkles size={13} className="text-gold-400" />
           <span>{BRAND.eyebrow}</span>
         </div>
 
         {/* Main Headline */}
-        <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight text-ivory leading-[1.08] sm:leading-[1.05] max-w-4xl text-balance">
+        <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight text-ivory leading-[1.08] sm:leading-[1.05] max-w-4xl text-balance drop-shadow-md">
           Your Beauty.
-          <span className="block font-serif italic text-gold-300 font-normal sm:mt-1">
+          <span className="block font-serif italic text-gold-300 font-normal sm:mt-1 drop-shadow-sm">
             Your Signature.
           </span>
         </h1>
 
         {/* Supporting Copy */}
-        <p className="mt-6 sm:mt-8 text-sm sm:text-base md:text-lg text-ivory-200/90 max-w-2xl font-sans font-light leading-relaxed">
+        <p className="mt-6 sm:mt-8 text-sm sm:text-base md:text-lg text-ivory-200/95 max-w-2xl font-sans font-light leading-relaxed drop-shadow-sm">
           Discover your style, embrace your beauty, and experience professional care designed around you.
         </p>
 
@@ -135,20 +158,21 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
             to="/booking"
             variant="gold"
             size="lg"
-            className="w-full sm:w-auto shadow-luxury"
+            className="w-full sm:w-auto shadow-luxury uppercase tracking-wider font-semibold"
             icon={<Calendar size={16} />}
           >
-            Book Your Appointment
+            BOOK YOUR APPOINTMENT
           </Button>
 
           <Button
             to="/services"
+            onClick={onServicesClick}
             variant="outline"
             size="lg"
-            className="w-full sm:w-auto border-ivory/40 text-ivory hover:text-forest-950 hover:bg-ivory hover:border-ivory"
+            className="w-full sm:w-auto border-ivory/50 text-ivory hover:text-forest-950 hover:bg-ivory hover:border-ivory uppercase tracking-wider font-semibold backdrop-blur-xs transition-all duration-300"
             icon={<Scissors size={15} />}
           >
-            Explore Our Services
+            EXPLORE OUR SERVICES
           </Button>
         </div>
 

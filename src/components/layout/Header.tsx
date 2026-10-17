@@ -39,7 +39,7 @@ export const Header: React.FC = () => {
       <header
         className={`sticky top-0 z-40 transition-all duration-300 ${
           isHeaderTransparent
-            ? 'bg-gradient-to-b from-forest-950/80 via-forest-950/40 to-transparent py-4 sm:py-5 text-ivory'
+            ? 'bg-forest-950/95 backdrop-blur-md py-3.5 sm:py-4 border-b border-forest-900/60 text-ivory'
             : 'bg-ivory/95 backdrop-blur-md py-3 sm:py-4 shadow-soft border-b border-forest-900/10 text-forest-900'
         }`}
       >

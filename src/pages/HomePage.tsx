@@ -228,7 +228,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4D. Featured Services Catalogue Grid */}
-      <section className="py-20 sm:py-28 bg-ivory text-forest-900 border-b border-forest-900/10">
+      <section id="services-section" className="py-20 sm:py-28 bg-ivory text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
             <div>

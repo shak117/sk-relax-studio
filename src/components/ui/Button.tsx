@@ -57,7 +57,7 @@ export const Button: React.FC<ButtonProps> = ({
 
   if (to) {
     return (
-      <Link to={to} className={`group ${combinedClasses}`}>
+      <Link to={to} onClick={rest.onClick as any} className={`group ${combinedClasses}`}>
         {content}
       </Link>
     );
@@ -70,6 +70,7 @@ export const Button: React.FC<ButtonProps> = ({
         className={`group ${combinedClasses}`}
         target={external ? "_blank" : undefined}
         rel={external ? "noopener noreferrer" : undefined}
+        onClick={rest.onClick as any}
       >
         {content}
       </a>
