@@ -6,7 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
-    open: true
+    open: true,
+    watch: {
+      ignored: ['**/hero-frames/**', '**/*.zip', '**/dist/**', '**/.git/**']
+    }
   },
   preview: {
     port: 3000,
