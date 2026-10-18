@@ -183,12 +183,17 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-forest-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-ivory-400 text-center sm:text-left">
+        <div className="pt-8 border-t border-forest-900 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-ivory-400 text-center md:text-left">
           <p>© {currentYear} {BRAND.name}. All rights reserved.</p>
-          <p className="flex items-center justify-center gap-1 text-[11px] text-ivory-400/80">
-            Crafted for <span className="text-rose-300">{BRAND.shortName}</span> · Satara, Maharashtra
-            <Heart size={11} className="text-rose-400 fill-rose-400 inline" />
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-[11px] text-ivory-400/80">
+            <p className="flex items-center justify-center gap-1">
+              Crafted with <Heart size={11} className="text-rose-400 fill-rose-400 inline" /> for <span className="text-rose-300 font-medium">{BRAND.shortName}</span>
+            </p>
+            <span className="hidden sm:inline text-forest-800">·</span>
+            <p className="text-ivory-400/70">
+              {BRAND.developer.label} <span className="text-gold-400 font-medium">{BRAND.developer.author}</span>
+            </p>
+          </div>
         </div>
       </div>
     </footer>

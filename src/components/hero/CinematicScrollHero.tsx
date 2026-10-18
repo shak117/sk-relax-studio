@@ -25,17 +25,24 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
   onServicesClick,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scrollTriggerRef = useRef<ScrollTrigger | null>(null);
 
-  // Scroll progress from 0 to 1
-  const [scrollProgress, setScrollProgress] = useState(0);
+  // Current progress tracked via ref to prevent 60fps React re-render thrashing
   const progressRef = useRef(0);
+  const rafIdRef = useRef<number | null>(null);
+
+  // Active stage (0, 1, 2, 3) for clean, performant React updates
+  const [activeStage, setActiveStage] = useState<number>(0);
+  // Current frame counter display (throttled to avoid re-rendering every frame)
+  const [displayedFrame, setDisplayedFrame] = useState<number>(1);
+  const lastFrameUpdateRef = useRef<number>(1);
 
   const reducedMotion = useReducedMotion();
   const { initialReady, getFrameAtProgress, poster, totalFrames } = useFrameSequence();
 
-  // Draw frame on canvas with cover crop
+  // Draw frame on canvas with cover crop & high-DPI scaling
   const drawFrame = useCallback((img: HTMLImageElement | null) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -80,7 +87,6 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
 
       ctx.drawImage(img, offX, offY, drawW, drawH);
     } else {
-      // Background fallback fill
       ctx.fillStyle = '#0F2417'; // forest-950
       ctx.fillRect(0, 0, width, height);
     }
@@ -88,67 +94,98 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
     ctx.restore();
   }, []);
 
-  // Update canvas on progress change
-  const renderCurrentProgress = useCallback((prog: number) => {
+  // RAF-throttled canvas rendering
+  const scheduleDraw = useCallback((prog: number) => {
     progressRef.current = prog;
-    const img = getFrameAtProgress(prog);
-    drawFrame(img);
-  }, [drawFrame, getFrameAtProgress]);
+
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+    }
+
+    rafIdRef.current = requestAnimationFrame(() => {
+      const img = getFrameAtProgress(progressRef.current);
+      drawFrame(img);
+
+      // Throttled frame counter update (update at most every 4 frames)
+      const currentIdx = Math.min(totalFrames, Math.floor(progressRef.current * (totalFrames - 1)) + 1);
+      if (Math.abs(currentIdx - lastFrameUpdateRef.current) >= 4 || currentIdx === 1 || currentIdx === totalFrames) {
+        lastFrameUpdateRef.current = currentIdx;
+        setDisplayedFrame(currentIdx);
+      }
+
+      // Update active stage only when boundary crossed
+      let newStage = 0;
+      if (progressRef.current >= 0.74) {
+        newStage = 3;
+      } else if (progressRef.current >= 0.48) {
+        newStage = 2;
+      } else if (progressRef.current >= 0.22) {
+        newStage = 1;
+      }
+
+      setActiveStage((prev) => (prev !== newStage ? newStage : prev));
+      rafIdRef.current = null;
+    });
+  }, [drawFrame, getFrameAtProgress, totalFrames]);
 
   // Handle Resize
   useEffect(() => {
     const handleResize = () => {
-      renderCurrentProgress(progressRef.current);
+      scheduleDraw(progressRef.current);
       ScrollTrigger.refresh();
     };
 
     window.addEventListener('resize', handleResize, { passive: true });
     return () => window.removeEventListener('resize', handleResize);
-  }, [renderCurrentProgress]);
+  }, [scheduleDraw]);
 
-  // Initial draw once ready
+  // Initial draw once first frame ready
   useEffect(() => {
     if (initialReady) {
-      renderCurrentProgress(progressRef.current);
+      scheduleDraw(0);
     }
-  }, [initialReady, renderCurrentProgress]);
+  }, [initialReady, scheduleDraw]);
 
-  // GSAP ScrollTrigger Setup
+  // GSAP ScrollTrigger with robust PINNING (pin: true)
   useEffect(() => {
     if (reducedMotion) return;
 
     const container = containerRef.current;
-    if (!container) return;
+    const stage = stageRef.current;
+    if (!container || !stage) return;
 
-    // Create single unified timeline across all 720 frames (3 parts combined)
+    // Use GSAP's native pin mechanism for bulletproof locking across all browsers
     const trigger = ScrollTrigger.create({
       trigger: container,
+      pin: stage,
       start: 'top top',
-      end: 'bottom bottom',
-      scrub: 0.35, // Buttery responsive scrubbing
-      pin: false,  // Handled by CSS sticky for perfect performance & zero layout shift
+      end: '+=2800', // Configured scroll duration in pixels (~350vh equivalent)
+      scrub: 0.25,  // Fast, responsive bi-directional scrub
+      anticipatePin: 1,
       onUpdate: (self) => {
-        const prog = self.progress;
-        setScrollProgress(prog);
-        renderCurrentProgress(prog);
+        scheduleDraw(self.progress);
       },
     });
 
     scrollTriggerRef.current = trigger;
 
     return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
       trigger.kill();
       scrollTriggerRef.current = null;
     };
-  }, [reducedMotion, renderCurrentProgress]);
+  }, [reducedMotion, scheduleDraw]);
 
   // Helper to scroll to specific stage milestone
-  const scrollToStage = (targetProgress: number) => {
-    const container = containerRef.current;
-    if (!container) return;
-    const containerTop = container.offsetTop;
-    const scrollableDistance = container.offsetHeight - window.innerHeight;
-    const targetScrollY = containerTop + targetProgress * scrollableDistance;
+  const scrollToStage = (stageIndex: number) => {
+    const trigger = scrollTriggerRef.current;
+    if (!trigger) return;
+
+    const progressMilestones = [0.05, 0.35, 0.62, 0.88];
+    const targetProg = progressMilestones[stageIndex] ?? 0;
+    const targetScrollY = trigger.start + targetProg * (trigger.end - trigger.start);
 
     window.scrollTo({
       top: targetScrollY,
@@ -156,23 +193,13 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
     });
   };
 
-  // Stage active check helpers (with soft fade-in/out thresholds)
-  const getStageOpacity = (stageMin: number, stageMax: number): number => {
-    const p = scrollProgress;
-    const fadeIn = 0.04;
-    const fadeOut = 0.04;
-
-    if (p < stageMin - fadeIn || p > stageMax + fadeOut) return 0;
-    if (p >= stageMin && p <= stageMax) return 1;
-    if (p < stageMin) return (p - (stageMin - fadeIn)) / fadeIn;
-    if (p > stageMax) return 1 - (p - stageMax) / fadeOut;
-    return 1;
+  // Skip animation directly to salon introduction
+  const handleSkipToContent = () => {
+    const target = document.getElementById('brand-intro');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
   };
-
-  const stage1Opacity = getStageOpacity(0.00, 0.22);
-  const stage2Opacity = getStageOpacity(0.26, 0.49);
-  const stage3Opacity = getStageOpacity(0.53, 0.74);
-  const stage4Opacity = getStageOpacity(0.78, 1.00);
 
   // If user has prefers-reduced-motion, provide static, accessible view
   if (reducedMotion) {
@@ -214,12 +241,14 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-[380vh] bg-forest-950 select-none"
+      className="relative w-full bg-forest-950 select-none"
       aria-label="SK Relax Cinematic Scroll Experience"
     >
-      {/* Pinned Sticky Visual Stage (Full Viewport) */}
-      <div className="sticky top-0 w-full h-[100svh] min-h-[580px] overflow-hidden flex items-center justify-center">
-        
+      {/* Visual Stage Container (Pinned by GSAP ScrollTrigger) */}
+      <div 
+        ref={stageRef}
+        className="w-full h-[100svh] min-h-[580px] overflow-hidden flex items-center justify-center relative bg-forest-950"
+      >
         {/* HTML5 Canvas — 720 Combined Frames (Part 1 -> Part 2 -> Part 3) */}
         <canvas
           ref={canvasRef}
@@ -252,14 +281,11 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
           style={{ backgroundImage: `radial-gradient(#CAA454 1px, transparent 1px)`, backgroundSize: '24px 24px' }}
         />
 
-        {/* STAGE 1: Salon Reveal (0% - 25%) */}
+        {/* STAGE 1: Salon Reveal */}
         <div 
-          className="absolute inset-0 flex items-center justify-center p-4 sm:p-6 lg:p-8 pointer-events-none transition-all duration-300"
-          style={{ 
-            opacity: stage1Opacity, 
-            transform: `translateY(${(1 - stage1Opacity) * 20}px)`,
-            visibility: stage1Opacity > 0 ? 'visible' : 'hidden'
-          }}
+          className={`absolute inset-0 flex items-center justify-center p-4 sm:p-6 lg:p-8 pointer-events-none transition-all duration-500 ease-out ${
+            activeStage === 0 ? 'opacity-100 translate-y-0 visible' : 'opacity-0 translate-y-4 invisible'
+          }`}
         >
           <div className="max-w-4xl mx-auto text-center flex flex-col items-center pointer-events-auto">
             {/* Eyebrow */}
@@ -313,14 +339,11 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
           </div>
         </div>
 
-        {/* STAGE 2: Professional Artistry (25% - 50%) */}
+        {/* STAGE 2: Professional Artistry */}
         <div 
-          className="absolute inset-0 flex items-center justify-center p-4 sm:p-6 lg:p-8 pointer-events-none transition-all duration-300"
-          style={{ 
-            opacity: stage2Opacity, 
-            transform: `translateY(${(1 - stage2Opacity) * 20}px)`,
-            visibility: stage2Opacity > 0 ? 'visible' : 'hidden'
-          }}
+          className={`absolute inset-0 flex items-center justify-center p-4 sm:p-6 lg:p-8 pointer-events-none transition-all duration-500 ease-out ${
+            activeStage === 1 ? 'opacity-100 translate-y-0 visible' : 'opacity-0 translate-y-4 invisible'
+          }`}
         >
           <div className="max-w-4xl mx-auto text-center flex flex-col items-center pointer-events-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-950/60 backdrop-blur-md border border-rose-400/30 text-rose-300 text-xs font-sans tracking-[0.2em] uppercase mb-5">
@@ -349,14 +372,11 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
           </div>
         </div>
 
-        {/* STAGE 3: Beauty Services & Academy (50% - 75%) */}
+        {/* STAGE 3: Beauty Services & Academy */}
         <div 
-          className="absolute inset-0 flex items-center justify-center p-4 sm:p-6 lg:p-8 pointer-events-none transition-all duration-300"
-          style={{ 
-            opacity: stage3Opacity, 
-            transform: `translateY(${(1 - stage3Opacity) * 20}px)`,
-            visibility: stage3Opacity > 0 ? 'visible' : 'hidden'
-          }}
+          className={`absolute inset-0 flex items-center justify-center p-4 sm:p-6 lg:p-8 pointer-events-none transition-all duration-500 ease-out ${
+            activeStage === 2 ? 'opacity-100 translate-y-0 visible' : 'opacity-0 translate-y-4 invisible'
+          }`}
         >
           <div className="max-w-4xl mx-auto text-center flex flex-col items-center pointer-events-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-forest-900/80 backdrop-blur-md border border-gold-500/30 text-gold-300 text-xs font-sans tracking-[0.2em] uppercase mb-5">
@@ -400,14 +420,11 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
           </div>
         </div>
 
-        {/* STAGE 4: Final Reveal & Next Look (75% - 100%) */}
+        {/* STAGE 4: Final Reveal & Next Look */}
         <div 
-          className="absolute inset-0 flex items-center justify-center p-4 sm:p-6 lg:p-8 pointer-events-none transition-all duration-300"
-          style={{ 
-            opacity: stage4Opacity, 
-            transform: `translateY(${(1 - stage4Opacity) * 20}px)`,
-            visibility: stage4Opacity > 0 ? 'visible' : 'hidden'
-          }}
+          className={`absolute inset-0 flex items-center justify-center p-4 sm:p-6 lg:p-8 pointer-events-none transition-all duration-500 ease-out ${
+            activeStage === 3 ? 'opacity-100 translate-y-0 visible' : 'opacity-0 translate-y-4 invisible'
+          }`}
         >
           <div className="max-w-4xl mx-auto text-center flex flex-col items-center pointer-events-auto">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/60 backdrop-blur-md border border-emerald-400/30 text-emerald-300 text-xs font-sans tracking-[0.2em] uppercase mb-5">
@@ -451,43 +468,53 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
         {/* Milestone Indicator on Right Edge (Interactive Dots) */}
         <div className="hidden sm:flex absolute right-6 top-1/2 -translate-y-1/2 flex-col gap-3 z-30 pointer-events-auto">
           {[
-            { label: 'Reveal', progress: 0.10, active: scrollProgress <= 0.25 },
-            { label: 'Artistry', progress: 0.38, active: scrollProgress > 0.25 && scrollProgress <= 0.52 },
-            { label: 'Academy', progress: 0.65, active: scrollProgress > 0.52 && scrollProgress <= 0.78 },
-            { label: 'Next Look', progress: 0.90, active: scrollProgress > 0.78 },
-          ].map((item, idx) => (
+            { label: 'Reveal', stage: 0 },
+            { label: 'Artistry', stage: 1 },
+            { label: 'Academy', stage: 2 },
+            { label: 'Next Look', stage: 3 },
+          ].map((item) => (
             <button
-              key={idx}
-              onClick={() => scrollToStage(item.progress)}
-              className="group flex items-center justify-end gap-2 focus:outline-none cursor-pointer"
+              key={item.stage}
+              onClick={() => scrollToStage(item.stage)}
+              className="group flex items-center justify-end gap-2 focus:outline-none cursor-pointer py-1"
               aria-label={`Jump to ${item.label} stage`}
             >
-              <span className={`text-[10px] uppercase font-sans tracking-widest transition-all duration-300 opacity-0 group-hover:opacity-100 ${
-                item.active ? 'text-gold-300 font-semibold opacity-80' : 'text-ivory-400'
+              <span className={`text-[10px] uppercase font-sans tracking-widest transition-all duration-300 ${
+                activeStage === item.stage ? 'text-gold-300 font-semibold opacity-100' : 'text-ivory-400/60 opacity-0 group-hover:opacity-100'
               }`}>
                 {item.label}
               </span>
-              <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                item.active 
-                  ? 'bg-gold-400 scale-125 ring-2 ring-gold-400/40' 
-                  : 'bg-ivory/40 group-hover:bg-ivory/80'
+              <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                activeStage === item.stage 
+                  ? 'bg-gold-400 scale-125 ring-4 ring-gold-400/30' 
+                  : 'bg-ivory/30 group-hover:bg-ivory/70'
               }`} />
             </button>
           ))}
         </div>
 
+        {/* Discrete Skip Button to jump past animation to Salon Menu */}
+        <button
+          onClick={handleSkipToContent}
+          className="absolute top-6 right-6 z-30 hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-forest-900/60 hover:bg-forest-900/90 border border-ivory/20 text-ivory-300 hover:text-gold-300 text-[11px] font-sans uppercase tracking-widest backdrop-blur-md transition-all cursor-pointer"
+          aria-label="Skip animation and explore salon catalogue"
+        >
+          <span>Skip to Menu</span>
+          <ArrowDown size={11} />
+        </button>
+
         {/* Cinematic Scrub Timeline Bar at Bottom */}
-        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-forest-900/60 z-30 pointer-events-none">
+        <div className="absolute bottom-0 left-0 w-full h-[2.5px] bg-forest-900/60 z-30 pointer-events-none">
           <div 
-            className="h-full bg-gradient-to-r from-gold-500 via-rose-400 to-gold-400 transition-all duration-100"
-            style={{ width: `${Math.min(100, Math.max(0, scrollProgress * 100))}%` }}
+            className="h-full bg-gradient-to-r from-gold-500 via-rose-400 to-gold-400 transition-all duration-75"
+            style={{ width: `${(displayedFrame / totalFrames) * 100}%` }}
           />
         </div>
 
         {/* Frame Progress Counter (Subtle Luxury Monospace Pill) */}
-        <div className="absolute bottom-4 left-6 z-30 hidden sm:flex items-center gap-2 text-[10px] uppercase tracking-widest font-mono text-ivory-400/70 pointer-events-none">
-          <span>Frame {Math.min(totalFrames, Math.floor(scrollProgress * (totalFrames - 1)) + 1)}</span>
-          <span>/</span>
+        <div className="absolute bottom-4 left-6 z-30 hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-forest-950/70 backdrop-blur-md border border-ivory/10 text-[10px] uppercase tracking-widest font-mono text-ivory-300/80 pointer-events-none">
+          <span className="text-gold-400 font-bold">FRAME {displayedFrame}</span>
+          <span className="opacity-40">/</span>
           <span>{totalFrames}</span>
         </div>
       </div>

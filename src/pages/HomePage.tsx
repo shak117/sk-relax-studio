@@ -7,7 +7,9 @@ import {
   Calendar, 
   ArrowRight, 
   Check, 
-  ShieldCheck
+  ShieldCheck,
+  MapPin,
+  Navigation
 } from 'lucide-react';
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { SERVICES } from '../data/servicesData';
@@ -70,7 +72,7 @@ export const HomePage: React.FC = () => {
   const masterclass = COURSES[0];
 
   return (
-    <div className="space-y-0 overflow-hidden">
+    <div className="space-y-0 relative">
       {/* 4B. Cinematic Frame-by-Frame Scroll Animation (720 Combined Frames) */}
       <CinematicScrollHero />
 
@@ -502,6 +504,74 @@ export const HomePage: React.FC = () => {
               Satara, Maharashtra · WhatsApp / Calls: <a href={`tel:${BRAND.whatsappNumber}`} className="text-gold-300 underline font-medium">{BRAND.phone}</a>
             </p>
           </ScrollReveal>
+        </div>
+      </section>
+
+      {/* 4J. Google Maps Studio Location */}
+      <section className="py-16 sm:py-24 bg-cream-100 text-forest-900 border-t border-forest-900/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            <div className="lg:col-span-5 space-y-4">
+              <ScrollReveal direction="left">
+                <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600">
+                  <MapPin size={14} />
+                  <span>Visit Our Studio</span>
+                </div>
+                <h3 className="font-serif text-3xl sm:text-4xl text-forest-900 font-light">
+                  Find Us in <span className="font-serif italic text-rose-600">Satara</span>
+                </h3>
+                <p className="text-sm text-forest-700 leading-relaxed font-sans">
+                  Located in the heart of Satara, Maharashtra. Enjoy sterile hygiene, unhurried personal styling consultations, and comfortable salon amenities.
+                </p>
+                <div className="pt-2 space-y-2 text-xs sm:text-sm text-forest-800 font-sans border-t border-forest-900/10">
+                  <div className="flex justify-between py-1 border-b border-forest-900/5">
+                    <span className="font-medium text-forest-900">City / State</span>
+                    <span className="text-forest-700">Satara, Maharashtra, India</span>
+                  </div>
+                  <div className="flex justify-between py-1 border-b border-forest-900/5">
+                    <span className="font-medium text-forest-900">Phone / WhatsApp</span>
+                    <span className="text-forest-700">{BRAND.phone}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium text-forest-900">Studio Hours</span>
+                    <span className="text-forest-700">Mon – Sat: 10AM – 8PM</span>
+                  </div>
+                </div>
+                <div className="pt-4 flex flex-wrap items-center gap-3">
+                  <a
+                    href={BRAND.googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-sm bg-forest-900 text-ivory hover:bg-forest-800 text-xs font-sans font-medium uppercase tracking-wider transition-colors shadow-soft"
+                  >
+                    <span>Open in Google Maps</span>
+                    <Navigation size={12} className="text-gold-400" />
+                  </a>
+                  <Button to="/contact" variant="outline" size="sm">
+                    View Contact Details
+                  </Button>
+                </div>
+              </ScrollReveal>
+            </div>
+
+            <div className="lg:col-span-7">
+              <ScrollReveal direction="right">
+                <div className="w-full aspect-[16/10] sm:aspect-[16/9] rounded-sm overflow-hidden border border-forest-900/15 shadow-card bg-cream-200">
+                  <iframe
+                    title="SK Relax Beauty Academy & Salon Google Maps Satara"
+                    src={BRAND.googleMapsEmbedUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="w-full h-full"
+                  />
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
         </div>
       </section>
     </div>

@@ -23,6 +23,13 @@ export const BRAND = {
     text: "Enquire now for the next 3-Day Hair Cutting Masterclass batch with hands-on dummy practice!",
     linkText: "View Masterclass Details",
     linkUrl: "/academy"
+  },
+  googleMapsUrl: "https://maps.google.com/?q=Satara%2C+Maharashtra%2C+India",
+  googleMapsEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d60927.87321035041!2d73.9780137!3d17.6804639!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc239be08d96bbd%3A0x5f4ada5501d688cf!2sSatara%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
+  developer: {
+    label: "Website Designed & Engineered with",
+    author: "Full-Stack Web Engineering",
+    tagline: "High-Performance Canvas Architecture"
   }
 };
 

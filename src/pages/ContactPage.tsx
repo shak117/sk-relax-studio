@@ -152,7 +152,7 @@ export const ContactPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Map / Directions Placeholder */}
+              {/* Map / Directions Embed */}
               <div className="p-6 bg-white rounded-sm border border-forest-900/10 shadow-soft">
                 <div className="flex items-center justify-between mb-3">
                   <span className="font-serif text-lg text-forest-900 font-medium flex items-center gap-2">
@@ -163,16 +163,28 @@ export const ContactPage: React.FC = () => {
                     Satara, Maharashtra
                   </span>
                 </div>
-                <p className="text-xs text-forest-700 leading-relaxed font-sans mb-4">
-                  Conveniently situated in Satara city. Pin-point Google Maps location, landmark guidance, and parking instructions are provided directly to your WhatsApp when you schedule your appointment.
+                <p className="text-xs text-forest-700 leading-relaxed font-sans mb-3">
+                  Conveniently situated in Satara city. Interactive Google Maps location and live navigation below:
                 </p>
+                <div className="w-full aspect-[16/10] sm:aspect-[16/9] rounded-sm overflow-hidden border border-forest-900/10 mb-3 bg-cream-100">
+                  <iframe
+                    title="SK Relax Beauty Academy & Salon Location in Satara"
+                    src={BRAND.googleMapsEmbedUrl}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
                 <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent('Satara, Maharashtra, India')}`}
+                  href={BRAND.googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs text-forest-900 hover:text-forest-700 font-semibold underline underline-offset-4"
+                  className="inline-flex items-center gap-1.5 text-xs text-forest-900 hover:text-emerald-700 font-semibold underline underline-offset-4"
                 >
-                  <span>Open Satara Map in Google Maps</span>
+                  <span>Open Full Directions in Google Maps</span>
                   <Navigation size={12} />
                 </a>
               </div>

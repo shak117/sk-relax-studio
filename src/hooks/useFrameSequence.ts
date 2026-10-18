@@ -10,7 +10,7 @@ interface UseFrameSequenceOptions {
 export function useFrameSequence(options: UseFrameSequenceOptions = {}) {
   const {
     manifestUrl = '/hero-frames/manifest.json',
-    preloadWindow = 20,
+    preloadWindow = 12,
     maxConcurrent = 6,
   } = options;
 
@@ -18,16 +18,18 @@ export function useFrameSequence(options: UseFrameSequenceOptions = {}) {
   const [initialReady, setInitialReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Cached HTMLImageElement instances
+  // Cache: index -> HTMLImageElement
   const imageCacheRef = useRef<Map<number, HTMLImageElement>>(new Map());
-  const activeLoadsRef = useRef<number>(0);
-  const queueRef = useRef<number[]>([]);
+  // Set of currently active network fetches
+  const inFlightRef = useRef<Set<number>>(new Set());
+  // High-priority priority queue of indices to load
+  const priorityQueueRef = useRef<number[]>([]);
   const isMountedRef = useRef(true);
 
-  // Track the most recent successfully rendered or ready image
+  // Most recent valid loaded image to prevent blank flashes
   const lastValidImageRef = useRef<HTMLImageElement | null>(null);
 
-  // Load manifest once on mount
+  // 1. Fetch manifest
   useEffect(() => {
     isMountedRef.current = true;
     let ignore = false;
@@ -54,127 +56,142 @@ export function useFrameSequence(options: UseFrameSequenceOptions = {}) {
     };
   }, [manifestUrl]);
 
-  // Load a single frame by index
-  const loadFrame = useCallback((index: number, frames: string[]): Promise<HTMLImageElement> => {
-    return new Promise((resolve, reject) => {
-      if (imageCacheRef.current.has(index)) {
-        resolve(imageCacheRef.current.get(index)!);
-        return;
-      }
+  // 2. Load single frame with off-thread decode
+  const loadSingleFrame = useCallback(async (index: number, frames: string[]): Promise<HTMLImageElement | null> => {
+    if (imageCacheRef.current.has(index)) {
+      return imageCacheRef.current.get(index)!;
+    }
+    if (index < 0 || index >= frames.length) {
+      return null;
+    }
 
-      if (index < 0 || index >= frames.length) {
-        reject(new Error(`Index ${index} out of bounds`));
-        return;
-      }
+    inFlightRef.current.add(index);
 
+    try {
       const img = new Image();
       img.src = frames[index];
 
-      img.onload = () => {
-        if (isMountedRef.current) {
-          imageCacheRef.current.set(index, img);
-          if (!lastValidImageRef.current) {
-            lastValidImageRef.current = img;
-          }
-        }
-        resolve(img);
-      };
+      // Decode off main thread
+      try {
+        await img.decode();
+      } catch {
+        // Fallback for decode error or unloaded image
+      }
 
-      img.onerror = () => {
-        reject(new Error(`Failed to load frame ${index}`));
-      };
-    });
+      if (isMountedRef.current && img.naturalWidth > 0) {
+        imageCacheRef.current.set(index, img);
+        if (!lastValidImageRef.current) {
+          lastValidImageRef.current = img;
+        }
+        return img;
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      inFlightRef.current.delete(index);
+    }
   }, []);
 
-  // Process image queue
-  const processQueue = useCallback((frames: string[]) => {
-    while (activeLoadsRef.current < maxConcurrent && queueRef.current.length > 0) {
-      const nextIdx = queueRef.current.shift();
-      if (nextIdx === undefined || imageCacheRef.current.has(nextIdx)) continue;
+  // 3. Process priority queue
+  const pumpQueue = useCallback((frames: string[]) => {
+    while (inFlightRef.current.size < maxConcurrent && priorityQueueRef.current.length > 0) {
+      const target = priorityQueueRef.current.shift();
+      if (target === undefined || imageCacheRef.current.has(target) || inFlightRef.current.has(target)) {
+        continue;
+      }
 
-      activeLoadsRef.current++;
-      loadFrame(nextIdx, frames)
-        .catch(() => {})
-        .finally(() => {
-          activeLoadsRef.current--;
-          if (isMountedRef.current) {
-            processQueue(frames);
-          }
-        });
-    }
-  }, [loadFrame, maxConcurrent]);
-
-  // Preload priority frames when manifest arrives
-  useEffect(() => {
-    if (!manifest || manifest.frames.length === 0) return;
-
-    const frames = manifest.frames;
-    
-    // Load frame 0 immediately
-    loadFrame(0, frames)
-      .then((img) => {
+      loadSingleFrame(target, frames).then(() => {
         if (isMountedRef.current) {
-          lastValidImageRef.current = img;
-          setInitialReady(true);
-        }
-      })
-      .catch(() => {
-        if (isMountedRef.current) {
-          // Fallback to poster if frame 0 fails
-          setInitialReady(true);
+          pumpQueue(frames);
         }
       });
+    }
+  }, [loadSingleFrame, maxConcurrent]);
 
-    // Queue first 25 frames
-    const initialBatch = Array.from({ length: Math.min(25, frames.length) }, (_, i) => i);
-    queueRef.current.push(...initialBatch);
-    processQueue(frames);
-  }, [manifest, loadFrame, processQueue]);
+  // 4. Initial load: immediately preload first batch
+  useEffect(() => {
+    if (!manifest || manifest.frames.length === 0) return;
+    const frames = manifest.frames;
 
-  // Prefetch around current index as user scrolls
-  const prefetchAround = useCallback((centerIndex: number) => {
+    // Load frame 0 immediately
+    loadSingleFrame(0, frames).then((firstImg) => {
+      if (isMountedRef.current) {
+        if (firstImg) {
+          lastValidImageRef.current = firstImg;
+        }
+        setInitialReady(true);
+      }
+    });
+
+    // Queue first 20 frames for initial smooth scrub
+    const initialBatch = Array.from({ length: Math.min(20, frames.length) }, (_, i) => i);
+    priorityQueueRef.current = initialBatch;
+    pumpQueue(frames);
+  }, [manifest, loadSingleFrame, pumpQueue]);
+
+  // 5. Intelligent priority preloading based on current scroll target
+  const prefetchAroundTarget = useCallback((centerIdx: number) => {
     if (!manifest) return;
     const frames = manifest.frames;
-    const start = Math.max(0, centerIndex - 5);
-    const end = Math.min(frames.length - 1, centerIndex + preloadWindow);
+    const total = frames.length;
 
-    for (let i = start; i <= end; i++) {
-      if (!imageCacheRef.current.has(i) && !queueRef.current.includes(i)) {
-        queueRef.current.push(i);
+    // Build urgent priority list: centerIdx first, then forward window, then backward window
+    const urgent: number[] = [];
+    if (!imageCacheRef.current.has(centerIdx) && !inFlightRef.current.has(centerIdx)) {
+      urgent.push(centerIdx);
+    }
+
+    // Look forward
+    for (let f = 1; f <= preloadWindow; f++) {
+      const idx = centerIdx + f;
+      if (idx < total && !imageCacheRef.current.has(idx) && !inFlightRef.current.has(idx)) {
+        urgent.push(idx);
       }
     }
-    processQueue(frames);
-  }, [manifest, preloadWindow, processQueue]);
 
-  // Retrieve best available image for a given progress (0 to 1)
+    // Look backward
+    for (let b = 1; b <= 4; b++) {
+      const idx = centerIdx - b;
+      if (idx >= 0 && !imageCacheRef.current.has(idx) && !inFlightRef.current.has(idx)) {
+        urgent.push(idx);
+      }
+    }
+
+    // Prepend urgent indices to front of queue
+    priorityQueueRef.current = Array.from(new Set([...urgent, ...priorityQueueRef.current.slice(0, 30)]));
+    pumpQueue(frames);
+  }, [manifest, preloadWindow, pumpQueue]);
+
+  // 6. Fast non-blocking frame retrieval
   const getFrameAtProgress = useCallback((progress: number): HTMLImageElement | null => {
     if (!manifest || manifest.frames.length === 0) {
       return lastValidImageRef.current;
     }
 
     const total = manifest.frames.length;
-    const clampedProgress = Math.max(0, Math.min(1, progress));
-    const targetIdx = Math.min(Math.floor(clampedProgress * (total - 1)), total - 1);
+    const clamped = Math.max(0, Math.min(1, progress));
+    const targetIdx = Math.min(Math.floor(clamped * (total - 1)), total - 1);
 
-    // Prefetch around this index
-    prefetchAround(targetIdx);
+    // Prioritize loading near targetIdx
+    prefetchAroundTarget(targetIdx);
 
-    // Exact match
+    // Exact hit
     if (imageCacheRef.current.has(targetIdx)) {
-      const img = imageCacheRef.current.get(targetIdx)!;
-      lastValidImageRef.current = img;
-      return img;
+      const hit = imageCacheRef.current.get(targetIdx)!;
+      lastValidImageRef.current = hit;
+      return hit;
     }
 
-    // Search closest available loaded frame (look backward first, then forward)
-    for (let delta = 1; delta <= 30; delta++) {
-      const prev = targetIdx - delta;
+    // Find nearest cached frame within search distance
+    for (let dist = 1; dist <= 60; dist++) {
+      const prev = targetIdx - dist;
       if (prev >= 0 && imageCacheRef.current.has(prev)) {
         const img = imageCacheRef.current.get(prev)!;
         lastValidImageRef.current = img;
         return img;
       }
-      const next = targetIdx + delta;
+      const next = targetIdx + dist;
       if (next < total && imageCacheRef.current.has(next)) {
         const img = imageCacheRef.current.get(next)!;
         lastValidImageRef.current = img;
@@ -182,9 +199,8 @@ export function useFrameSequence(options: UseFrameSequenceOptions = {}) {
       }
     }
 
-    // Return last valid loaded image
     return lastValidImageRef.current;
-  }, [manifest, prefetchAround]);
+  }, [manifest, prefetchAroundTarget]);
 
   return {
     manifest,
