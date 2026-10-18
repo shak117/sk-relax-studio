@@ -525,8 +525,8 @@ export const HomePage: React.FC = () => {
                 </p>
                 <div className="pt-2 space-y-2 text-xs sm:text-sm text-forest-800 font-sans border-t border-forest-900/10">
                   <div className="flex justify-between py-1 border-b border-forest-900/5">
-                    <span className="font-medium text-forest-900">City / State</span>
-                    <span className="text-forest-700">Satara, Maharashtra, India</span>
+                    <span className="font-medium text-forest-900 flex-shrink-0">Studio Address</span>
+                    <span className="text-forest-700 text-right text-xs max-w-[240px]">{BRAND.locationName}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-forest-900/5">
                     <span className="font-medium text-forest-900">Phone / WhatsApp</span>
@@ -534,7 +534,7 @@ export const HomePage: React.FC = () => {
                   </div>
                   <div className="flex justify-between py-1">
                     <span className="font-medium text-forest-900">Studio Hours</span>
-                    <span className="text-forest-700">Mon – Sat: 10AM – 8PM</span>
+                    <span className="text-forest-700">Mon – Sun: 11:00 AM – 6:00 PM</span>
                   </div>
                 </div>
                 <div className="pt-4 flex flex-wrap items-center gap-3">

@@ -36,8 +36,10 @@ export function generateLocalBusinessSchema() {
     ],
     address: {
       '@type': 'PostalAddress',
+      streetAddress: '6, Rajwada Cir, near IDBI Bank, Pratapganj Peth, Shaniwar Peth, Malhar Peth',
       addressLocality: 'Satara',
       addressRegion: 'Maharashtra',
+      postalCode: '415002',
       addressCountry: 'IN'
     },
     sameAs: [
@@ -46,14 +48,8 @@ export function generateLocalBusinessSchema() {
     openingHoursSpecification: [
       {
         '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-        opens: '10:00',
-        closes: '20:00'
-      },
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Sunday'],
-        opens: '10:00',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+        opens: '11:00',
         closes: '18:00'
       }
     ],

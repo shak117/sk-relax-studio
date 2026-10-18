@@ -30,26 +30,26 @@ export const ContactPage: React.FC = () => {
   return (
     <div className="bg-ivory text-forest-900 min-h-screen">
       {/* Contact Hero */}
-      <section className="bg-forest-950 text-ivory py-16 sm:py-20 relative overflow-hidden border-b border-forest-800">
+      <section className="bg-forest-950 text-ivory py-10 sm:py-14 relative overflow-hidden border-b border-forest-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase mb-3">
             <MapPin size={14} />
             <span>Satara, Maharashtra, India</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-white leading-tight">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-white leading-tight">
             Connect with <span className="font-serif italic text-gold-300">SK Relax</span>
           </h1>
 
-          <p className="mt-4 text-sm sm:text-base text-ivory-200/85 max-w-xl mx-auto font-sans leading-relaxed">
+          <p className="mt-2 text-xs sm:text-sm text-ivory-200/85 max-w-xl mx-auto font-sans leading-relaxed">
             We welcome appointments, bridal consultations, and academy student inquiries. Get in touch with our team in Satara.
           </p>
         </div>
       </section>
 
       {/* Main Contact Grid */}
-      <section className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Contact Details & Cards (Left Column) */}
           <div className="lg:col-span-5 space-y-6">
             <ScrollReveal direction="left">
@@ -70,10 +70,7 @@ export const ContactPage: React.FC = () => {
                     </div>
                     <div>
                       <p className="font-medium text-forest-900">Studio Location</p>
-                      <p className="text-forest-600 mt-0.5">{BRAND.locationName}</p>
-                      <p className="text-[11px] text-forest-400 mt-0.5 italic">
-                        * Exact landmark & directions provided upon appointment confirmation.
-                      </p>
+                      <p className="text-forest-600 mt-0.5 leading-relaxed">{BRAND.address}</p>
                     </div>
                   </div>
 

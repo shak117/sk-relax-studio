@@ -22,28 +22,28 @@ export const BookingPage: React.FC = () => {
   });
 
   return (
-    <div className="bg-ivory text-forest-900 min-h-screen">
-      {/* Booking Hero */}
-      <section className="bg-forest-950 text-ivory py-16 sm:py-20 relative overflow-hidden border-b border-forest-800">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase mb-4">
-            <Calendar size={14} />
-            <span>Direct WhatsApp Scheduling</span>
+    <div className="bg-ivory text-forest-900 min-h-screen py-8 sm:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Compact Heading */}
+        <div className="mb-6 sm:mb-8 border-b border-forest-900/10 pb-4 sm:pb-6">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-forest-100 text-forest-800 text-[11px] font-sans font-semibold tracking-wider uppercase mb-2">
+            <Calendar size={13} className="text-rose-600" />
+            <span>Direct Scheduling</span>
           </div>
-
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-white leading-tight">
-            Reserve Your <span className="font-serif italic text-gold-300">Appointment</span>
+          <h1 className="font-serif text-3xl sm:text-4xl text-forest-950 font-normal tracking-tight">
+            Book an Appointment
           </h1>
-
-          <p className="mt-4 text-sm sm:text-base text-ivory-200/85 max-w-xl mx-auto font-sans leading-relaxed">
-            Personalized salon visits and academy enrollments in Satara. Complete your details below to instantly connect with our studio via WhatsApp.
+          <p className="mt-1 text-sm sm:text-base text-forest-700 font-sans">
+            Choose your service and preferred time.
+          </p>
+          <p className="mt-2 text-xs sm:text-sm text-forest-600 font-sans flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block flex-shrink-0"></span>
+            <span>Our salon team confirms exact appointment availability directly through WhatsApp.</span>
           </p>
         </div>
-      </section>
 
-      {/* Main Content Layout */}
-      <section className="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        {/* Main Content Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Booking Form (Left / Main) */}
           <div className="lg:col-span-8">
             <ScrollReveal direction="left">
@@ -92,9 +92,9 @@ export const BookingPage: React.FC = () => {
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-forest-900/10 space-y-2 text-xs text-forest-800">
-                  <div className="flex items-center gap-2">
-                    <MapPin size={15} className="text-rose-500" />
-                    <span>{BRAND.locationName}</span>
+                  <div className="flex items-start gap-2">
+                    <MapPin size={15} className="text-rose-500 mt-0.5 flex-shrink-0" />
+                    <span className="leading-relaxed">{BRAND.address}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Phone size={15} className="text-forest-700" />
@@ -125,7 +125,7 @@ export const BookingPage: React.FC = () => {
             </ScrollReveal>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 };

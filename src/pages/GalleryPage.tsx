@@ -24,22 +24,22 @@ export const GalleryPage: React.FC = () => {
   return (
     <div className="bg-ivory text-forest-900 min-h-screen">
       {/* Gallery Hero */}
-      <section className="bg-forest-950 text-ivory py-20 sm:py-24 relative overflow-hidden border-b border-forest-800">
+      <section className="bg-forest-950 text-ivory py-10 sm:py-14 relative overflow-hidden border-b border-forest-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase mb-3">
             <Camera size={14} />
             <span>Visual Portfolio · Satara</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-white leading-tight">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-white leading-tight">
             Artistry in <span className="font-serif italic text-gold-300">Focus</span>
           </h1>
 
-          <p className="mt-4 text-sm sm:text-base text-ivory-200/85 max-w-2xl mx-auto font-sans leading-relaxed">
+          <p className="mt-3 text-xs sm:text-sm text-ivory-200/85 max-w-2xl mx-auto font-sans leading-relaxed">
             Explore our signature haircuts, hands-on masterclass sessions, bridal looks, and peaceful studio environment in Satara.
           </p>
 
-          <div className="mt-8 flex items-center justify-center gap-4">
+          <div className="mt-6 flex items-center justify-center gap-3">
             <Button
               to="/booking"
               variant="gold"
@@ -62,9 +62,9 @@ export const GalleryPage: React.FC = () => {
       </section>
 
       {/* Main Gallery Section */}
-      <section className="py-16 sm:py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <ScrollReveal>
-          <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="text-center max-w-2xl mx-auto mb-8">
             <p className="text-xs uppercase tracking-widest text-rose-600 font-sans font-semibold mb-2">
               Browse by Collection
             </p>

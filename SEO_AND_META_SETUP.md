@@ -157,10 +157,9 @@ Local Google Maps rankings depend heavily on an authentic Google Business Profil
 - [ ] **Primary Category:** `Beauty Salon`
 - [ ] **Secondary Categories:** `Hair Salon`, `Beauty School`, `Make-up Artist`.
 - [ ] **Phone Number:** `+91 8459890270` (must match website exactly).
-- [ ] **Website Link:** Add the verified URL `https://skrelaxbeauty.com`.
+- [ ] **Address:** `6, Rajwada Cir, near IDBI Bank, Pratapganj Peth, Shaniwar Peth, Malhar Peth, Satara, Maharashtra 415002, India`
 - [ ] **Opening Hours:**
-  - Monday – Saturday: 10:00 AM – 8:00 PM
-  - Sunday: 10:00 AM – 6:00 PM
+  - Monday – Sunday: 11:00 AM – 6:00 PM
 - [ ] **Photos:** Upload high-resolution photos of the salon exterior, salon signage, interior styling stations, haircut models, and dummy training setups.
 - [ ] **Customer Reviews:** Share the direct Google review link with genuine clients after their studio visits. (Never offer discounts or gifts in exchange for reviews).
 
@@ -170,5 +169,4 @@ Local Google Maps rankings depend heavily on an authentic Google Business Profil
 
 1. **Domain Registration & DNS:** Client to provide final domain name so `VITE_SITE_URL` can be updated.
 2. **Meta Pixel Dataset ID:** Client/marketing manager to provide the 15–16 digit ID from Meta Events Manager.
-3. **Exact Studio Address:** Client to supply the physical street address/building name in Satara to update schema `streetAddress` and `postalCode`.
-4. **Google Search Console Ownership:** Client to verify domain property in GSC.
+3. **Google Search Console Ownership:** Client to verify domain property in GSC.

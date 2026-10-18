@@ -254,10 +254,10 @@ export const BookingForm: React.FC<BookingFormProps> = ({
                 onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
                 className="w-full pl-10 pr-4 py-3 bg-ivory text-forest-900 text-sm rounded-sm border border-forest-900/15 focus:border-forest-800 focus:outline-none focus:ring-2 focus:ring-gold-500/50"
               >
-                <option value="">Any time slot</option>
-                <option value="Morning (10:00 AM – 1:00 PM)">Morning (10:00 AM – 1:00 PM)</option>
-                <option value="Afternoon (1:00 PM – 4:00 PM)">Afternoon (1:00 PM – 4:00 PM)</option>
-                <option value="Evening (4:00 PM – 8:00 PM)">Evening (4:00 PM – 8:00 PM)</option>
+                <option value="">Any time slot (11:00 AM – 6:00 PM)</option>
+                <option value="Morning (11:00 AM – 1:00 PM)">Morning (11:00 AM – 1:00 PM)</option>
+                <option value="Afternoon (1:00 PM – 3:30 PM)">Afternoon (1:00 PM – 3:30 PM)</option>
+                <option value="Late Afternoon (3:30 PM – 6:00 PM)">Late Afternoon (3:30 PM – 6:00 PM)</option>
               </select>
             </div>
           </div>

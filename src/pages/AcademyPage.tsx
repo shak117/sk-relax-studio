@@ -51,27 +51,27 @@ export const AcademyPage: React.FC = () => {
   return (
     <div className="bg-ivory text-forest-900 min-h-screen">
       {/* Academy Hero */}
-      <section className="bg-forest-950 text-ivory py-20 sm:py-24 relative overflow-hidden border-b border-forest-800">
+      <section className="bg-forest-950 text-ivory py-10 sm:py-14 relative overflow-hidden border-b border-forest-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase mb-3">
             <GraduationCap size={14} />
             <span>Professional Education · Satara</span>
           </div>
 
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-white leading-tight">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-white leading-tight">
             SK Relax <span className="font-serif italic text-gold-300">Beauty Academy</span>
           </h1>
 
-          <p className="mt-4 text-sm sm:text-base text-ivory-200/85 max-w-2xl mx-auto font-sans leading-relaxed">
+          <p className="mt-3 text-xs sm:text-sm text-ivory-200/85 max-w-2xl mx-auto font-sans leading-relaxed">
             {BRAND.academyTagline} — Empowering aspiring hairstylists and beauty artists in Satara through practical hair cutting courses and intensive masterclasses with hands-on mannequin dummy training.
           </p>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Button
               href={buildWhatsAppUrl(WhatsAppMessages.academyEnquiry(masterclass.title, masterclass.nextBatch))}
               external
               variant="gold"
-              size="md"
+              size="sm"
               icon={<MessageCircle size={15} />}
             >
               Enquire for Upcoming Batch
@@ -79,7 +79,7 @@ export const AcademyPage: React.FC = () => {
             <Button
               href="#enrollment-form"
               variant="outline"
-              size="md"
+              size="sm"
               className="border-ivory/30 text-ivory hover:text-forest-950 hover:bg-ivory"
             >
               Quick Enrollment Request
@@ -89,17 +89,17 @@ export const AcademyPage: React.FC = () => {
       </section>
 
       {/* Featured 3-Day Hair Cutting Masterclass (From Poster) */}
-      <section className="py-20 sm:py-24 bg-cream-50 border-b border-forest-900/10">
+      <section className="py-10 sm:py-14 bg-cream-50 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
-            <div className="max-w-3xl mx-auto text-center mb-16">
-              <span className="text-xs uppercase tracking-[0.25em] font-sans font-semibold text-rose-600 block mb-2">
+            <div className="max-w-3xl mx-auto text-center mb-8 sm:mb-10">
+              <span className="text-xs uppercase tracking-[0.25em] font-sans font-semibold text-rose-600 block mb-1.5">
                 Flagship Masterclass
               </span>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-light text-forest-900">
+              <h2 className="font-serif text-3xl sm:text-4xl font-light text-forest-900">
                 3 Days Hair Cutting <span className="font-serif italic text-rose-600">Masterclass</span>
               </h2>
-              <p className="mt-3 text-sm sm:text-base text-forest-700 leading-relaxed font-sans">
+              <p className="mt-2 text-xs sm:text-sm text-forest-700 leading-relaxed font-sans">
                 A high-intensity, practical training program designed to teach you the geometry, elevation degrees, and sectioning behind today’s most requested haircuts.
               </p>
             </div>
@@ -255,7 +255,7 @@ export const AcademyPage: React.FC = () => {
       </section>
 
       {/* Additional Upcoming Courses */}
-      <section className="py-20 sm:py-24 bg-cream-50 border-b border-forest-900/10">
+      <section className="py-10 sm:py-14 bg-cream-50 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <SectionHeading
@@ -266,7 +266,7 @@ export const AcademyPage: React.FC = () => {
             />
           </ScrollReveal>
 
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="mt-8 sm:mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             {otherCourses.map((course, idx) => (
               <ScrollReveal key={course.id} delay={idx * 100}>
                 <CourseCard course={course} />
@@ -277,10 +277,10 @@ export const AcademyPage: React.FC = () => {
       </section>
 
       {/* Enrollment Inquiry Form Section */}
-      <section id="enrollment-form" className="py-20 sm:py-28 bg-ivory">
+      <section id="enrollment-form" className="py-10 sm:py-16 bg-ivory">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
-            <div className="text-center mb-10">
+            <div className="text-center mb-8">
               <span className="text-xs uppercase tracking-widest font-sans font-semibold text-rose-600 block mb-1">
                 Student Admission & Enquiry
               </span>

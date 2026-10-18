@@ -43,13 +43,15 @@ export const Header: React.FC = () => {
             : 'bg-ivory/95 backdrop-blur-md py-3 sm:py-4 shadow-soft border-b border-forest-900/10 text-forest-900'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-2">
             {/* Logo */}
-            <BrandLogo 
-              variant={isHeaderTransparent ? 'dark' : 'light'} 
-              size="md" 
-            />
+            <div className="min-w-0 flex-shrink">
+              <BrandLogo 
+                variant={isHeaderTransparent ? 'dark' : 'light'} 
+                size="md" 
+              />
+            </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-8" aria-label="Main Navigation">
@@ -110,26 +112,26 @@ export const Header: React.FC = () => {
             </div>
 
             {/* Mobile Controls */}
-            <div className="flex items-center gap-2 lg:hidden">
+            <div className="flex items-center gap-1.5 sm:gap-2 lg:hidden flex-shrink-0">
               <Button
                 to="/booking"
                 variant={isHeaderTransparent ? 'gold' : 'primary'}
                 size="sm"
-                className="text-[10px] px-3 py-1.5"
+                className="text-[11px] px-2.5 py-1 tracking-wider whitespace-nowrap"
               >
                 Book
               </Button>
 
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                className={`p-2 rounded-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 ${
+                className={`p-1.5 sm:p-2 rounded-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-500 flex-shrink-0 ${
                   isHeaderTransparent
                     ? 'text-ivory hover:bg-white/10'
                     : 'text-forest-900 hover:bg-forest-900/5'
                 }`}
                 aria-label="Open mobile navigation menu"
               >
-                <Menu size={24} />
+                <Menu size={22} className="sm:w-6 sm:h-6" />
               </button>
             </div>
           </div>

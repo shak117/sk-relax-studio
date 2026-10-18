@@ -1,9 +1,11 @@
 export const BRAND = {
   name: "SK RELAX BEAUTY ACADEMY & SALON",
   shortName: "SK RELAX",
-  locationName: "Satara, Maharashtra, India",
+  address: "6, Rajwada Cir, near IDBI Bank, Pratapganj Peth, Shaniwar Peth, Malhar Peth, Satara, Maharashtra 415002, India",
+  locationName: "6, Rajwada Cir, near IDBI Bank, Pratapganj Peth, Satara, Maharashtra 415002",
   city: "Satara",
   state: "Maharashtra",
+  postalCode: "415002",
   country: "India",
   phone: "+91 8459890270",
   whatsappNumber: "918459890270", // Exactly formatted without plus or spaces
@@ -15,8 +17,7 @@ export const BRAND = {
   introQuote: "Beauty is more than a look. It is how you feel.",
   introBody: "Welcome to SK RELAX Beauty Academy & Salon in Satara — an intimate sanctuary of contemporary style, individualized hair artistry, skin restoration, and professional beauty masterclasses. Every appointment is crafted with bespoke care, precision technique, and an editorial touch designed around you.",
   hours: [
-    { days: "Monday – Saturday", time: "10:00 AM – 8:00 PM" },
-    { days: "Sunday", time: "10:00 AM – 6:00 PM (Prior Appointment Advised)" }
+    { days: "Monday – Sunday", time: "11:00 AM – 6:00 PM" }
   ],
   announcement: {
     badge: "Upcoming Masterclass",
@@ -24,12 +25,10 @@ export const BRAND = {
     linkText: "View Masterclass Details",
     linkUrl: "/academy"
   },
-  googleMapsUrl: "https://maps.google.com/?q=Satara%2C+Maharashtra%2C+India",
-  googleMapsEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d60927.87321035041!2d73.9780137!3d17.6804639!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc239be08d96bbd%3A0x5f4ada5501d688cf!2sSatara%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
+  googleMapsUrl: "https://maps.google.com/?q=6%2C+Rajwada+Cir%2C+near+IDBI+Bank%2C+Pratapganj+Peth%2C+Satara%2C+Maharashtra+415002",
+  googleMapsEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3800.730335017282!2d73.9870817!3d17.6865239!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc239be08d96bbd%3A0x5f4ada5501d688cf!2sRajwada%2C%20Satara%2C%20Maharashtra%20415002!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
   developer: {
-    label: "Website Designed & Engineered with",
-    author: "Full-Stack Web Engineering",
-    tagline: "High-Performance Canvas Architecture"
+    credit: "Designed & Developed by Cloud Technologies"
   }
 };
 

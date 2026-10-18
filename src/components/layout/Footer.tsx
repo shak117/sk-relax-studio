@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Phone, MessageCircle, Instagram, MapPin, Clock, ArrowRight, Heart } from 'lucide-react';
+import { Phone, MessageCircle, Instagram, MapPin, Clock, ArrowRight } from 'lucide-react';
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
 import { BrandLogo } from '../ui/BrandLogo';
 import { trackContactAction, trackWhatsAppClick } from '../../services/analytics';
@@ -145,7 +145,7 @@ export const Footer: React.FC = () => {
             <div className="space-y-3 text-xs sm:text-sm text-ivory-300">
               <div className="flex items-start gap-2.5">
                 <MapPin size={16} className="text-rose-400 mt-0.5 flex-shrink-0" />
-                <span>{BRAND.locationName}</span>
+                <span className="leading-relaxed">{BRAND.address}</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone size={15} className="text-gold-400 flex-shrink-0" />
@@ -185,15 +185,9 @@ export const Footer: React.FC = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-forest-900 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-ivory-400 text-center md:text-left">
           <p>© {currentYear} {BRAND.name}. All rights reserved.</p>
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-[11px] text-ivory-400/80">
-            <p className="flex items-center justify-center gap-1">
-              Crafted with <Heart size={11} className="text-rose-400 fill-rose-400 inline" /> for <span className="text-rose-300 font-medium">{BRAND.shortName}</span>
-            </p>
-            <span className="hidden sm:inline text-forest-800">·</span>
-            <p className="text-ivory-400/70">
-              {BRAND.developer.label} <span className="text-gold-400 font-medium">{BRAND.developer.author}</span>
-            </p>
-          </div>
+          <p className="text-xs text-ivory-300/90 font-sans tracking-wide">
+            Designed & Developed by Cloud Technologies
+          </p>
         </div>
       </div>
     </footer>
