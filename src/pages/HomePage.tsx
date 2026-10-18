@@ -12,7 +12,7 @@ import {
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { SERVICES } from '../data/servicesData';
 import { COURSES } from '../data/academyData';
-import { HeroVideo } from '../components/hero/HeroVideo';
+import { CinematicScrollHero } from '../components/hero/CinematicScrollHero';
 import { ServiceCard } from '../components/services/ServiceCard';
 import { GalleryGrid } from '../components/gallery/GalleryGrid';
 import { SectionHeading } from '../components/ui/SectionHeading';
@@ -71,8 +71,8 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="space-y-0 overflow-hidden">
-      {/* 4B. Cinematic Video Hero */}
-      <HeroVideo />
+      {/* 4B. Cinematic Frame-by-Frame Scroll Animation (720 Combined Frames) */}
+      <CinematicScrollHero />
 
       {/* 4C. Brand Introduction — Editorial Split Layout */}
       <section id="brand-intro" className="py-20 sm:py-28 bg-ivory text-forest-900 border-b border-forest-900/10">

@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Large archives and raw uncompressed frames
+*.zip
+public/hero-frames/part1/
+public/hero-frames/part2/
+public/hero-frames/part3/
+
