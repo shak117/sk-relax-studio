@@ -49,16 +49,19 @@ The GSAP ScrollTrigger timeline maps the normalized scroll progress `[0.0, 1.0]`
 ## 4. Technical Architecture
 
 - **`src/types/scrollAnimation.ts`**: TypeScript definitions for `FrameManifest`, `FramePart`, and `StoryStage`.
-- **`src/hooks/useFrameSequence.ts`**: Progressive frame caching hook.
-  - Preloads frame 1 immediately and initial batch of 25 frames.
-  - Dynamically fetches an adaptive window (`[-5, +20]`) of frames as the user scrolls.
+- **`src/hooks/useFrameSequence.ts`**: Progressive priority frame buffering hook.
+  - Preloads frame 1 immediately and initial batch of 20 frames.
+  - **Priority LIFO Queue**: As the visitor scrolls, immediate upcoming frames are loaded with top priority, pruning stale out-of-viewport requests.
+  - Off-main-thread image decoding (`img.decode()`) eliminates render stutter.
   - Concurrency limited to 6 simultaneous requests to protect browser thread and bandwidth.
-  - Closest-frame fallback: never flashes white; retains last valid frame if network is throttled.
+  - Closest-frame fallback: never flashes white or blanks out; retains nearest valid frame if network is throttled.
 - **`src/components/hero/CinematicScrollHero.tsx`**:
-  - Sticky pinned stage (`h-[100svh]`) inside a `380vh` scroll track.
+  - Native GSAP `pin: true` locks the stage for `+=2800px` without relying on CSS `sticky` (preventing ancestor `overflow: hidden` bugs).
   - HTML5 2D Canvas with `object-fit: cover` scaling and retina display support (`window.devicePixelRatio`).
-  - GSAP ScrollTrigger scrubbed animation (`scrub: 0.35`).
-  - Interactive milestone jumping dots on desktop.
+  - GSAP ScrollTrigger scrubbed animation (`scrub: 0.25`).
+  - Eliminates 60fps React re-renders by decoupling high-frequency canvas drawing into `requestAnimationFrame`.
+  - Seamlessly overlapping stage transitions (Stage 1 into Stage 2 into Stage 3 into Stage 4) with zero blank gaps.
+  - Quick "Skip to Menu" action and interactive milestone jumping dots on desktop.
   - Full `prefers-reduced-motion` compliance (displays static HD poster with natural scrolling).
 
 ---
