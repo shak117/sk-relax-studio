@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Sparkles, 
   Scissors, 
@@ -21,7 +21,8 @@ import { SERVICES } from '../data/servicesData';
 import { COURSES, ACADEMY_PROMO } from '../data/academyData';
 import { ACADEMY_EVENTS } from '../data/eventsData';
 import { STUDENT_FEEDBACK } from '../data/studentFeedbackData';
-import { CinematicScrollHero } from '../components/hero/CinematicScrollHero';
+import { FullScreenVideoIntro } from '../components/hero/FullScreenVideoIntro';
+import { HeroVideo } from '../components/hero/HeroVideo';
 import { ServiceCard } from '../components/services/ServiceCard';
 import { GalleryGrid } from '../components/gallery/GalleryGrid';
 import { SectionHeading } from '../components/ui/SectionHeading';
@@ -31,7 +32,30 @@ import { VideoPlayerModal } from '../components/ui/VideoPlayerModal';
 import { usePageSEO } from '../hooks/usePageSEO';
 import { generateLocalBusinessSchema } from '../utils/schemaGenerator';
 
+const INTRO_STORAGE_KEY = 'sk_relax_intro_seen_v1';
+
 export const HomePage: React.FC = () => {
+  const [showIntro, setShowIntro] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem(INTRO_STORAGE_KEY) !== 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleDismissIntro = useCallback(() => {
+    setShowIntro(false);
+    try {
+      sessionStorage.setItem(INTRO_STORAGE_KEY, 'true');
+    } catch {
+      // Ignore in strict privacy modes
+    }
+  }, []);
+
+  const handleReplayIntro = useCallback(() => {
+    setShowIntro(true);
+  }, []);
+
   const [activeVideo, setActiveVideo] = useState<{
     url: string;
     title: string;
@@ -89,8 +113,23 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="space-y-0 relative">
-      {/* 4B. Cinematic Frame-by-Frame Scroll Animation (720 Combined Frames) */}
-      <CinematicScrollHero />
+      {/* 1. Full-Screen Video Intro Experience (Plays once per browsing session with skip option) */}
+      {showIntro && (
+        <FullScreenVideoIntro 
+          onDismiss={handleDismissIntro} 
+        />
+      )}
+
+      {/* 2. Permanent Salon Hero Section (Smooth, non-scroll-locked hero experience) */}
+      <HeroVideo 
+        onReplayIntro={handleReplayIntro}
+        onServicesClick={() => {
+          const target = document.getElementById('featured-services');
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
+        }}
+      />
 
       {/* 4C. Brand Introduction — Editorial Split Layout */}
       <section id="brand-intro" className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">

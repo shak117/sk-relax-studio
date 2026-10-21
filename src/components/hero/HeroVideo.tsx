@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowDown, Calendar, Sparkles, Scissors } from 'lucide-react';
+import { ArrowDown, Calendar, Sparkles, Scissors, Play } from 'lucide-react';
 import { BRAND } from '../../data/brandData';
 import { Button } from '../ui/Button';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
@@ -10,6 +10,7 @@ interface HeroVideoProps {
   fallbackImageSrc?: string;
   onExploreClick?: () => void;
   onServicesClick?: () => void;
+  onReplayIntro?: () => void;
 }
 
 export const HeroVideo: React.FC<HeroVideoProps> = ({
@@ -18,6 +19,7 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
   fallbackImageSrc = '/images/hero-fallback.jpg',
   onExploreClick,
   onServicesClick,
+  onReplayIntro,
 }) => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
@@ -177,12 +179,26 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
         </div>
 
         {/* Academy Highlight Pill */}
-        <div className="mt-6 inline-flex items-center gap-2 text-xs text-ivory-300/80 font-sans tracking-wider">
-          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
-          <span>Hair Cutting Masterclass Enrollment Open</span>
-          <a href="/batches" className="text-gold-300 hover:text-gold-200 underline underline-offset-4 ml-1">
-            View Batches
-          </a>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs text-ivory-300/80 font-sans tracking-wider">
+          <div className="inline-flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+            <span>Hair Cutting Masterclass Enrollment Open</span>
+            <a href="/batches" className="text-gold-300 hover:text-gold-200 underline underline-offset-4 ml-1">
+              View Batches
+            </a>
+          </div>
+
+          {onReplayIntro && (
+            <button
+              type="button"
+              onClick={onReplayIntro}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-forest-900/60 hover:bg-forest-900/90 border border-gold-500/30 text-gold-300 hover:text-gold-200 text-[11px] uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-soft"
+              aria-label="Replay full-screen intro video"
+            >
+              <Play size={10} className="fill-gold-300 text-gold-300" />
+              <span>Watch Full Intro</span>
+            </button>
+          )}
         </div>
       </div>
 
