@@ -1,0 +1,108 @@
+[
+  {
+    "id": "hair-cutting-seminar-22-oct-2026",
+    "slug": "advance-hair-cutting-22-oct",
+    "title": "One-Day Hair Cutting Seminar",
+    "category": "workshop",
+    "eventType": "one-day",
+    "status": "enrolling",
+    "badge": "Look & Learn Seminar",
+    "startDate": "2026-10-22",
+    "endDate": "2026-10-22",
+    "timing": "10:30 AM – 5:30 PM",
+    "duration": "One Day Seminar",
+    "fee": 500,
+    "feeDisplay": "₹500",
+    "image": "/uploads/batches/batch-1792403187768-whatsapp-image-2026-10-17-at-11-31-01-am.jpeg",
+    "leadTrainer": "Salma Attar (Founder & Master Beauty Educator)",
+    "venue": "SK Relax Beauty Academy & Salon, Satara, Maharashtra",
+    "prerequisites": "Open to salon stylists, beauty students, and passionate beginners.",
+    "included": [
+      "Look & Learn 4 Trending Haircuts",
+      "Live Model Demonstration by Salma Attar",
+      "Official Academy Certificate of Seminar Attendance"
+    ],
+    "curriculum": [
+      "Trending Butterfly Haircut Demonstration",
+      "Classic Long Layer Haircut Technique",
+      "Face Framing & Elevation Angles",
+      "Curtain Bangs Styling & Finishing"
+    ],
+    "description": "One-day practical look & learn hair cutting seminar at SK Relax Beauty Academy, Satara. Learn 4 trending haircut techniques — Butterfly Cut, Long Layer, Face Framing, and Curtain Bangs with personal attention and expert guidance from Salma Attar.",
+    "whatsappPreset": "Hello Salma Ma'am, I would like to book my seat for the One-Day Hair Cutting Seminar (22 Oct 2026) at SK Relax Academy Satara.",
+    "createdAt": "2026-10-19T09:47:21.331Z",
+    "updatedAt": "2026-10-19T18:30:00.000Z"
+  },
+  {
+    "id": "hair-cutting-masterclass-oct-2026",
+    "slug": "hair-cutting-masterclass",
+    "title": "3-Day Advanced Hair Cutting & Layering Masterclass",
+    "category": "masterclass",
+    "eventType": "multi-day",
+    "status": "enrolling",
+    "badge": "Hands-on Dummy Head Included",
+    "startDate": "2026-10-23",
+    "endDate": "2026-10-25",
+    "timing": "10:30 AM – 5:30 PM (Daily)",
+    "duration": "3 Days Intensive Hands-on Workshop",
+    "fee": 4000,
+    "feeDisplay": "₹4,000",
+    "image": "/images/academy/hair-cutting-masterclass-poster.jpg",
+    "leadTrainer": "Salma Attar (Founder & Master Beauty Educator)",
+    "venue": "SK Relax Beauty Academy & Salon, Satara, Maharashtra",
+    "prerequisites": "Open to salon stylists, beauty academy students, and beginners passionate about modern haircutting techniques.",
+    "included": [
+      "Individual Practice Mannequin Dummy Head (Yours to keep)",
+      "Official Academy Certificate of Haircut Artistry",
+      "Live Step-by-Step Model Demonstrations by Salma Attar",
+      "Hands-on Sectioning, Degree Geometry & Elevation Guidance",
+      "All Required Styling Tools & Products during the Workshop",
+      "Lunch, Tea & Refreshments during Training Days"
+    ],
+    "curriculum": [
+      "Day 1: Elevation Degree Geometry (0°, 45°, 90°, 180°) & Finger Grip Angles",
+      "Day 1: Classic Long Layers & Seamless Graduation Techniques",
+      "Day 2: Trending Butterfly Cut & Volume Weight Removal",
+      "Day 2: Face-Framing Fringe, Curtain Bangs & Texturizing Feathers",
+      "Day 3: Client Head Shape Consultation & Hair Density Analysis",
+      "Day 3: Professional Salon Blow-Dry Finish, Curls & Portfolio Photos"
+    ],
+    "description": "Join Salma Attar for an intensive 3-day practical haircutting masterclass in Satara. Every enrolled student receives an individual mannequin dummy head for direct hands-on practice. Master modern layer cuts, the viral butterfly technique, and graduation geometry to boost your salon revenue.",
+    "whatsappPreset": "Hello Salma Ma'am, I would like to book my seat for the 3-Day Hair Cutting Masterclass (Oct 23–25, 2026) at SK Relax Academy in Satara.",
+    "createdAt": "2026-10-18T10:00:00.000Z",
+    "updatedAt": "2026-10-18T10:00:00.000Z"
+  },
+  {
+    "id": "monsoon-hair-styling-aug-2026",
+    "slug": "monsoon-hair-styling",
+    "title": "Monsoon Hair Styling & Layer Graduation Batch",
+    "category": "masterclass",
+    "eventType": "multi-day",
+    "status": "completed",
+    "badge": "Batch Completed · Certified",
+    "startDate": "2026-08-15",
+    "endDate": "2026-08-17",
+    "timing": "10:30 AM – 5:30 PM",
+    "duration": "3 Days Masterclass",
+    "fee": 4000,
+    "feeDisplay": "₹4,000",
+    "image": "/images/events/certificate-celebration-hero.jpg",
+    "leadTrainer": "Salma Attar",
+    "venue": "SK Relax Beauty Academy, Satara, Maharashtra",
+    "prerequisites": "Completed successfully.",
+    "included": [
+      "Individual Mannequin Dummy Head",
+      "Academy Certificate of Completion",
+      "Batch Photo Celebration"
+    ],
+    "curriculum": [
+      "Elevation Degree Geometry & Sectioning",
+      "Butterfly Layer Cut & Face-Framing",
+      "Salon Blowout & Graduation Styling"
+    ],
+    "description": "Our successfully graduated August batch. All 15 students received certificates and completed hands-on dummy haircuts under Salma Attar.",
+    "whatsappPreset": "Hello Salma Ma'am, when is the next batch after the August graduation?",
+    "createdAt": "2026-08-01T10:00:00.000Z",
+    "updatedAt": "2026-08-18T10:00:00.000Z"
+  }
+]

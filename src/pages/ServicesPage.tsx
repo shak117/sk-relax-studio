@@ -3,19 +3,21 @@ import { useSearchParams } from 'react-router-dom';
 import { Sparkles, MessageCircle, Calendar, Scissors } from 'lucide-react';
 import { buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { SERVICES, SERVICE_CATEGORIES } from '../data/servicesData';
+import { salonService } from '../services/salonService';
 import { ServiceCard } from '../components/services/ServiceCard';
 import { CategoryFilter } from '../components/services/CategoryFilter';
+import { VideoPlayerModal } from '../components/ui/VideoPlayerModal';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
 import { usePageSEO } from '../hooks/usePageSEO';
 import { generateLocalBusinessSchema, generateServicesCatalogSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
-import { trackViewContent } from '../services/analytics';
-import { ServiceCategory } from '../types';
+import { trackViewContent, trackWhatsAppClick } from '../services/analytics';
+import { ServiceCategory, ServiceItem } from '../types';
 
 export const ServicesPage: React.FC = () => {
   usePageSEO({
-    title: 'Salon Services in Satara | SK Relax',
-    description: 'Explore available beauty and salon services at SK Relax in Satara and enquire directly through WhatsApp.',
+    title: 'Salon Services Catalogue | SK Relax Beauty Academy & Salon, Satara',
+    description: 'Explore our complete salon catalogue in Satara: Hair treatments, 7-in-1 Hydra facials, bridal couture, PMU microblading, and machine aesthetics.',
     path: '/services',
     schema: [
       generateLocalBusinessSchema(),
@@ -31,9 +33,18 @@ export const ServicesPage: React.FC = () => {
   const initialCategory = (searchParams.get('cat') as ServiceCategory) || 'all';
   const [activeCategory, setActiveCategory] = useState<ServiceCategory>(initialCategory);
 
+  const [activeVideo, setActiveVideo] = useState<{
+    url: string;
+    title: string;
+    description?: string;
+    categoryLabel?: string;
+  } | null>(null);
+
+  const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
+
   useEffect(() => {
     const cat = searchParams.get('cat') as ServiceCategory;
-    if (cat && SERVICE_CATEGORIES.some(c => c.id === cat)) {
+    if (cat && (cat === 'all' || SERVICE_CATEGORIES.some(c => c.id === cat))) {
       setActiveCategory(cat);
     }
   }, [searchParams]);
@@ -45,6 +56,24 @@ export const ServicesPage: React.FC = () => {
     });
   }, [activeCategory]);
 
+  const [servicesList, setServicesList] = useState<ServiceItem[]>(SERVICES);
+
+  useEffect(() => {
+    let isMounted = true;
+    salonService
+      .getPublishedServices()
+      .then((data) => {
+        if (isMounted && data && data.length > 0) {
+          setServicesList(data);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleCategorySelect = (category: ServiceCategory) => {
     setActiveCategory(category);
     if (category === 'all') {
@@ -55,10 +84,59 @@ export const ServicesPage: React.FC = () => {
     }
   };
 
-  const filteredServices = SERVICES.filter((s) => {
+  const filteredServices = servicesList.filter((s) => {
     if (activeCategory === 'all') return true;
     return s.category === activeCategory;
   });
+
+  const videoServices = [
+    ...servicesList.filter(s => s.id === 'hydra-facial-machine-7-in-1'),
+    ...servicesList.filter(s => !!s.videoUrl && s.id !== 'hydra-facial-machine-7-in-1')
+  ];
+
+  interface PortfolioGuideItem {
+    title: string;
+    image?: string;
+    imagePosition?: string;
+    alt?: string;
+    category: ServiceCategory;
+    desc: string;
+  }
+
+  const brochures: PortfolioGuideItem[] = [
+    {
+      title: 'Facial & Skin Treatments',
+      image: '/images/treatments/facial-machine-treatment.jpg',
+      imagePosition: 'center top',
+      alt: 'SK Relax aesthetician in uniform and blue gloves performing advanced facial treatment with machine in studio',
+      category: 'facials-skin',
+      desc: 'Hydra facial, Korean glass skin, BB Glow, Medi-facial, and crystal polishing'
+    },
+    {
+      title: 'Aesthetic Machine Tech',
+      image: '/images/machines/hydra-facial-machine.jpg',
+      imagePosition: 'center 65%',
+      alt: 'Professional 7-in-1 Hydra facial and clinical aesthetic machine station at SK Relax Studio',
+      category: 'equipment-machines',
+      desc: '7-in-1 Hydra station, Derma Pen, OxyGeneo, microdermabrasion, and LED phototherapy'
+    },
+    {
+      title: 'Makeup & Bridal Artistry',
+      image: '/images/gallery/traditional-silk-bridal-couture.jpg',
+      imagePosition: 'center top',
+      alt: 'Traditional silk bridal saree draping and bridal makeup artistry by SK Relax Satara',
+      category: 'makeup-bridal',
+      desc: 'HD 3D makeup, waterproof bases, 5 saree drapes, and 3 bridal hairstyles'
+    },
+    {
+      title: 'Permanent Makeup (PMU)',
+      image: '/images/gallery/pmu-eyebrow-result.jpg',
+      imagePosition: 'center center',
+      alt: 'Permanent eyebrow microblading and shaping result at SK Relax Studio',
+      category: 'permanent-makeup',
+      desc: 'Microblading, powder brows, lip blush, neutralization, and scalp micropigmentation'
+    }
+  ];
 
   return (
     <div className="bg-ivory text-forest-900 min-h-screen">
@@ -75,7 +153,7 @@ export const ServicesPage: React.FC = () => {
           </h1>
 
           <p className="mt-3 text-xs sm:text-sm text-ivory-200/85 max-w-2xl mx-auto font-sans leading-relaxed">
-            From precision butterfly layers to restorative facial treatments and signature bridal styling, explore our proposed catalogue below.
+            From precision butterfly layers to 7-in-1 clinical hydra facials, bridal couture, PMU microblading, and aesthetic equipment training in Satara.
           </p>
 
           <div className="mt-6 flex items-center justify-center gap-3">
@@ -107,12 +185,12 @@ export const ServicesPage: React.FC = () => {
           />
         </div>
 
-        {/* Note on Proposed Catalogue */}
+        {/* Note on Catalogue */}
         <div className="mb-8 p-4 bg-cream-100 rounded-sm border border-forest-900/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-forest-700">
           <div className="flex items-center gap-2">
             <Scissors size={15} className="text-rose-600 flex-shrink-0" />
             <span>
-              Showing <strong>{filteredServices.length}</strong> services. Specific prices and appointment slots are confirmed upon WhatsApp enquiry.
+              Showing <strong>{filteredServices.length}</strong> {filteredServices.length === 1 ? 'service' : 'services'}. Specific slots and pricing confirmed via direct WhatsApp consultation.
             </span>
           </div>
           <a
@@ -126,51 +204,228 @@ export const ServicesPage: React.FC = () => {
           </a>
         </div>
 
-        {/* Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredServices.map((service, idx) => (
-            <ScrollReveal key={service.id} delay={idx * 60}>
-              <ServiceCard service={service} />
+        {/* Services Showcase: Responsive Layout (Centered Spotlight for Single Service, Grid for Multiple) */}
+        {filteredServices.length === 1 ? (
+          <div className="max-w-xl mx-auto w-full">
+            <ScrollReveal>
+              <ServiceCard 
+                service={filteredServices[0]} 
+                featured={true}
+                onWatchVideo={(s) => {
+                  if (s.videoUrl) {
+                    setActiveVideo({
+                      url: s.videoUrl,
+                      title: s.title,
+                      description: s.description,
+                      categoryLabel: s.categoryLabel
+                    });
+                  }
+                }}
+              />
             </ScrollReveal>
-          ))}
-        </div>
+          </div>
+        ) : filteredServices.length === 2 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {filteredServices.map((service, idx) => (
+              <ScrollReveal key={service.id} delay={idx * 40}>
+                <ServiceCard 
+                  service={service} 
+                  onWatchVideo={(s) => {
+                    if (s.videoUrl) {
+                      setActiveVideo({
+                        url: s.videoUrl,
+                        title: s.title,
+                        description: s.description,
+                        categoryLabel: s.categoryLabel
+                      });
+                    }
+                  }}
+                />
+              </ScrollReveal>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredServices.map((service, idx) => (
+              <ScrollReveal key={service.id} delay={idx * 40}>
+                <ServiceCard 
+                  service={service} 
+                  onWatchVideo={(s) => {
+                    if (s.videoUrl) {
+                      setActiveVideo({
+                        url: s.videoUrl,
+                        title: s.title,
+                        description: s.description,
+                        categoryLabel: s.categoryLabel
+                      });
+                    }
+                  }}
+                />
+              </ScrollReveal>
+            ))}
+          </div>
+        )}
 
-        {/* Consultation Callout Banner */}
-        <div className="mt-20 p-8 sm:p-12 bg-white rounded-sm border border-forest-900/10 shadow-card flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="max-w-xl">
-            <span className="text-xs font-sans uppercase tracking-widest text-rose-600 font-semibold mb-2 block">
-              Personalized Consultation
+        {/* Featured Video Treatment Strip */}
+        <div className="mt-16 pt-12 border-t border-forest-900/10">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-xs uppercase tracking-widest text-rose-600 font-sans font-semibold mb-1.5 block">
+              Watch Real Salon Artistry
             </span>
-            <h3 className="font-serif text-2xl sm:text-3xl text-forest-900 font-normal">
-              Not sure which treatment or haircut suits you best?
-            </h3>
-            <p className="mt-2 text-xs sm:text-sm text-forest-700/80 leading-relaxed font-sans">
-              Send us a photo of your current hair or desired inspiration on WhatsApp. Our styling team in Satara will gladly guide you before your appointment.
+            <h2 className="font-serif text-2xl sm:text-3xl text-forest-900 font-normal">
+              Treatment & Technique Video Highlights
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-forest-700 font-sans">
+              Click any video to watch our stylists and aesthetic equipment in action at SK Relax Satara.
             </p>
           </div>
 
-          <div className="flex-shrink-0 flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {videoServices.slice(0, 3).map((item) => (
+              <ServiceCard
+                key={item.id}
+                service={item}
+                featured={item.id === 'hydra-facial-machine-7-in-1'}
+                onWatchVideo={(s) => {
+                  if (s.videoUrl) {
+                    setActiveVideo({
+                      url: s.videoUrl,
+                      title: s.title,
+                      description: s.description,
+                      categoryLabel: s.categoryLabel
+                    });
+                  }
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Brochure & Course Syllabus Strip */}
+        <div className="mt-16 pt-12 border-t border-forest-900/10">
+          <div className="text-center max-w-2xl mx-auto mb-10">
+            <span className="text-xs uppercase tracking-widest text-rose-600 font-sans font-semibold mb-1.5 block">
+              Official Reference Guides
+            </span>
+            <h2 className="font-serif text-2xl sm:text-3xl text-forest-900 font-normal">
+              Treatment & Syllabus Portfolio
+            </h2>
+            <p className="mt-2 text-xs sm:text-sm text-forest-700 font-sans">
+              Explore our core treatment specialisations and academy curriculum portfolios at SK Relax Satara.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 items-stretch">
+            {brochures.map((b, idx) => {
+              const hasImage = Boolean(b.image && b.image.trim() !== '' && !failedImages[idx]);
+
+              return (
+                <div 
+                  key={idx}
+                  onClick={() => handleCategorySelect(b.category)}
+                  className="bg-white rounded-sm border border-forest-900/10 shadow-soft overflow-hidden group cursor-pointer hover:border-gold-500/50 hover:shadow-card transition-all duration-300 flex flex-col justify-between h-full"
+                >
+                  {hasImage ? (
+                    <>
+                      {/* Image Thumbnail with Category Badge */}
+                      <div className="aspect-[3/4] bg-cream-100 overflow-hidden relative">
+                        <img
+                          src={b.image}
+                          alt={b.alt || b.title}
+                          style={b.imagePosition ? { objectPosition: b.imagePosition } : undefined}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
+                          onError={() => setFailedImages(prev => ({ ...prev, [idx]: true }))}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-forest-950/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <span className="absolute top-2 left-2 text-[10px] font-sans uppercase tracking-wider bg-forest-950/90 text-gold-300 px-2.5 py-1 rounded-sm backdrop-blur-xs shadow-xs border border-gold-500/20 font-medium">
+                          {b.title}
+                        </span>
+                      </div>
+                      
+                      {/* Description & Action Footer */}
+                      <div className="p-3.5 bg-cream-50/80 border-t border-forest-900/5 flex flex-col justify-between flex-1">
+                        <p className="text-[11px] sm:text-xs text-forest-700 leading-relaxed font-sans line-clamp-3">
+                          {b.desc}
+                        </p>
+                        <div className="mt-2.5 pt-2 border-t border-forest-900/5 flex items-center justify-between text-[10px] font-sans text-gold-600 font-medium group-hover:text-forest-900 transition-colors">
+                          <span>View Services</span>
+                          <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    /* Clean intentional text-only card if no suitable image exists */
+                    <div className="p-5 sm:p-6 flex flex-col justify-between h-full bg-cream-50/50 relative">
+                      <div className="space-y-3">
+                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-forest-950/90 text-gold-300 text-[10px] font-sans uppercase tracking-wider border border-gold-500/20 font-medium">
+                          <Sparkles size={11} className="text-gold-400" />
+                          <span>Curriculum Portfolio</span>
+                        </div>
+                        <h3 className="font-serif text-lg sm:text-xl text-forest-900 font-normal leading-snug group-hover:text-gold-600 transition-colors">
+                          {b.title}
+                        </h3>
+                        <div className="w-8 h-0.5 bg-gold-400/60" />
+                        <p className="text-xs sm:text-sm text-forest-700 leading-relaxed font-sans">
+                          {b.desc}
+                        </p>
+                      </div>
+
+                      <div className="mt-6 pt-3 border-t border-forest-900/10 flex items-center justify-between text-xs font-sans text-gold-600 font-medium group-hover:text-forest-900 transition-colors">
+                        <span>Browse Catalogue</span>
+                        <span className="transition-transform group-hover:translate-x-1">→</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Bridal Package Consultation Callout */}
+        <div className="mt-16 p-8 sm:p-12 bg-white rounded-sm border border-forest-900/10 shadow-card flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="max-w-xl space-y-2">
+            <span className="text-xs uppercase tracking-widest text-rose-600 font-sans font-semibold">
+              Bespoke Matrimonial Artistry
+            </span>
+            <h3 className="font-serif text-2xl sm:text-3xl text-forest-900 font-normal">
+              Planning Your Wedding in Satara?
+            </h3>
+            <p className="text-xs sm:text-sm text-forest-700 leading-relaxed font-sans">
+              Request a customized bridal makeup, saree draping, and pre-wedding facial consultation with Salma Attar. We tailor every package around your wedding events and preferences.
+            </p>
+          </div>
+
+          <div className="flex-shrink-0 flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <Button
-              href={buildWhatsAppUrl("Hello SK Relax Salon, I would like a personalized hair/skin consultation. Can I share my hair photo and get your recommendation?")}
+              href={buildWhatsAppUrl("Hello SK Relax Beauty Academy & Salon, Satara. I would like to request a customized Bridal Package consultation and pricing. Please share available dates.")}
               external
-              variant="whatsapp"
+              variant="gold"
               size="md"
-              className="w-full sm:w-auto justify-center"
               icon={<MessageCircle size={15} />}
+              onClick={() => trackWhatsAppClick('bridal_package_cta', 'Bridal Package Request')}
             >
-              Get Style Consultation
+              Request a Bridal Package
             </Button>
-            <Button
-              to="/booking"
-              variant="outline"
-              size="md"
-              className="w-full sm:w-auto justify-center"
-            >
-              Book Studio Slot
+            <Button to="/booking" variant="outline" size="md">
+              Book Appointment
             </Button>
           </div>
         </div>
       </section>
+
+      {/* Video Modal */}
+      {activeVideo && (
+        <VideoPlayerModal
+          isOpen={!!activeVideo}
+          onClose={() => setActiveVideo(null)}
+          videoUrl={activeVideo.url}
+          title={activeVideo.title}
+          description={activeVideo.description}
+          categoryLabel={activeVideo.categoryLabel}
+        />
+      )}
     </div>
   );
 };

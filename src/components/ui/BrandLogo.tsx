@@ -18,26 +18,26 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
   const headingSizes = {
     sm: 'text-base sm:text-lg tracking-[0.16em]',
-    md: 'text-xl sm:text-2xl lg:text-3xl tracking-[0.16em] sm:tracking-[0.22em]',
-    lg: 'text-2xl sm:text-4xl lg:text-5xl tracking-[0.2em] sm:tracking-[0.3em]'
+    md: 'text-lg sm:text-xl lg:text-2xl tracking-[0.14em] sm:tracking-[0.16em]',
+    lg: 'text-2xl sm:text-3xl lg:text-4xl tracking-[0.16em] sm:tracking-[0.2em]'
   };
 
   const subtitleSizes = {
-    sm: 'text-[8px] sm:text-[9px] tracking-[0.18em]',
-    md: 'text-[9px] sm:text-[10px] md:text-[11px] tracking-[0.15em] sm:tracking-[0.25em]',
-    lg: 'text-[11px] sm:text-[13px] tracking-[0.22em] sm:tracking-[0.35em]'
+    sm: 'text-[8px] sm:text-[9px] tracking-[0.16em]',
+    md: 'text-[8.5px] sm:text-[9.5px] tracking-[0.16em] sm:tracking-[0.2em]',
+    lg: 'text-[10px] sm:text-[12px] tracking-[0.18em] sm:tracking-[0.25em]'
   };
 
   const iconSizes = {
     sm: 'w-6 h-6 sm:w-7 sm:h-7',
-    md: 'w-7 h-7 sm:w-9 sm:h-9 lg:w-10 lg:h-10',
-    lg: 'w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14'
+    md: 'w-7 h-7 sm:w-8 sm:h-8 lg:w-9 lg:h-9',
+    lg: 'w-9 h-9 sm:w-11 sm:h-11 lg:w-12 lg:h-12'
   };
 
   return (
     <Link 
       to="/" 
-      className={`inline-flex items-center gap-2 sm:gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-sm min-w-0 ${className}`}
+      className={`inline-flex items-center gap-2.5 sm:gap-3 group focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 rounded-sm min-w-0 ${className}`}
       aria-label="SK Relax Beauty Academy & Salon - Home"
     >
       {/* Brand Icon Silhouette matching poster */}
@@ -50,10 +50,10 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         />
       </div>
 
-      {/* Typography */}
-      <div className="flex flex-col text-left min-w-0">
+      {/* Typography - flush left-aligned, perfectly balanced */}
+      <div className="flex flex-col text-left justify-center min-w-0">
         <span 
-          className={`font-serif font-semibold uppercase leading-none truncate transition-colors duration-300 ${
+          className={`font-serif font-semibold uppercase leading-none tracking-[0.14em] sm:tracking-[0.16em] truncate transition-colors duration-300 ${
             isDark ? 'text-ivory-100 group-hover:text-gold-300' : 'text-forest-900 group-hover:text-forest-700'
           } ${headingSizes[size]}`}
         >
@@ -61,8 +61,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
         </span>
 
         {showSubtitle && (
-          <div className="flex items-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1">
-            <span className={`hidden sm:inline-block h-[1px] w-2 sm:w-3 ${isDark ? 'bg-gold-500/60' : 'bg-rose-400/80'}`}></span>
+          <div className="flex items-center mt-1">
             <span 
               className={`font-sans font-medium uppercase leading-tight whitespace-nowrap truncate ${
                 isDark ? 'text-gold-300/90' : 'text-forest-600'
@@ -70,7 +69,6 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             >
               Beauty Academy · Salon
             </span>
-            <span className={`hidden sm:inline-block h-[1px] w-2 sm:w-3 ${isDark ? 'bg-gold-500/60' : 'bg-rose-400/80'}`}></span>
           </div>
         )}
       </div>

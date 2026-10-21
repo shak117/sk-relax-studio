@@ -84,7 +84,7 @@ export function generateAcademyCourseSchema() {
       price: '4000',
       priceCurrency: 'INR',
       availability: 'https://schema.org/InStock',
-      url: `${siteUrl}/academy`
+      url: `${siteUrl}/batches`
     },
     educationalCredentialAwarded: masterclass.certification,
     hasCourseInstance: {

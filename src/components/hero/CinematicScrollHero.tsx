@@ -398,13 +398,13 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
               <Button
-                to="/academy"
+                to="/batches"
                 variant="gold"
                 size="md"
                 className="w-full sm:w-auto uppercase tracking-wider"
                 icon={<GraduationCap size={15} />}
               >
-                VIEW ACADEMY SYLLABUS
+                EXPLORE COURSE BATCHES
               </Button>
 
               <Button
@@ -470,7 +470,7 @@ export const CinematicScrollHero: React.FC<CinematicScrollHeroProps> = ({
           {[
             { label: 'Reveal', stage: 0 },
             { label: 'Artistry', stage: 1 },
-            { label: 'Academy', stage: 2 },
+            { label: 'Batches', stage: 2 },
             { label: 'Next Look', stage: 3 },
           ].map((item) => (
             <button

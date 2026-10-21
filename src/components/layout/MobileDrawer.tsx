@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import { X, Phone, MessageCircle, Instagram, MapPin, Calendar } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { X, Phone, MessageCircle, Instagram, MapPin, Calendar, ChevronDown } from 'lucide-react';
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
 import { BrandLogo } from '../ui/BrandLogo';
 import { Button } from '../ui/Button';
@@ -12,6 +12,9 @@ interface MobileDrawerProps {
 }
 
 export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose }) => {
+  const [servicesExpanded, setServicesExpanded] = useState(false);
+  const location = useLocation();
+
   // Prevent body scroll when drawer is open
   useEffect(() => {
     if (isOpen) {
@@ -26,12 +29,12 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose }) =
 
   if (!isOpen) return null;
 
-  const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/services', label: 'Services Catalogue' },
-    { to: '/academy', label: 'Beauty Academy' },
-    { to: '/gallery', label: 'Studio Portfolio' },
-    { to: '/contact', label: 'Contact & Location' },
+  const serviceCategories = [
+    { id: 'hair-treatments', title: 'Hair Treatments & Science' },
+    { id: 'facials-skin', title: 'Facials & Skin Aesthetics' },
+    { id: 'makeup-bridal', title: 'Makeup & Bridal Artistry' },
+    { id: 'permanent-makeup', title: 'Permanent Makeup (PMU)' },
+    { id: 'equipment-machines', title: 'Aesthetic Machines & Tech' },
   ];
 
   return (
@@ -57,28 +60,165 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({ isOpen, onClose }) =
         </div>
 
         {/* Navigation Links */}
-        <div className="px-6 py-6 space-y-1 flex-1">
+        <div className="px-5 py-6 space-y-1 flex-1">
           <span className="text-[11px] font-sans font-semibold uppercase tracking-widest text-rose-500 mb-2 block">
-            Navigation
+            Navigation Menu
           </span>
-          {navLinks.map((link) => (
-            <NavLink
-              key={link.to}
-              to={link.to}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `block px-3 py-3 rounded text-base font-serif tracking-wide transition-colors ${
-                  isActive
-                    ? 'text-forest-900 font-semibold bg-cream-200/70 border-l-2 border-forest-900'
-                    : 'text-forest-700 hover:text-forest-950 hover:bg-cream-100'
-                }`
-              }
-            >
-              {link.label}
-            </NavLink>
-          ))}
 
-          <div className="pt-6">
+          {/* Home */}
+          <NavLink
+            to="/"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `block px-3 py-2.5 rounded text-base font-serif tracking-wide transition-colors ${
+                isActive
+                  ? 'text-forest-900 font-semibold bg-cream-200/70 border-l-2 border-forest-900'
+                  : 'text-forest-700 hover:text-forest-950 hover:bg-cream-100'
+              }`
+            }
+          >
+            Home
+          </NavLink>
+
+          {/* Services with Accordion */}
+          <div>
+            <div className="flex items-center justify-between px-3 py-2.5 rounded hover:bg-cream-100 transition-colors">
+              <NavLink
+                to="/services"
+                onClick={onClose}
+                className={`text-base font-serif tracking-wide ${
+                  location.pathname === '/services' ? 'text-forest-900 font-semibold' : 'text-forest-700'
+                }`}
+              >
+                Services
+              </NavLink>
+              <button
+                type="button"
+                onClick={() => setServicesExpanded(!servicesExpanded)}
+                className="p-1 text-forest-600 hover:text-forest-900"
+                aria-label="Toggle services submenu"
+              >
+                <ChevronDown
+                  size={18}
+                  className={`transition-transform duration-200 ${servicesExpanded ? 'rotate-180 text-rose-600' : ''}`}
+                />
+              </button>
+            </div>
+
+            {servicesExpanded && (
+              <div className="ml-3 pl-3 border-l border-forest-900/15 my-1 space-y-1">
+                <NavLink
+                  to="/services"
+                  onClick={onClose}
+                  className="block py-1.5 px-2 text-xs font-sans font-medium text-rose-600 hover:text-rose-700"
+                >
+                  All Services Catalogue →
+                </NavLink>
+                {serviceCategories.map((cat) => (
+                  <NavLink
+                    key={cat.id}
+                    to={`/services?cat=${cat.id}`}
+                    onClick={onClose}
+                    className="block py-1.5 px-2 text-xs font-sans text-forest-700 hover:text-forest-950 hover:bg-cream-100 rounded"
+                  >
+                    {cat.title}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Batches & Masterclass */}
+          <NavLink
+            to="/batches"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `block px-3 py-2.5 rounded text-base font-serif tracking-wide transition-colors ${
+                isActive
+                  ? 'text-forest-900 font-semibold bg-cream-200/70 border-l-2 border-forest-900'
+                  : 'text-forest-700 hover:text-forest-950 hover:bg-cream-100'
+              }`
+            }
+          >
+            Course Batches & Masterclasses
+          </NavLink>
+
+          {/* Our Team */}
+          <NavLink
+            to="/team"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `block px-3 py-2.5 rounded text-base font-serif tracking-wide transition-colors ${
+                isActive
+                  ? 'text-forest-900 font-semibold bg-cream-200/70 border-l-2 border-forest-900'
+                  : 'text-forest-700 hover:text-forest-950 hover:bg-cream-100'
+              }`
+            }
+          >
+            Our Team
+          </NavLink>
+
+          {/* Batch Events & Celebrations */}
+          <NavLink
+            to="/events"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `block px-3 py-2.5 rounded text-base font-serif tracking-wide transition-colors ${
+                isActive
+                  ? 'text-forest-900 font-semibold bg-cream-200/70 border-l-2 border-forest-900'
+                  : 'text-forest-700 hover:text-forest-950 hover:bg-cream-100'
+              }`
+            }
+          >
+            Batch Events & Workshops
+          </NavLink>
+
+          {/* Student Feedback */}
+          <NavLink
+            to="/student-feedback"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `block px-3 py-2.5 rounded text-base font-serif tracking-wide transition-colors ${
+                isActive
+                  ? 'text-forest-900 font-semibold bg-cream-200/70 border-l-2 border-forest-900'
+                  : 'text-forest-700 hover:text-forest-950 hover:bg-cream-100'
+              }`
+            }
+          >
+            Student Feedback
+          </NavLink>
+
+          {/* Studio Portfolio */}
+          <NavLink
+            to="/gallery"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `block px-3 py-2.5 rounded text-base font-serif tracking-wide transition-colors ${
+                isActive
+                  ? 'text-forest-900 font-semibold bg-cream-200/70 border-l-2 border-forest-900'
+                  : 'text-forest-700 hover:text-forest-950 hover:bg-cream-100'
+              }`
+            }
+          >
+            Studio Portfolio
+          </NavLink>
+
+          {/* Contact */}
+          <NavLink
+            to="/contact"
+            onClick={onClose}
+            className={({ isActive }) =>
+              `block px-3 py-2.5 rounded text-base font-serif tracking-wide transition-colors ${
+                isActive
+                  ? 'text-forest-900 font-semibold bg-cream-200/70 border-l-2 border-forest-900'
+                  : 'text-forest-700 hover:text-forest-950 hover:bg-cream-100'
+              }`
+            }
+          >
+            Contact & Location
+          </NavLink>
+
+          <div className="pt-5">
             <Button
               to="/booking"
               variant="primary"

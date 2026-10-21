@@ -1,0 +1,775 @@
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const DATA_FILE = path.resolve(__dirname, 'data', 'batches.json');
+const SERVICES_FILE = path.resolve(__dirname, 'data', 'services.json');
+const UPLOADS_DIR = path.resolve(__dirname, '..', 'public', 'uploads', 'batches');
+const SERVICES_UPLOADS_DIR = path.resolve(__dirname, '..', 'public', 'uploads', 'services');
+
+const JWT_SECRET = process.env.ADMIN_SECRET || 'sk-relax-studio-secret-key-2026';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'skrelax2026';
+
+// Helper to ensure files and directories exist
+function ensureStorage() {
+  if (!fs.existsSync(path.dirname(DATA_FILE))) {
+    fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true });
+  }
+  if (!fs.existsSync(DATA_FILE)) {
+    fs.writeFileSync(DATA_FILE, '[]', 'utf8');
+  }
+  if (!fs.existsSync(SERVICES_FILE)) {
+    fs.writeFileSync(SERVICES_FILE, '[]', 'utf8');
+  }
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(SERVICES_UPLOADS_DIR)) {
+    fs.mkdirSync(SERVICES_UPLOADS_DIR, { recursive: true });
+  }
+}
+
+function readServices() {
+  ensureStorage();
+  try {
+    const content = fs.readFileSync(SERVICES_FILE, 'utf8');
+    return JSON.parse(content);
+  } catch {
+    return [];
+  }
+}
+
+function writeServices(services) {
+  ensureStorage();
+  fs.writeFileSync(SERVICES_FILE, JSON.stringify(services, null, 2), 'utf8');
+}
+
+// Token creation and verification
+function createToken(username) {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(
+    JSON.stringify({
+      username,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 // 24 hours
+    })
+  ).toString('base64url');
+  const signature = crypto
+    .createHmac('sha256', JWT_SECRET)
+    .update(`${header}.${payload}`)
+    .digest('base64url');
+  return `${header}.${payload}.${signature}`;
+}
+
+function verifyToken(token) {
+  if (!token) return null;
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  const [header, payload, signature] = parts;
+  const expectedSignature = crypto
+    .createHmac('sha256', JWT_SECRET)
+    .update(`${header}.${payload}`)
+    .digest('base64url');
+  if (expectedSignature !== signature) return null;
+
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (data.exp && data.exp < Math.floor(Date.now() / 1000)) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function parseJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk;
+      if (body.length > 50 * 1024 * 1024) {
+        // 50MB limit
+        reject(new Error('Payload too large'));
+      }
+    });
+    req.on('end', () => {
+      if (!body) return resolve({});
+      try {
+        resolve(JSON.parse(body));
+      } catch (err) {
+        reject(new Error('Invalid JSON'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+function parseDate(dateStr) {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  const clean = dateStr.trim();
+  const dmy = clean.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dmy) {
+    return new Date(parseInt(dmy[3], 10), parseInt(dmy[2], 10) - 1, parseInt(dmy[1], 10));
+  }
+  const ymd = clean.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (ymd) {
+    return new Date(parseInt(ymd[1], 10), parseInt(ymd[2], 10) - 1, parseInt(ymd[3], 10));
+  }
+  const d = new Date(clean);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function isBatchPast(endDateStr) {
+  const d = parseDate(endDateStr);
+  if (!d) return false;
+  const endOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+  return endOfDay.getTime() < Date.now();
+}
+
+function resolveBatchStatus(batch) {
+  if (batch.status === 'draft') return 'draft';
+  if (batch.status === 'archived') return 'archived';
+  if (batch.status === 'completed') return 'completed';
+  if (isBatchPast(batch.endDate)) {
+    return 'completed';
+  }
+  return batch.status || 'upcoming';
+}
+
+function readBatches() {
+  ensureStorage();
+  try {
+    const content = fs.readFileSync(DATA_FILE, 'utf8');
+    return JSON.parse(content);
+  } catch {
+    return [];
+  }
+}
+
+function writeBatches(batches) {
+  ensureStorage();
+  fs.writeFileSync(DATA_FILE, JSON.stringify(batches, null, 2), 'utf8');
+}
+
+export function batchApiPlugin() {
+  return {
+    name: 'sk-relax-batch-api',
+    configureServer(server) {
+      handleMiddleware(server.middlewares);
+    },
+    configurePreviewServer(server) {
+      handleMiddleware(server.middlewares);
+    }
+  };
+}
+
+function handleMiddleware(middlewares) {
+  middlewares.use(async (req, res, next) => {
+    // Only handle /api routes
+    if (!req.url.startsWith('/api')) {
+      return next();
+    }
+
+    const url = new URL(req.url, 'http://localhost');
+    const pathname = url.pathname;
+    const method = req.method;
+
+    res.setHeader('Content-Type', 'application/json');
+
+    // CORS helper for development flexibility
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (method === 'OPTIONS') {
+      res.statusCode = 204;
+      return res.end();
+    }
+
+    // Helper to send JSON
+    const sendJson = (statusCode, data) => {
+      res.statusCode = statusCode;
+      res.end(JSON.stringify(data));
+    };
+
+    // Helper to check authentication
+    const getAuthUser = () => {
+      const authHeader = req.headers['authorization'];
+      if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+      const token = authHeader.slice(7).trim();
+      return verifyToken(token);
+    };
+
+    try {
+      // 1. POST /api/admin/login
+      if (pathname === '/api/admin/login' && method === 'POST') {
+        const { username, password } = await parseJsonBody(req);
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+          const token = createToken(username);
+          return sendJson(200, {
+            success: true,
+            token,
+            user: { username, role: 'admin' }
+          });
+        }
+        return sendJson(401, { success: false, error: 'Invalid username or password' });
+      }
+
+      // 2. GET /api/admin/me
+      if (pathname === '/api/admin/me' && method === 'GET') {
+        const user = getAuthUser();
+        if (!user) {
+          return sendJson(401, { authenticated: false, error: 'Unauthorized' });
+        }
+        return sendJson(200, { authenticated: true, user: { username: user.username, role: 'admin' } });
+      }
+
+      // 3. POST /api/upload (Admin only)
+      if (pathname === '/api/upload' && method === 'POST') {
+        const user = getAuthUser();
+        if (!user) {
+          return sendJson(401, { success: false, error: 'Admin authentication required' });
+        }
+
+        const body = await parseJsonBody(req);
+        const { filename, data, folder = 'services' } = body;
+
+        if (!data || !filename) {
+          return sendJson(400, { success: false, error: 'Missing file data or filename' });
+        }
+
+        // Support base64 image or video data: data:image/png;base64,.... or data:video/mp4;base64,....
+        const matches = data.match(/^data:([A-Za-z0-9\-+\/]+);base64,(.+)$/);
+        let buffer;
+        let ext = path.extname(filename).toLowerCase();
+
+        if (matches && matches.length === 3) {
+          buffer = Buffer.from(matches[2], 'base64');
+          if (!ext) {
+            const mime = matches[1];
+            if (mime === 'image/jpeg') ext = '.jpg';
+            else if (mime === 'image/png') ext = '.png';
+            else if (mime === 'image/webp') ext = '.webp';
+            else if (mime === 'image/svg+xml') ext = '.svg';
+            else if (mime === 'video/mp4') ext = '.mp4';
+            else if (mime === 'video/webm') ext = '.webm';
+          }
+        } else {
+          buffer = Buffer.from(data, 'base64');
+        }
+
+        const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.mp4', '.webm'];
+        if (!allowedExts.includes(ext)) {
+          return sendJson(400, {
+            success: false,
+            error: `Unsupported file extension (${ext}). Allowed: JPG, PNG, WEBP, SVG, MP4, WEBM`
+          });
+        }
+
+        if (buffer.length > 35 * 1024 * 1024) {
+          return sendJson(400, { success: false, error: 'File exceeds 35MB limit' });
+        }
+
+        ensureStorage();
+        const targetDir = folder === 'batches' ? UPLOADS_DIR : SERVICES_UPLOADS_DIR;
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+
+        const safeBase = path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
+        const prefix = folder === 'batches' ? 'batch' : 'service';
+        const uniqueName = `${prefix}-${Date.now()}-${safeBase}${ext || '.jpg'}`;
+        const targetPath = path.join(targetDir, uniqueName);
+
+        fs.writeFileSync(targetPath, buffer);
+        const publicUrl = `/uploads/${folder === 'batches' ? 'batches' : 'services'}/${uniqueName}`;
+
+        return sendJson(200, {
+          success: true,
+          url: publicUrl,
+          filename: uniqueName
+        });
+      }
+
+      // 4. GET /api/batches
+      if (pathname === '/api/batches' && method === 'GET') {
+        const batches = readBatches();
+        const user = getAuthUser();
+        // If not admin, hide drafts and archived events
+        if (!user) {
+          const publicBatches = batches
+            .filter(b => b.status !== 'draft' && b.status !== 'archived')
+            .map(b => ({
+              ...b,
+              status: resolveBatchStatus(b)
+            }));
+          return sendJson(200, { success: true, data: publicBatches });
+        }
+        // Admin gets all batches with effective status
+        const adminBatches = batches.map(b => ({
+          ...b,
+          effectiveStatus: resolveBatchStatus(b)
+        }));
+        return sendJson(200, { success: true, data: adminBatches });
+      }
+
+      // 5. GET /api/batches/:slugOrId
+      const singleBatchMatch = pathname.match(/^\/api\/batches\/([a-zA-Z0-9_-]+)$/);
+      if (singleBatchMatch && method === 'GET') {
+        const slugOrId = singleBatchMatch[1];
+        const batches = readBatches();
+        const batch = batches.find(
+          b =>
+            b.id === slugOrId ||
+            b.slug === slugOrId ||
+            (slugOrId === 'advance-hair-cutting-22-oct' && b.id.includes('22-oct')) ||
+            (slugOrId === 'hair-sutting-masterclass' && b.id.includes('22-oct'))
+        );
+
+        if (!batch) {
+          return sendJson(404, { success: false, error: 'Batch not found' });
+        }
+
+        const user = getAuthUser();
+        if ((batch.status === 'draft' || batch.status === 'archived') && !user) {
+          return sendJson(404, { success: false, error: 'Batch not found' });
+        }
+
+        return sendJson(200, {
+          success: true,
+          data: {
+            ...batch,
+            status: resolveBatchStatus(batch)
+          }
+        });
+      }
+
+      // 6. POST /api/batches (Create - Admin only)
+      if (pathname === '/api/batches' && method === 'POST') {
+        const user = getAuthUser();
+        if (!user) {
+          return sendJson(401, { success: false, error: 'Admin authentication required' });
+        }
+
+        const body = await parseJsonBody(req);
+        if (!body.title || !body.title.trim()) {
+          return sendJson(400, { success: false, error: 'Title is required' });
+        }
+
+        const batches = readBatches();
+
+        const slug = (body.slug || body.title)
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+
+        const id = body.id || `${slug}-${Date.now()}`;
+
+        // Auto determine eventType if not provided
+        let eventType = body.eventType;
+        if (!eventType) {
+          const durationStr = (body.duration || '').toLowerCase();
+          if (durationStr.includes('1 day') || durationStr.includes('one day') || body.startDate === body.endDate) {
+            eventType = 'one-day';
+          } else if (durationStr.includes('week') || durationStr.includes('month') || body.category === 'diploma') {
+            eventType = 'course';
+          } else {
+            eventType = 'multi-day';
+          }
+        }
+
+        const feeNum = Number(body.fee) || 0;
+        const totalSeats = body.totalSeats !== undefined && body.totalSeats !== '' ? Number(body.totalSeats) : undefined;
+        const seatsRemaining = body.seatsRemaining !== undefined && body.seatsRemaining !== '' ? Number(body.seatsRemaining) : undefined;
+
+        const newBatch = {
+          id,
+          slug,
+          title: body.title.trim(),
+          category: body.category || 'masterclass',
+          eventType,
+          status: body.status || 'upcoming',
+          badge: body.badge || '',
+          startDate: body.startDate || '',
+          endDate: body.endDate || body.startDate || '',
+          timing: body.timing || '',
+          duration: body.duration || (eventType === 'one-day' ? 'One Day' : ''),
+          fee: feeNum,
+          discount: body.discount !== undefined && body.discount !== '' ? Number(body.discount) : undefined,
+          feeDisplay: body.feeDisplay || (feeNum > 0 ? `₹${feeNum.toLocaleString('en-IN')}` : '₹0'),
+          totalSeats: totalSeats && totalSeats > 0 ? totalSeats : undefined,
+          seatsRemaining: seatsRemaining !== undefined && seatsRemaining >= 0 ? seatsRemaining : undefined,
+          image: body.image || '/images/academy/hair-cutting-masterclass-poster.jpg',
+          thumbnail: body.thumbnail || body.image || '',
+          videoUrl: body.videoUrl || '',
+          leadTrainer: body.leadTrainer || 'Salma Attar (Founder & Master Beauty Educator)',
+          venue: body.venue || 'SK Relax Beauty Academy & Salon, Satara, Maharashtra',
+          prerequisites: body.prerequisites || '',
+          included: Array.isArray(body.included) ? body.included.filter(Boolean) : [],
+          curriculum: Array.isArray(body.curriculum) ? body.curriculum.filter(Boolean) : [],
+          description: body.description || '',
+          whatsappPreset: body.whatsappPreset || `Hello Salma Ma'am, I would like to enquire about ${body.title} at SK Relax Academy Satara.`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        batches.unshift(newBatch);
+        writeBatches(batches);
+
+        return sendJson(201, { success: true, data: newBatch });
+      }
+
+      // 7. PUT /api/batches/:id (Update - Admin only)
+      if (singleBatchMatch && method === 'PUT') {
+        const user = getAuthUser();
+        if (!user) {
+          return sendJson(401, { success: false, error: 'Admin authentication required' });
+        }
+
+        const id = singleBatchMatch[1];
+        const batches = readBatches();
+        const index = batches.findIndex(b => b.id === id || b.slug === id);
+
+        if (index === -1) {
+          return sendJson(404, { success: false, error: 'Batch not found' });
+        }
+
+        const body = await parseJsonBody(req);
+        const existing = batches[index];
+
+        // Status actions
+        let newStatus = body.status || existing.status;
+        if (body.action === 'publish') newStatus = 'enrolling';
+        if (body.action === 'unpublish') newStatus = 'draft';
+        if (body.action === 'archive') newStatus = 'archived';
+
+        const feeNum = body.fee !== undefined ? Number(body.fee) : existing.fee;
+        const totalSeats = body.totalSeats !== undefined && body.totalSeats !== ''
+          ? Number(body.totalSeats)
+          : existing.totalSeats;
+        const seatsRemaining = body.seatsRemaining !== undefined && body.seatsRemaining !== ''
+          ? Number(body.seatsRemaining)
+          : existing.seatsRemaining;
+
+        const updatedBatch = {
+          ...existing,
+          ...body,
+          id: existing.id, // Immutable ID
+          status: newStatus,
+          fee: feeNum,
+          discount: body.discount !== undefined ? (body.discount !== '' ? Number(body.discount) : undefined) : existing.discount,
+          feeDisplay: body.feeDisplay || (feeNum > 0 ? `₹${feeNum.toLocaleString('en-IN')}` : existing.feeDisplay),
+          totalSeats: totalSeats && totalSeats > 0 ? totalSeats : undefined,
+          seatsRemaining: seatsRemaining !== undefined && seatsRemaining >= 0 ? seatsRemaining : undefined,
+          included: Array.isArray(body.included) ? body.included.filter(Boolean) : existing.included,
+          curriculum: Array.isArray(body.curriculum) ? body.curriculum.filter(Boolean) : existing.curriculum,
+          updatedAt: new Date().toISOString()
+        };
+
+        batches[index] = updatedBatch;
+        writeBatches(batches);
+
+        return sendJson(200, { success: true, data: updatedBatch });
+      }
+
+      // 8. DELETE /api/batches/:id (Delete or Archive - Admin only)
+      if (singleBatchMatch && method === 'DELETE') {
+        const user = getAuthUser();
+        if (!user) {
+          return sendJson(401, { success: false, error: 'Admin authentication required' });
+        }
+
+        const id = singleBatchMatch[1];
+        const urlObj = new URL(req.url, 'http://localhost');
+        const isArchive = urlObj.searchParams.get('archive') === 'true';
+        const batches = readBatches();
+        const index = batches.findIndex(b => b.id === id || b.slug === id);
+
+        if (index === -1) {
+          return sendJson(404, { success: false, error: 'Batch not found' });
+        }
+
+        if (isArchive) {
+          // Soft delete: set to archived
+          batches[index].status = 'archived';
+          batches[index].updatedAt = new Date().toISOString();
+          writeBatches(batches);
+          return sendJson(200, { success: true, message: 'Batch archived successfully', data: batches[index] });
+        } else {
+          // Hard delete
+          batches.splice(index, 1);
+          writeBatches(batches);
+          return sendJson(200, { success: true, message: 'Batch deleted permanently' });
+        }
+      }
+
+      // =======================================================================
+      // SERVICES CRUD ENDPOINTS
+      // =======================================================================
+
+      const getCategoryLabel = (cat) => {
+        const labels = {
+          'hair-treatments': 'Hair Treatments & Science',
+          'facials-skin': 'Facials & Skin Treatments',
+          'makeup-bridal': 'Makeup & Bridal Artistry',
+          'permanent-makeup': 'Permanent Makeup (PMU)',
+          'equipment-machines': 'Aesthetic Machines & Tech',
+          'other': 'Other Salon Services'
+        };
+        return labels[cat] || 'Salon Service';
+      };
+
+      // 9. GET /api/services
+      if (pathname === '/api/services' && method === 'GET') {
+        const services = readServices();
+        const user = getAuthUser();
+        const urlObj = new URL(req.url, 'http://localhost');
+        const category = urlObj.searchParams.get('category');
+        const status = urlObj.searchParams.get('status');
+        const search = urlObj.searchParams.get('search');
+
+        let result = [...services];
+
+        if (!user) {
+          // Public: ONLY published services
+          result = result.filter(s => s.status === 'published');
+          if (category && category !== 'all') {
+            result = result.filter(s => s.category === category);
+          }
+          if (search) {
+            const q = search.toLowerCase();
+            result = result.filter(s =>
+              s.title.toLowerCase().includes(q) ||
+              (s.shortDescription && s.shortDescription.toLowerCase().includes(q))
+            );
+          }
+        } else {
+          // Admin
+          if (status && status !== 'all') {
+            result = result.filter(s => s.status === status);
+          }
+          if (category && category !== 'all') {
+            result = result.filter(s => s.category === category);
+          }
+          if (search) {
+            const q = search.toLowerCase();
+            result = result.filter(s =>
+              s.title.toLowerCase().includes(q) ||
+              (s.shortDescription && s.shortDescription.toLowerCase().includes(q)) ||
+              (s.description && s.description.toLowerCase().includes(q))
+            );
+          }
+        }
+
+        result.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        return sendJson(200, { success: true, data: result });
+      }
+
+      // 10. POST /api/services/reorder (Admin only)
+      if (pathname === '/api/services/reorder' && method === 'POST') {
+        const user = getAuthUser();
+        if (!user) {
+          return sendJson(401, { success: false, error: 'Admin authentication required' });
+        }
+
+        const body = await parseJsonBody(req);
+        const { order } = body;
+        if (!Array.isArray(order)) {
+          return sendJson(400, { success: false, error: 'Order must be an array of service IDs' });
+        }
+
+        const services = readServices();
+        const updated = services.map(s => {
+          const idx = order.indexOf(s.id);
+          if (idx !== -1) {
+            return { ...s, displayOrder: idx + 1, updatedAt: new Date().toISOString() };
+          }
+          return s;
+        });
+
+        updated.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        writeServices(updated);
+
+        return sendJson(200, { success: true, data: updated });
+      }
+
+      // 11. POST /api/services (Create - Admin only)
+      if (pathname === '/api/services' && method === 'POST') {
+        const user = getAuthUser();
+        if (!user) {
+          return sendJson(401, { success: false, error: 'Admin authentication required' });
+        }
+
+        const body = await parseJsonBody(req);
+        if (!body.title || !body.title.trim()) {
+          return sendJson(400, { success: false, error: 'Service title is required' });
+        }
+        if (!body.category) {
+          return sendJson(400, { success: false, error: 'Service category is required' });
+        }
+
+        const services = readServices();
+        const slug = (body.slug || body.title)
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+
+        const id = body.id || `service-${slug}-${Date.now()}`;
+
+        const maxOrder = services.reduce((max, s) => Math.max(max, s.displayOrder || 0), 0);
+
+        const newService = {
+          id,
+          slug,
+          title: body.title.trim(),
+          category: body.category,
+          categoryLabel: body.categoryLabel || getCategoryLabel(body.category),
+          shortDescription: body.shortDescription ? body.shortDescription.trim() : '',
+          description: body.description ? body.description.trim() : '',
+          image: body.image || '',
+          thumbnail: body.thumbnail || body.image || '',
+          imagePosition: body.imagePosition || '',
+          videoUrl: body.videoUrl || '',
+          videoPoster: body.videoPoster || '',
+          pricingMode: body.pricingMode || 'enquiry', // 'fixed' | 'starting' | 'enquiry'
+          price: body.price !== undefined ? body.price : '',
+          promotionalPrice: body.promotionalPrice !== undefined ? body.promotionalPrice : '',
+          currency: body.currency || '₹',
+          duration: body.duration || '',
+          features: Array.isArray(body.features)
+            ? body.features.map(f => String(f).trim()).filter(Boolean)
+            : typeof body.features === 'string'
+            ? body.features.split('\n').map(s => s.trim()).filter(Boolean)
+            : [],
+          isSignature: Boolean(body.isSignature),
+          isEducational: Boolean(body.isEducational),
+          badge: body.badge || '',
+          status: body.status || 'published', // 'published' | 'draft' | 'archived'
+          displayOrder: body.displayOrder !== undefined ? Number(body.displayOrder) : maxOrder + 1,
+          whatsappMessage:
+            body.whatsappMessage ||
+            `Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your "${body.title.trim()}" service. Please share details and available slots.`,
+          whatsappNumber: body.whatsappNumber || '918459890270',
+          confirmed: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        services.push(newService);
+        writeServices(services);
+
+        return sendJson(201, { success: true, data: newService });
+      }
+
+      // 12. GET, PUT, DELETE /api/services/:id
+      const singleServiceMatch = pathname.match(/^\/api\/services\/([a-zA-Z0-9_-]+)$/);
+      if (singleServiceMatch && singleServiceMatch[1] !== 'reorder') {
+        const id = singleServiceMatch[1];
+        const services = readServices();
+        const index = services.findIndex(s => s.id === id || s.slug === id);
+
+        // GET single service
+        if (method === 'GET') {
+          if (index === -1) {
+            return sendJson(404, { success: false, error: 'Service not found' });
+          }
+          const user = getAuthUser();
+          const service = services[index];
+          if (!user && service.status !== 'published') {
+            return sendJson(404, { success: false, error: 'Service not found' });
+          }
+          return sendJson(200, { success: true, data: service });
+        }
+
+        // PUT update service (Admin only)
+        if (method === 'PUT') {
+          const user = getAuthUser();
+          if (!user) {
+            return sendJson(401, { success: false, error: 'Admin authentication required' });
+          }
+
+          if (index === -1) {
+            return sendJson(404, { success: false, error: 'Service not found' });
+          }
+
+          const body = await parseJsonBody(req);
+          const existing = services[index];
+
+          let newStatus = body.status || existing.status;
+          if (body.action === 'publish') newStatus = 'published';
+          if (body.action === 'unpublish') newStatus = 'draft';
+          if (body.action === 'archive') newStatus = 'archived';
+          if (body.action === 'restore') newStatus = 'published';
+
+          let features = existing.features;
+          if (Array.isArray(body.features)) {
+            features = body.features.map(f => String(f).trim()).filter(Boolean);
+          } else if (typeof body.features === 'string') {
+            features = body.features.split('\n').map(s => s.trim()).filter(Boolean);
+          }
+
+          const updatedService = {
+            ...existing,
+            ...body,
+            id: existing.id, // Immutable ID
+            status: newStatus,
+            features,
+            categoryLabel: body.category ? getCategoryLabel(body.category) : existing.categoryLabel,
+            displayOrder: body.displayOrder !== undefined ? Number(body.displayOrder) : existing.displayOrder,
+            updatedAt: new Date().toISOString()
+          };
+
+          services[index] = updatedService;
+          writeServices(services);
+
+          return sendJson(200, { success: true, data: updatedService });
+        }
+
+        // DELETE remove or archive service (Admin only)
+        if (method === 'DELETE') {
+          const user = getAuthUser();
+          if (!user) {
+            return sendJson(401, { success: false, error: 'Admin authentication required' });
+          }
+
+          if (index === -1) {
+            return sendJson(404, { success: false, error: 'Service not found' });
+          }
+
+          const urlObj = new URL(req.url, 'http://localhost');
+          const isArchive = urlObj.searchParams.get('archive') === 'true';
+
+          if (isArchive) {
+            services[index].status = 'archived';
+            services[index].updatedAt = new Date().toISOString();
+            writeServices(services);
+            return sendJson(200, {
+              success: true,
+              message: 'Service archived successfully',
+              data: services[index]
+            });
+          } else {
+            const removed = services.splice(index, 1)[0];
+            writeServices(services);
+            return sendJson(200, {
+              success: true,
+              message: 'Service permanently deleted',
+              data: removed
+            });
+          }
+        }
+      }
+
+      // Route not handled
+      return sendJson(404, { success: false, error: 'API endpoint not found' });
+    } catch (err) {
+      console.error('API Error:', err);
+      return sendJson(500, { success: false, error: err.message || 'Internal server error' });
+    }
+  });
+}

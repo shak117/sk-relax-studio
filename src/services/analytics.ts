@@ -169,7 +169,7 @@ export function trackViewContent(params: {
  * Tracks contact actions: phone clicks, Instagram clicks, or general WhatsApp
  */
 export function trackContactAction(params: {
-  method: 'phone' | 'whatsapp' | 'instagram' | 'map';
+  method: 'phone' | 'whatsapp' | 'instagram' | 'facebook' | 'map';
   touchpoint: string;
   label?: string;
 }) {

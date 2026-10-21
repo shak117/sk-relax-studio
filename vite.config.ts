@@ -1,9 +1,11 @@
-import { defineConfig } from 'vite';
+import { defineConfig, PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
+// @ts-ignore
+import { batchApiPlugin } from './server/apiPlugin.js';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), batchApiPlugin() as PluginOption],
   server: {
     port: 3000,
     open: true,

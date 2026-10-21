@@ -9,8 +9,8 @@ export const AnnouncementBar: React.FC = () => {
   if (dismissed || !BRAND.announcement) return null;
 
   return (
-    <div className="bg-forest-950 text-ivory text-xs font-sans tracking-wide py-2 px-4 relative z-50 border-b border-forest-800">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+    <div className="bg-forest-950 text-ivory text-xs font-sans tracking-wide py-2 relative z-50 border-b border-forest-800">
+      <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 2xl:px-12 flex items-center justify-between gap-3">
         <div className="flex-1 flex items-center justify-center text-center gap-2 overflow-hidden text-ellipsis">
           <span className="hidden sm:inline-flex items-center gap-1 text-gold-400 font-medium uppercase tracking-wider text-[11px] bg-forest-900 px-2 py-0.5 rounded-sm border border-gold-500/20">
             <Sparkles size={11} className="text-gold-400" />

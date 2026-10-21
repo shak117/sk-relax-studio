@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Sparkles, 
   Scissors, 
@@ -9,21 +9,37 @@ import {
   Check, 
   ShieldCheck,
   MapPin,
-  Navigation
+  Navigation,
+  Play,
+  Users,
+  Award,
+  Video,
+  Star
 } from 'lucide-react';
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { SERVICES } from '../data/servicesData';
-import { COURSES } from '../data/academyData';
+import { COURSES, ACADEMY_PROMO } from '../data/academyData';
+import { ACADEMY_EVENTS } from '../data/eventsData';
+import { STUDENT_FEEDBACK } from '../data/studentFeedbackData';
 import { CinematicScrollHero } from '../components/hero/CinematicScrollHero';
 import { ServiceCard } from '../components/services/ServiceCard';
 import { GalleryGrid } from '../components/gallery/GalleryGrid';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
+import { VideoPlayerModal } from '../components/ui/VideoPlayerModal';
 import { usePageSEO } from '../hooks/usePageSEO';
 import { generateLocalBusinessSchema } from '../utils/schemaGenerator';
 
 export const HomePage: React.FC = () => {
+  const [activeVideo, setActiveVideo] = useState<{
+    url: string;
+    title: string;
+    description?: string;
+    posterImage?: string;
+    categoryLabel?: string;
+  } | null>(null);
+
   usePageSEO({
     title: 'SK Relax Beauty Academy & Salon | Satara',
     description: 'Explore SK Relax Beauty Academy & Salon in Satara. Discover salon services, professional hair styling, beauty education, and appointment enquiries.',
@@ -77,7 +93,7 @@ export const HomePage: React.FC = () => {
       <CinematicScrollHero />
 
       {/* 4C. Brand Introduction — Editorial Split Layout */}
-      <section id="brand-intro" className="py-20 sm:py-28 bg-ivory text-forest-900 border-b border-forest-900/10">
+      <section id="brand-intro" className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Visual Column */}
@@ -169,7 +185,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4E. Signature Hair Artistry (Masterclass Poster Showcase) */}
-      <section className="py-20 sm:py-28 bg-cream-50 text-forest-900 border-b border-forest-900/10">
+      <section className="py-12 sm:py-16 bg-cream-50 text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <SectionHeading
@@ -181,7 +197,7 @@ export const HomePage: React.FC = () => {
           </ScrollReveal>
 
           {/* 5 Haircuts Showcase */}
-          <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {signatureHaircuts.map((cut, idx) => (
               <ScrollReveal key={idx} delay={idx * 100}>
                 <div className="group relative bg-white rounded-sm overflow-hidden border border-forest-900/10 shadow-soft hover:shadow-card transition-all duration-300 flex flex-col h-full">
@@ -230,9 +246,9 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4D. Featured Services Catalogue Grid */}
-      <section id="services-section" className="py-20 sm:py-28 bg-ivory text-forest-900 border-b border-forest-900/10">
+      <section id="services-section" className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
                 <span className="w-6 h-[1px] bg-rose-400"></span>
@@ -262,8 +278,93 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* Team Spotlight Section */}
+      <section className="py-12 sm:py-16 bg-cream-100 text-forest-900 border-b border-forest-900/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+            {/* Visual Column */}
+            <div className="lg:col-span-5">
+              <ScrollReveal direction="left">
+                <div className="relative">
+                  <div className="relative aspect-[4/5] rounded-sm overflow-hidden bg-cream-300 shadow-luxury border-2 border-gold-500/30">
+                    <img
+                      src="/images/team/salma-attar-founder.jpg"
+                      alt="Salma Attar - Founder & Master Beauty Educator SK Relax Satara"
+                      className="w-full h-full object-cover object-center"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-forest-950/70 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute bottom-5 left-5 right-5 text-white">
+                      <span className="text-[10px] uppercase tracking-widest font-sans font-semibold text-gold-300 bg-forest-950/80 px-2.5 py-1 rounded-sm inline-block mb-1.5">
+                        Founder & Director
+                      </span>
+                      <h4 className="font-serif text-2xl text-ivory">Salma Attar</h4>
+                      <p className="text-xs text-ivory-200/90 font-sans">Master Beauty Educator · 15+ Yrs Satara</p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
+
+            {/* Content Column */}
+            <div className="lg:col-span-7 space-y-6">
+              <ScrollReveal direction="right">
+                <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600">
+                  <Users size={14} />
+                  <span>The Artisans Behind SK Relax</span>
+                </div>
+
+                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-forest-900 font-light leading-tight">
+                  Meet Our Lead Educator &
+                  <span className="block font-serif italic text-rose-600">
+                    Professional Studio Team
+                  </span>
+                </h2>
+
+                <p className="text-forest-700 font-sans text-sm sm:text-base leading-relaxed">
+                  Led by founder <strong>Salma Attar</strong>, our salon and academy team combines 15+ years of beauty mastery with a genuine passion for personalized client transformation and student success in Satara.
+                </p>
+
+                {/* Key Badges */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="p-4 bg-white rounded-sm border border-forest-900/10 shadow-soft flex items-start gap-3">
+                    <Award size={18} className="text-gold-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h5 className="font-serif text-sm font-medium text-forest-900">Certified PMU & Aesthetics</h5>
+                      <p className="text-xs text-forest-600 mt-0.5">International certifications in microblading, clinical peels & skin machines.</p>
+                    </div>
+                  </div>
+                  <div className="p-4 bg-white rounded-sm border border-forest-900/10 shadow-soft flex items-start gap-3">
+                    <GraduationCap size={18} className="text-rose-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h5 className="font-serif text-sm font-medium text-forest-900">Personalized Mentorship</h5>
+                      <p className="text-xs text-forest-600 mt-0.5">Every student receives hands-on dummy practice and one-on-one guidance.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 flex flex-wrap items-center gap-4">
+                  <Button to="/team" variant="primary" size="md" icon={<ArrowRight size={14} />}>
+                    Meet Our Full Team
+                  </Button>
+                  <Button
+                    href={buildWhatsAppUrl("Hello Salma ma'am! I would like to consult regarding academy courses and salon services at SK Relax Satara.")}
+                    external
+                    variant="outline"
+                    size="md"
+                    icon={<MessageCircle size={15} className="text-emerald-600" />}
+                  >
+                    Direct Consultation
+                  </Button>
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 4F. Beauty Academy Feature Banner */}
-      <section className="py-20 sm:py-28 bg-forest-950 text-ivory relative overflow-hidden">
+      <section className="py-12 sm:py-16 bg-forest-950 text-ivory relative overflow-hidden">
         {/* Subtle decorative background circles */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-forest-900/40 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -273,9 +374,17 @@ export const HomePage: React.FC = () => {
             {/* Left Content */}
             <div className="lg:col-span-7 space-y-6">
               <ScrollReveal direction="left">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase">
-                  <GraduationCap size={14} className="text-gold-400" />
-                  <span>SK Relax Beauty Academy · Satara</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase">
+                    <GraduationCap size={14} className="text-gold-400" />
+                    <span>SK Relax Beauty Academy · Satara</span>
+                  </div>
+
+                  {/* 20% Discount Offer Banner */}
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-900/60 border border-rose-500/40 text-rose-200 text-xs font-sans">
+                    <Sparkles size={12} className="text-gold-400" />
+                    <span>{ACADEMY_PROMO.discountBadge} on 20 Certified Courses</span>
+                  </div>
                 </div>
 
                 <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-white font-light leading-tight">
@@ -330,8 +439,8 @@ export const HomePage: React.FC = () => {
                     Enquire Batch on WhatsApp
                   </Button>
 
-                  <Button to="/academy" variant="outline" size="md" className="border-ivory/30 text-ivory hover:text-forest-950 hover:bg-ivory">
-                    View Full Academy Syllabus
+                  <Button to="/batches" variant="outline" size="md" className="border-ivory/30 text-ivory hover:text-forest-950 hover:bg-ivory">
+                    Explore Course Batches
                   </Button>
                 </div>
               </ScrollReveal>
@@ -361,10 +470,211 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 4G. Gallery Preview */}
-      <section className="py-20 sm:py-28 bg-ivory text-forest-900 border-b border-forest-900/10">
+      {/* Batch Celebrations & Events Preview Section */}
+      <section className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+            <div>
+              <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
+                <Video size={14} />
+                <span>Life At SK Relax Academy</span>
+              </div>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-forest-900 font-light">
+                Batch Get-Togethers <span className="font-serif italic text-rose-600">& Workshops</span>
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-forest-700 max-w-xl font-sans">
+                Witness real moments from our academy batch celebrations, certificate distributions, and intensive mannequin dummy training sessions in Satara.
+              </p>
+            </div>
+
+            <Button to="/events" variant="outline" size="md" icon={<ArrowRight size={14} />}>
+              View All Events & Batches
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {ACADEMY_EVENTS.slice(0, 2).map((event, idx) => (
+              <ScrollReveal key={event.id} delay={idx * 100}>
+                <div className="group relative bg-white rounded-sm overflow-hidden border border-forest-900/10 shadow-soft hover:shadow-card transition-all duration-300 flex flex-col h-full">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-forest-950">
+                    <img
+                      src={event.image}
+                      alt={event.title}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-forest-950/30 group-hover:bg-forest-950/40 transition-colors" />
+
+                    {event.videoUrl && (
+                      <button
+                        onClick={() =>
+                          setActiveVideo({
+                            url: event.videoUrl!,
+                            title: event.title,
+                            description: event.description,
+                            posterImage: event.image,
+                            categoryLabel: 'Academy Batch Event'
+                          })
+                        }
+                        className="absolute inset-0 m-auto w-14 h-14 rounded-full bg-forest-900/85 border border-gold-400 text-gold-300 hover:scale-110 hover:bg-gold-500 hover:text-forest-950 transition-all flex items-center justify-center shadow-luxury"
+                        aria-label={`Play video for ${event.title}`}
+                      >
+                        <Play size={20} className="fill-current ml-0.5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase tracking-widest text-rose-600 font-semibold font-sans block mb-1">
+                        {event.batchName}
+                      </span>
+                      <h3 className="font-serif text-xl text-forest-900 font-medium">
+                        {event.title}
+                      </h3>
+                      <p className="mt-2 text-xs sm:text-sm text-forest-700 leading-relaxed font-sans">
+                        {event.description}
+                      </p>
+                    </div>
+
+                    <div className="mt-5 pt-4 border-t border-forest-900/10 flex items-center justify-between">
+                      {event.videoUrl ? (
+                        <button
+                          onClick={() =>
+                            setActiveVideo({
+                              url: event.videoUrl!,
+                              title: event.title,
+                              description: event.description,
+                              posterImage: event.image,
+                              categoryLabel: 'Academy Batch Event'
+                            })
+                          }
+                          className="inline-flex items-center gap-1.5 text-xs text-rose-600 hover:text-rose-700 font-semibold uppercase tracking-wider"
+                        >
+                          <Play size={13} className="fill-current" />
+                          <span>Watch Video Reel</span>
+                        </button>
+                      ) : (
+                        <span className="text-xs text-forest-600">Photo Moment</span>
+                      )}
+
+                      <a
+                        href={buildWhatsAppUrl(WhatsAppMessages.academyEnquiry(event.title, 'Upcoming Batch'))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-forest-700 hover:text-emerald-700 font-medium"
+                      >
+                        <MessageCircle size={13} className="text-emerald-600" />
+                        <span>Enquire Next Batch</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Student Video Reviews & Feedback Preview */}
+      <section className="py-12 sm:py-16 bg-cream-50 text-forest-900 border-b border-forest-900/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+            <div>
+              <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
+                <Star size={14} className="fill-current text-gold-500" />
+                <span>Genuine Student Testimonials</span>
+              </div>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-forest-900 font-light">
+                What Our Students <span className="font-serif italic text-rose-600">Say</span>
+              </h2>
+              <p className="mt-3 text-sm sm:text-base text-forest-700 max-w-xl font-sans">
+                Watch authentic video reviews and learn how our students built confidence and practical beauty skills under Salma Attar's personal mentorship in Satara.
+              </p>
+            </div>
+
+            <Button to="/student-feedback" variant="outline" size="md" icon={<ArrowRight size={14} />}>
+              View All Student Feedback
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {STUDENT_FEEDBACK.map((feedback, idx) => (
+              <ScrollReveal key={feedback.id} delay={idx * 100}>
+                <div className="bg-white p-6 sm:p-8 rounded-sm border border-forest-900/10 shadow-soft h-full flex flex-col justify-between">
+                  <div className="space-y-4">
+                    {/* Video Banner */}
+                    <div className="relative aspect-[16/9] rounded-sm overflow-hidden bg-forest-950 shadow-inner">
+                      <img
+                        src={feedback.posterImage}
+                        alt={feedback.studentName}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-forest-950/40" />
+                      {feedback.videoUrl && (
+                        <button
+                          onClick={() =>
+                            setActiveVideo({
+                              url: feedback.videoUrl!,
+                              title: `${feedback.studentName} — Video Testimonial`,
+                              description: feedback.quote,
+                              posterImage: feedback.posterImage,
+                              categoryLabel: 'Student Video Review'
+                            })
+                          }
+                          className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-forest-900/90 border border-gold-400 text-gold-300 hover:scale-110 hover:bg-gold-500 hover:text-forest-950 transition-all flex items-center justify-center shadow-luxury"
+                          aria-label={`Play testimonial from ${feedback.studentName}`}
+                        >
+                          <Play size={18} className="fill-current ml-0.5" />
+                        </button>
+                      )}
+                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[11px] text-ivory-200 bg-forest-950/80 px-2.5 py-1 rounded-sm">
+                        <span className="font-sans font-medium flex items-center gap-1">
+                          <Play size={10} className="fill-current text-gold-400" /> Watch Video Feedback
+                        </span>
+                        <span className="text-gold-300 font-sans">{feedback.batch}</span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-forest-800 leading-relaxed font-sans italic border-l-2 border-rose-400 pl-3">
+                      “{feedback.quote}”
+                    </p>
+                  </div>
+
+                  <div className="pt-4 mt-4 border-t border-forest-900/10 flex items-center justify-between">
+                    <div>
+                      <h4 className="font-serif text-base text-forest-900 font-medium">{feedback.studentName}</h4>
+                      <p className="text-xs text-rose-600 font-sans">{feedback.courseName}</p>
+                    </div>
+                    {feedback.videoUrl && (
+                      <button
+                        onClick={() =>
+                          setActiveVideo({
+                            url: feedback.videoUrl!,
+                            title: `${feedback.studentName} — Video Testimonial`,
+                            description: feedback.quote,
+                            posterImage: feedback.posterImage,
+                            categoryLabel: 'Student Video Review'
+                          })
+                        }
+                        className="text-xs uppercase font-sans font-semibold tracking-wider text-forest-900 hover:text-rose-600 inline-flex items-center gap-1"
+                      >
+                        <Play size={11} className="fill-current text-rose-500" />
+                        <span>Play Reel</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </ScrollReveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4G. Gallery Preview */}
+      <section className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
                 <span className="w-6 h-[1px] bg-rose-400"></span>
@@ -389,7 +699,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4H. Experience & Standards Section */}
-      <section className="py-20 sm:py-28 bg-cream-100 text-forest-900 border-b border-forest-900/10">
+      <section className="py-12 sm:py-16 bg-cream-100 text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <SectionHeading
@@ -400,7 +710,7 @@ export const HomePage: React.FC = () => {
             />
           </ScrollReveal>
 
-          <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
             <ScrollReveal delay={0}>
               <div className="bg-white p-8 rounded-sm border border-forest-900/10 shadow-soft h-full flex flex-col justify-between">
                 <div>
@@ -462,7 +772,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4I. Final Call to Action */}
-      <section className="py-20 sm:py-28 bg-forest-900 text-ivory text-center relative overflow-hidden">
+      <section className="py-12 sm:py-16 bg-forest-900 text-ivory text-center relative overflow-hidden">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <ScrollReveal>
             <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-gold-400 font-semibold mb-4">
@@ -508,7 +818,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4J. Google Maps Studio Location */}
-      <section className="py-16 sm:py-24 bg-cream-100 text-forest-900 border-t border-forest-900/10">
+      <section className="py-12 sm:py-16 bg-cream-100 text-forest-900 border-t border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             <div className="lg:col-span-5 space-y-4">
@@ -574,6 +884,19 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Video Modal Player */}
+      {activeVideo && (
+        <VideoPlayerModal
+          isOpen={true}
+          onClose={() => setActiveVideo(null)}
+          videoUrl={activeVideo.url}
+          title={activeVideo.title}
+          description={activeVideo.description}
+          posterImage={activeVideo.posterImage}
+          categoryLabel={activeVideo.categoryLabel}
+        />
+      )}
     </div>
   );
 };

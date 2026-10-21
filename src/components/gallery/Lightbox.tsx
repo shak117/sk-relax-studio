@@ -87,13 +87,25 @@ export const Lightbox: React.FC<LightboxProps> = ({
 
       {/* Main Container */}
       <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col md:flex-row bg-forest-900 rounded-sm overflow-hidden shadow-luxury border border-forest-800">
-        {/* Expanded Image */}
+        {/* Expanded Media */}
         <div className="relative flex-1 bg-black flex items-center justify-center max-h-[60vh] md:max-h-[85vh] overflow-hidden">
-          <img
-            src={item.image}
-            alt={item.alt}
-            className="w-full h-full object-contain max-h-[60vh] md:max-h-[85vh]"
-          />
+          {item.videoUrl ? (
+            <video
+              key={item.videoUrl}
+              src={item.videoUrl}
+              poster={item.image}
+              controls
+              autoPlay
+              playsInline
+              className="w-full h-full object-contain max-h-[60vh] md:max-h-[85vh]"
+            />
+          ) : (
+            <img
+              src={item.image}
+              alt={item.alt}
+              className="w-full h-full object-contain max-h-[60vh] md:max-h-[85vh]"
+            />
+          )}
         </div>
 
         {/* Details Sidebar / Bottom Panel */}

@@ -180,8 +180,8 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
         <div className="mt-6 inline-flex items-center gap-2 text-xs text-ivory-300/80 font-sans tracking-wider">
           <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
           <span>Hair Cutting Masterclass Enrollment Open</span>
-          <a href="/academy" className="text-gold-300 hover:text-gold-200 underline underline-offset-4 ml-1">
-            View Syllabus
+          <a href="/batches" className="text-gold-300 hover:text-gold-200 underline underline-offset-4 ml-1">
+            View Batches
           </a>
         </div>
       </div>

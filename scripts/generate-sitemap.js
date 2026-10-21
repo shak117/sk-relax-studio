@@ -16,7 +16,10 @@ const baseUrl = (process.env.VITE_SITE_URL || 'https://skrelaxbeauty.com').repla
 const pages = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
   { path: '/services', priority: '0.9', changefreq: 'weekly' },
-  { path: '/academy', priority: '0.9', changefreq: 'weekly' },
+  { path: '/batches', priority: '0.9', changefreq: 'weekly' },
+  { path: '/team', priority: '0.8', changefreq: 'monthly' },
+  { path: '/events', priority: '0.8', changefreq: 'weekly' },
+  { path: '/student-feedback', priority: '0.8', changefreq: 'weekly' },
   { path: '/gallery', priority: '0.8', changefreq: 'monthly' },
   { path: '/booking', priority: '0.8', changefreq: 'monthly' },
   { path: '/contact', priority: '0.7', changefreq: 'monthly' }
