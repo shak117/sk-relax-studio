@@ -28,4 +28,9 @@ dist-ssr
 public/hero-frames/part1/
 public/hero-frames/part2/
 public/hero-frames/part3/
+# environmne tvariables
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
 
