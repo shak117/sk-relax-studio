@@ -207,23 +207,60 @@ export const salonService = {
   },
 
   /**
-   * Upload image or video asset (Admin only).
+   * Upload image or video asset (Admin only). Supports File object (FormData) or base64 string.
    */
-  async uploadMedia(dataBase64: string, filename: string, folder = 'services'): Promise<ServiceResponse<{ url: string; filename: string }>> {
+  async uploadMedia(
+    fileOrBase64: File | string,
+    filename?: string,
+    folder: 'services' | 'batches' = 'services'
+  ): Promise<ServiceResponse<{ url: string; filename: string }>> {
     const token = this.getAuthToken();
-    if (!token) return { success: false, error: 'Unauthorized' };
+    if (!token) return { success: false, error: 'Unauthorized: Please log in as admin' };
 
     try {
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ data: dataBase64, filename, folder })
-      });
+      let res: Response;
 
-      return await res.json();
+      if (typeof window !== 'undefined' && fileOrBase64 instanceof File) {
+        // multipart/form-data upload via browser FormData
+        const formData = new FormData();
+        formData.append('file', fileOrBase64);
+        formData.append('folder', folder);
+
+        res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            // Note: DO NOT set Content-Type header when using FormData.
+            // The browser will automatically set 'multipart/form-data; boundary=...'
+            Authorization: `Bearer ${token}`
+          },
+          body: formData
+        });
+      } else {
+        // application/json base64 payload
+        res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            data: fileOrBase64,
+            filename: filename || 'upload.jpg',
+            folder
+          })
+        });
+      }
+
+      const json = await res.json();
+      if (json.success) {
+        const url = json.url || json.data?.url;
+        const filenameRes = json.filename || json.data?.filename || '';
+        return {
+          success: true,
+          data: { url, filename: filenameRes }
+        };
+      }
+      return { success: false, error: json.error || 'Server error' };
     } catch (err: any) {
       return { success: false, error: err.message || 'Failed to upload media' };
     }

@@ -55,12 +55,12 @@ export const StudentFeedbackPage: React.FC = () => {
             <ScrollReveal key={feedback.id}>
               <div className="bg-white rounded-sm border border-forest-900/10 shadow-soft overflow-hidden flex flex-col justify-between h-full">
                 {/* Video Card Header / Preview */}
-                <div className="relative aspect-[16/10] bg-forest-950 overflow-hidden group">
+                <div className="relative aspect-[16/9] bg-forest-950 overflow-hidden group">
                   {feedback.posterImage ? (
                     <img
                       src={feedback.posterImage}
                       alt={feedback.studentName}
-                      className="w-full h-full object-cover object-center opacity-85 group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover object-center opacity-90 group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-ivory-400 text-xs">
@@ -75,18 +75,21 @@ export const StudentFeedbackPage: React.FC = () => {
                         title: feedback.studentName,
                         description: feedback.quote
                       })}
-                      className="absolute inset-0 bg-forest-950/40 group-hover:bg-forest-950/60 flex items-center justify-center transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"
+                      className="absolute inset-0 bg-forest-950/30 group-hover:bg-forest-950/50 flex items-center justify-center transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 z-10"
                       aria-label={`Play student review video from ${feedback.studentName}`}
                     >
-                      <div className="w-14 h-14 rounded-full bg-forest-950/90 border border-gold-400/80 text-gold-300 flex items-center justify-center shadow-luxury transform transition-transform duration-300 group-hover:scale-110">
-                        <Play size={20} className="fill-gold-400 text-gold-400 ml-0.5" />
+                      <div className="w-12 h-12 rounded-full bg-forest-900/90 border border-gold-400 text-gold-300 flex items-center justify-center shadow-luxury transform transition-transform duration-300 group-hover:scale-110">
+                        <Play size={18} className="fill-gold-400 text-gold-400 ml-0.5" />
                       </div>
                     </button>
                   )}
 
                   {feedback.batch && (
-                    <div className="absolute top-3 left-3 bg-forest-900/90 backdrop-blur-sm text-gold-300 text-[11px] font-sans px-2.5 py-0.5 rounded border border-gold-500/30">
-                      {feedback.batch}
+                    <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[11px] text-ivory-200 bg-forest-950/85 backdrop-blur-xs px-2.5 py-1 rounded-sm border border-gold-500/20 z-10">
+                      <span className="font-sans font-medium flex items-center gap-1">
+                        <Play size={10} className="fill-current text-gold-400" /> Watch Video Feedback
+                      </span>
+                      <span className="text-gold-300 font-sans">{feedback.batch}</span>
                     </div>
                   )}
                 </div>

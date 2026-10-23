@@ -236,37 +236,56 @@ export const AdminServicesPage: React.FC = () => {
 
   // 3. Media Upload Handlers
   const handleFileUpload = async (file: File, type: 'image' | 'video') => {
-    if (type === 'image') setUploadingImage(true);
-    if (type === 'video') setUploadingVideo(true);
+    if (!file) return;
+
+    const isImage = type === 'image';
+    const validImageExts = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
+    const validVideoExts = ['.mp4', '.webm'];
+    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+
+    if (isImage && !validImageExts.includes(ext)) {
+      alert(`Unsupported image format: "${file.name}". Supported formats: JPG, JPEG, PNG, WEBP, SVG.`);
+      return;
+    }
+
+    if (!isImage && !validVideoExts.includes(ext)) {
+      alert(`Unsupported video format: "${file.name}". Supported formats: MP4, WEBM.`);
+      return;
+    }
+
+    const maxMb = isImage ? 15 : 50;
+    if (file.size > maxMb * 1024 * 1024) {
+      alert(`File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds the ${maxMb}MB limit.`);
+      return;
+    }
+
+    if (isImage) setUploadingImage(true);
+    else setUploadingVideo(true);
 
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64 = e.target?.result as string;
-        const res = await salonService.uploadMedia(base64, file.name, 'services');
-        if (res.success && res.data?.url) {
-          const uploadedUrl = res.data.url;
-          if (type === 'image') {
-            setFormData((prev) => ({ ...prev, image: uploadedUrl, thumbnail: prev.thumbnail || uploadedUrl }));
-          } else {
-            setFormData((prev) => ({ ...prev, videoUrl: uploadedUrl }));
-          }
+      const res = await salonService.uploadMedia(file, file.name, 'services');
+      if (res.success && res.data?.url) {
+        const uploadedUrl = res.data.url;
+        if (isImage) {
+          setFormData((prev) => ({
+            ...prev,
+            image: uploadedUrl,
+            thumbnail: prev.thumbnail || uploadedUrl
+          }));
         } else {
-          alert(`Upload failed: ${res.error || 'Server error'}`);
+          setFormData((prev) => ({
+            ...prev,
+            videoUrl: uploadedUrl
+          }));
         }
-        if (type === 'image') setUploadingImage(false);
-        if (type === 'video') setUploadingVideo(false);
-      };
-      reader.onerror = () => {
-        alert('Failed to read file from disk');
-        if (type === 'image') setUploadingImage(false);
-        if (type === 'video') setUploadingVideo(false);
-      };
-      reader.readAsDataURL(file);
+      } else {
+        alert(`Upload failed: ${res.error || 'Server error'}`);
+      }
     } catch (err: any) {
-      alert(`Error during upload: ${err.message}`);
-      if (type === 'image') setUploadingImage(false);
-      if (type === 'video') setUploadingVideo(false);
+      alert(`Error during upload: ${err.message || 'Network error'}`);
+    } finally {
+      if (isImage) setUploadingImage(false);
+      else setUploadingVideo(false);
     }
   };
 
@@ -887,38 +906,70 @@ export const AdminServicesPage: React.FC = () => {
                       <input
                         type="file"
                         ref={imageInputRef}
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/webp,image/svg+xml"
                         className="hidden"
-                        onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'image')}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, 'image');
+                          e.target.value = '';
+                        }}
                       />
                       <button
                         type="button"
                         onClick={() => imageInputRef.current?.click()}
                         disabled={uploadingImage}
-                        className="px-3 py-2 rounded-sm bg-forest-900 text-gold-300 text-xs font-sans hover:bg-forest-800 transition-colors inline-flex items-center gap-1"
+                        className="px-3 py-2 rounded-sm bg-forest-900 text-gold-300 text-xs font-sans hover:bg-forest-800 transition-colors inline-flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Upload size={13} />
                         <span>{uploadingImage ? 'Uploading...' : 'Upload'}</span>
                       </button>
                     </div>
 
-                    {/* Image Preview */}
+                    {/* Image Preview & Local Path Detection */}
                     {formData.image && (
-                      <div className="mt-2 w-32 h-24 rounded-sm border border-forest-900/20 overflow-hidden bg-cream-200 relative">
-                        <img
-                          src={formData.image}
-                          alt="Preview"
-                          style={{ objectPosition: formData.imagePosition }}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setFormData({ ...formData, image: '', thumbnail: '' })}
-                          className="absolute top-1 right-1 bg-forest-950/80 text-white rounded-full p-0.5"
-                          title="Remove Image"
-                        >
-                          <X size={12} />
-                        </button>
+                      <div className="mt-2">
+                        {/^[a-zA-Z]:\\|^file:\/\/|^"[a-zA-Z]:\\/i.test(formData.image.trim()) ? (
+                          <div className="p-2.5 rounded-sm bg-amber-50 border border-amber-300 text-amber-900 text-xs font-sans max-w-md">
+                            <p className="font-semibold flex items-center gap-1.5 text-amber-800">
+                              <AlertCircle size={14} className="text-amber-700 flex-shrink-0" />
+                              <span>Local computer path detected</span>
+                            </p>
+                            <p className="mt-1 text-[11px] text-amber-800 leading-relaxed">
+                              Web browsers cannot load local computer files like <code>{formData.image.slice(0, 32)}...</code> directly. Please click the <strong>Upload</strong> button to upload this photo to the website server.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="w-32 h-24 rounded-sm border border-forest-900/20 overflow-hidden bg-cream-200 relative group">
+                            <img
+                              src={formData.image}
+                              alt="Preview"
+                              style={{ objectPosition: formData.imagePosition }}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = 'none';
+                                const errDiv = e.currentTarget.parentElement?.querySelector('.preview-error-box');
+                                if (errDiv) (errDiv as HTMLElement).style.display = 'flex';
+                              }}
+                              onLoad={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = 'block';
+                                const errDiv = e.currentTarget.parentElement?.querySelector('.preview-error-box');
+                                if (errDiv) (errDiv as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                            <div className="preview-error-box hidden absolute inset-0 bg-rose-50 border border-rose-300 text-rose-800 text-[10px] font-sans p-2 flex-col items-center justify-center text-center">
+                              <AlertCircle size={14} className="text-rose-600 mb-1" />
+                              <span>Image preview failed</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, image: '', thumbnail: '' })}
+                              className="absolute top-1 right-1 bg-forest-950/80 hover:bg-forest-900 text-white rounded-full p-0.5 cursor-pointer z-10"
+                              title="Remove Image"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -941,13 +992,17 @@ export const AdminServicesPage: React.FC = () => {
                         ref={videoInputRef}
                         accept="video/mp4,video/webm"
                         className="hidden"
-                        onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'video')}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, 'video');
+                          e.target.value = '';
+                        }}
                       />
                       <button
                         type="button"
                         onClick={() => videoInputRef.current?.click()}
                         disabled={uploadingVideo}
-                        className="px-3 py-2 rounded-sm bg-forest-900 text-gold-300 text-xs font-sans hover:bg-forest-800 transition-colors inline-flex items-center gap-1"
+                        className="px-3 py-2 rounded-sm bg-forest-900 text-gold-300 text-xs font-sans hover:bg-forest-800 transition-colors inline-flex items-center gap-1 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Upload size={13} />
                         <span>{uploadingVideo ? 'Uploading...' : 'Upload MP4'}</span>

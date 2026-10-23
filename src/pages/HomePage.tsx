@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { 
   Sparkles, 
   Scissors, 
@@ -21,7 +21,6 @@ import { SERVICES } from '../data/servicesData';
 import { COURSES, ACADEMY_PROMO } from '../data/academyData';
 import { ACADEMY_EVENTS } from '../data/eventsData';
 import { STUDENT_FEEDBACK } from '../data/studentFeedbackData';
-import { FullScreenVideoIntro } from '../components/hero/FullScreenVideoIntro';
 import { HeroVideo } from '../components/hero/HeroVideo';
 import { ServiceCard } from '../components/services/ServiceCard';
 import { GalleryGrid } from '../components/gallery/GalleryGrid';
@@ -32,30 +31,7 @@ import { VideoPlayerModal } from '../components/ui/VideoPlayerModal';
 import { usePageSEO } from '../hooks/usePageSEO';
 import { generateLocalBusinessSchema } from '../utils/schemaGenerator';
 
-const INTRO_STORAGE_KEY = 'sk_relax_intro_seen_v1';
-
 export const HomePage: React.FC = () => {
-  const [showIntro, setShowIntro] = useState<boolean>(() => {
-    try {
-      return sessionStorage.getItem(INTRO_STORAGE_KEY) !== 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  const handleDismissIntro = useCallback(() => {
-    setShowIntro(false);
-    try {
-      sessionStorage.setItem(INTRO_STORAGE_KEY, 'true');
-    } catch {
-      // Ignore in strict privacy modes
-    }
-  }, []);
-
-  const handleReplayIntro = useCallback(() => {
-    setShowIntro(true);
-  }, []);
-
   const [activeVideo, setActiveVideo] = useState<{
     url: string;
     title: string;
@@ -113,16 +89,8 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="space-y-0 relative">
-      {/* 1. Full-Screen Video Intro Experience (Plays once per browsing session with skip option) */}
-      {showIntro && (
-        <FullScreenVideoIntro 
-          onDismiss={handleDismissIntro} 
-        />
-      )}
-
-      {/* 2. Permanent Salon Hero Section (Smooth, non-scroll-locked hero experience) */}
+      {/* Homepage Hero Section with Original Video Background & Skip Option */}
       <HeroVideo 
-        onReplayIntro={handleReplayIntro}
         onServicesClick={() => {
           const target = document.getElementById('featured-services');
           if (target) {
@@ -647,9 +615,9 @@ export const HomePage: React.FC = () => {
                       <img
                         src={feedback.posterImage}
                         alt={feedback.studentName}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center"
                       />
-                      <div className="absolute inset-0 bg-forest-950/40" />
+                      <div className="absolute inset-0 bg-forest-950/30" />
                       {feedback.videoUrl && (
                         <button
                           onClick={() =>
@@ -661,13 +629,13 @@ export const HomePage: React.FC = () => {
                               categoryLabel: 'Student Video Review'
                             })
                           }
-                          className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-forest-900/90 border border-gold-400 text-gold-300 hover:scale-110 hover:bg-gold-500 hover:text-forest-950 transition-all flex items-center justify-center shadow-luxury"
+                          className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-forest-900/90 border border-gold-400 text-gold-300 hover:scale-110 hover:bg-gold-500 hover:text-forest-950 transition-all flex items-center justify-center shadow-luxury cursor-pointer z-10"
                           aria-label={`Play testimonial from ${feedback.studentName}`}
                         >
                           <Play size={18} className="fill-current ml-0.5" />
                         </button>
                       )}
-                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[11px] text-ivory-200 bg-forest-950/80 px-2.5 py-1 rounded-sm">
+                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[11px] text-ivory-200 bg-forest-950/85 backdrop-blur-xs px-2.5 py-1 rounded-sm border border-gold-500/20 z-10">
                         <span className="font-sans font-medium flex items-center gap-1">
                           <Play size={10} className="fill-current text-gold-400" /> Watch Video Feedback
                         </span>

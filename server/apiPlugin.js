@@ -107,6 +107,89 @@ function parseJsonBody(req) {
   });
 }
 
+function parseMultipartBody(req, maxBytes = 55 * 1024 * 1024) {
+  return new Promise((resolve, reject) => {
+    const contentType = req.headers['content-type'] || '';
+    const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;\s]+))/i);
+    if (!boundaryMatch) {
+      return reject(new Error('Missing boundary in multipart/form-data'));
+    }
+    const boundary = (boundaryMatch[1] || boundaryMatch[2]).trim();
+    const boundaryBuf = Buffer.from('--' + boundary);
+
+    const chunks = [];
+    let totalBytes = 0;
+
+    req.on('data', chunk => {
+      totalBytes += chunk.length;
+      if (totalBytes > maxBytes) {
+        reject(new Error('File exceeds maximum upload size (50MB)'));
+      }
+      chunks.push(chunk);
+    });
+
+    req.on('end', () => {
+      try {
+        const buffer = Buffer.concat(chunks);
+        const fields = {};
+        const files = [];
+
+        let cur = 0;
+        while (cur < buffer.length) {
+          const bIdx = buffer.indexOf(boundaryBuf, cur);
+          if (bIdx === -1) break;
+
+          let partStart = bIdx + boundaryBuf.length;
+          if (buffer.slice(partStart, partStart + 2).toString() === '--') break;
+          if (buffer.slice(partStart, partStart + 2).toString() === '\r\n') partStart += 2;
+          else if (buffer[partStart] === 0x0A) partStart += 1;
+
+          const nextBIdx = buffer.indexOf(boundaryBuf, partStart);
+          if (nextBIdx === -1) break;
+
+          let partEnd = nextBIdx;
+          if (buffer.slice(partEnd - 2, partEnd).toString() === '\r\n') partEnd -= 2;
+          else if (buffer[partEnd - 1] === 0x0A) partEnd -= 1;
+
+          const partBuffer = buffer.slice(partStart, partEnd);
+          let headerEnd = partBuffer.indexOf('\r\n\r\n');
+          let sepLen = 4;
+          if (headerEnd === -1) {
+            headerEnd = partBuffer.indexOf('\n\n');
+            sepLen = 2;
+          }
+
+          if (headerEnd !== -1) {
+            const headerStr = partBuffer.slice(0, headerEnd).toString('utf8');
+            const bodyBuffer = partBuffer.slice(headerEnd + sepLen);
+
+            const nameMatch = headerStr.match(/\bname="([^"]+)"/i) ||
+                              headerStr.match(/\bname=([^;\s\r\n]+)/i);
+            const filenameMatch = headerStr.match(/\bfilename="([^"]+)"/i) ||
+                                  headerStr.match(/\bfilename=([^;\s\r\n]+)/i);
+            const typeMatch = headerStr.match(/content-type:\s*([^\r\n;]+)/i);
+
+            const fieldName = nameMatch ? nameMatch[1].trim() : '';
+            const filename = filenameMatch ? filenameMatch[1].trim() : null;
+            const mimeType = typeMatch ? typeMatch[1].trim() : '';
+
+            if (filename !== null) {
+              files.push({ fieldName, filename, mimeType, buffer: bodyBuffer });
+            } else if (fieldName) {
+              fields[fieldName] = bodyBuffer.toString('utf8').trim();
+            }
+          }
+          cur = nextBIdx;
+        }
+        resolve({ fields, files });
+      } catch (err) {
+        reject(err);
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
 function parseDate(dateStr) {
   if (!dateStr || typeof dateStr !== 'string') return null;
   const clean = dateStr.trim();
@@ -168,6 +251,34 @@ export function batchApiPlugin() {
 
 function handleMiddleware(middlewares) {
   middlewares.use(async (req, res, next) => {
+    // 0. Publicly serve /uploads/ directly from disk with correct MIME types
+    if (req.url && req.url.startsWith('/uploads/')) {
+      try {
+        const decodedUrl = decodeURIComponent(req.url.split('?')[0]);
+        const filePath = path.resolve(__dirname, '..', 'public', decodedUrl.replace(/^\//, ''));
+        const uploadsRoot = path.resolve(__dirname, '..', 'public', 'uploads');
+        if (filePath.startsWith(uploadsRoot) && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+          const ext = path.extname(filePath).toLowerCase();
+          const mimes = {
+            '.jpg': 'image/jpeg',
+            '.jpeg': 'image/jpeg',
+            '.png': 'image/png',
+            '.webp': 'image/webp',
+            '.svg': 'image/svg+xml',
+            '.mp4': 'video/mp4',
+            '.webm': 'video/webm'
+          };
+          res.setHeader('Content-Type', mimes[ext] || 'application/octet-stream');
+          res.setHeader('Cache-Control', 'public, max-age=3600');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          const stream = fs.createReadStream(filePath);
+          return stream.pipe(res);
+        }
+      } catch (err) {
+        console.error('Error serving upload static file:', err);
+      }
+    }
+
     // Only handle /api routes
     if (!req.url.startsWith('/api')) {
       return next();
@@ -227,50 +338,88 @@ function handleMiddleware(middlewares) {
         return sendJson(200, { authenticated: true, user: { username: user.username, role: 'admin' } });
       }
 
-      // 3. POST /api/upload (Admin only)
+      // 3. POST /api/upload (Admin only - supports multipart/form-data & application/json)
       if (pathname === '/api/upload' && method === 'POST') {
         const user = getAuthUser();
         if (!user) {
           return sendJson(401, { success: false, error: 'Admin authentication required' });
         }
 
-        const body = await parseJsonBody(req);
-        const { filename, data, folder = 'services' } = body;
-
-        if (!data || !filename) {
-          return sendJson(400, { success: false, error: 'Missing file data or filename' });
-        }
-
-        // Support base64 image or video data: data:image/png;base64,.... or data:video/mp4;base64,....
-        const matches = data.match(/^data:([A-Za-z0-9\-+\/]+);base64,(.+)$/);
         let buffer;
-        let ext = path.extname(filename).toLowerCase();
+        let originalFilename = '';
+        let folder = 'services';
+        const contentType = (req.headers['content-type'] || '').toLowerCase();
 
-        if (matches && matches.length === 3) {
-          buffer = Buffer.from(matches[2], 'base64');
-          if (!ext) {
-            const mime = matches[1];
-            if (mime === 'image/jpeg') ext = '.jpg';
-            else if (mime === 'image/png') ext = '.png';
-            else if (mime === 'image/webp') ext = '.webp';
-            else if (mime === 'image/svg+xml') ext = '.svg';
-            else if (mime === 'video/mp4') ext = '.mp4';
-            else if (mime === 'video/webm') ext = '.webm';
+        if (contentType.includes('multipart/form-data')) {
+          try {
+            const multipart = await parseMultipartBody(req);
+            folder = multipart.fields.folder || 'services';
+
+            // Find file by common field names: file, image, media, or take the first file
+            const file = multipart.files.find(f => ['file', 'image', 'media'].includes(f.fieldName)) || multipart.files[0];
+            if (!file || !file.buffer || file.buffer.length === 0) {
+              return sendJson(400, { success: false, error: 'No file uploaded or file is empty' });
+            }
+
+            buffer = file.buffer;
+            originalFilename = file.filename;
+          } catch (err) {
+            return sendJson(400, { success: false, error: err.message || 'Failed to parse multipart upload' });
           }
         } else {
-          buffer = Buffer.from(data, 'base64');
+          // JSON base64 fallback
+          try {
+            const body = await parseJsonBody(req);
+            const { filename, data } = body;
+            folder = body.folder || 'services';
+
+            if (!data || !filename) {
+              return sendJson(400, { success: false, error: 'Missing file data or filename' });
+            }
+
+            originalFilename = filename;
+            const matches = data.match(/^data:([A-Za-z0-9\-+\/]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+              buffer = Buffer.from(matches[2], 'base64');
+            } else {
+              buffer = Buffer.from(data, 'base64');
+            }
+          } catch (err) {
+            return sendJson(400, { success: false, error: err.message || 'Failed to parse JSON upload' });
+          }
         }
 
-        const allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.mp4', '.webm'];
+        // Validate folder to prevent arbitrary directory writes
+        if (folder !== 'services' && folder !== 'batches') {
+          folder = 'services';
+        }
+
+        // Validate extension
+        let ext = path.extname(originalFilename).toLowerCase();
+        if (!ext) {
+          ext = '.jpg';
+        }
+
+        const allowedImageExts = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
+        const allowedVideoExts = ['.mp4', '.webm'];
+        const allowedExts = [...allowedImageExts, ...allowedVideoExts];
+
         if (!allowedExts.includes(ext)) {
           return sendJson(400, {
             success: false,
-            error: `Unsupported file extension (${ext}). Allowed: JPG, PNG, WEBP, SVG, MP4, WEBM`
+            error: `Unsupported file format (${ext}). Supported formats: JPG, JPEG, PNG, WEBP, MP4, WEBM`
           });
         }
 
-        if (buffer.length > 35 * 1024 * 1024) {
-          return sendJson(400, { success: false, error: 'File exceeds 35MB limit' });
+        // File size validation: 15MB for images, 50MB for video
+        const isVideo = allowedVideoExts.includes(ext);
+        const maxSizeBytes = isVideo ? 50 * 1024 * 1024 : 15 * 1024 * 1024;
+        if (buffer.length > maxSizeBytes) {
+          const limitMb = isVideo ? 50 : 15;
+          return sendJson(400, {
+            success: false,
+            error: `File exceeds maximum allowed size of ${limitMb}MB`
+          });
         }
 
         ensureStorage();
@@ -279,10 +428,19 @@ function handleMiddleware(middlewares) {
           fs.mkdirSync(targetDir, { recursive: true });
         }
 
-        const safeBase = path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, '-').toLowerCase();
+        const safeBase = path.basename(originalFilename, ext)
+          .replace(/[^a-zA-Z0-9_-]/g, '-')
+          .toLowerCase()
+          .slice(0, 50);
         const prefix = folder === 'batches' ? 'batch' : 'service';
-        const uniqueName = `${prefix}-${Date.now()}-${safeBase}${ext || '.jpg'}`;
+        const uniqueId = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
+        const uniqueName = `${prefix}-${uniqueId}-${safeBase}${ext}`;
         const targetPath = path.join(targetDir, uniqueName);
+
+        // Security check: ensure path is inside targetDir
+        if (!path.resolve(targetPath).startsWith(targetDir)) {
+          return sendJson(400, { success: false, error: 'Invalid file path' });
+        }
 
         fs.writeFileSync(targetPath, buffer);
         const publicUrl = `/uploads/${folder === 'batches' ? 'batches' : 'services'}/${uniqueName}`;
@@ -290,7 +448,11 @@ function handleMiddleware(middlewares) {
         return sendJson(200, {
           success: true,
           url: publicUrl,
-          filename: uniqueName
+          filename: uniqueName,
+          data: {
+            url: publicUrl,
+            filename: uniqueName
+          }
         });
       }
 

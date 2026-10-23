@@ -388,36 +388,28 @@ export const batchService = {
     const token = this.getAuthToken();
     if (!token) return { success: false, error: 'Unauthorized: Please login' };
 
-    return new Promise(resolve => {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        try {
-          const base64Data = reader.result as string;
-          const res = await fetch('/api/upload', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              filename: file.name,
-              data: base64Data
-            })
-          });
-          const json = await res.json();
-          if (json.success && json.url) {
-            resolve({ success: true, url: json.url });
-          } else {
-            resolve({ success: false, error: json.error || 'Upload failed' });
-          }
-        } catch (err: any) {
-          resolve({ success: false, error: err.message || 'Network error during upload' });
-        }
-      };
-      reader.onerror = () => {
-        resolve({ success: false, error: 'Could not read file' });
-      };
-      reader.readAsDataURL(file);
-    });
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'batches');
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+          // Let the browser set multipart/form-data with boundary
+        },
+        body: formData
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        const url = json.url || json.data?.url;
+        return { success: true, url };
+      }
+      return { success: false, error: json.error || 'Upload failed' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error during upload' };
+    }
   }
 };
