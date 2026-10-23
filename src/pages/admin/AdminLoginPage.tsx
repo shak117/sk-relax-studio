@@ -12,7 +12,7 @@ export const AdminLoginPage: React.FC = () => {
   });
 
   const navigate = useNavigate();
-  const [username, setUsername] = useState('admin');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,7 @@ export const AdminLoginPage: React.FC = () => {
       if (result.success) {
         navigate('/admin/batches', { replace: true });
       } else {
-        setError(result.error || 'Invalid credentials. Please verify your password.');
+        setError(result.error || 'Invalid credentials. Please try again.');
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during authentication.');
@@ -92,7 +92,8 @@ export const AdminLoginPage: React.FC = () => {
                   value={username}
                   onChange={e => setUsername(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 text-sm bg-cream-50 border border-forest-900/15 rounded-sm focus:outline-none focus:border-forest-900 text-forest-900 font-sans"
-                  placeholder="admin"
+                  placeholder="Enter admin username"
+                  autoComplete="username"
                 />
               </div>
             </div>
@@ -111,12 +112,10 @@ export const AdminLoginPage: React.FC = () => {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="w-full pl-10 pr-3 py-2 text-sm bg-cream-50 border border-forest-900/15 rounded-sm focus:outline-none focus:border-forest-900 text-forest-900 font-sans"
-                  placeholder="••••••••"
+                  placeholder="Enter password"
+                  autoComplete="current-password"
                 />
               </div>
-              <p className="mt-1 text-[11px] text-forest-500 font-sans">
-                Default password: <code className="bg-cream-200 px-1 py-0.5 rounded text-forest-900 font-mono">skrelax2026</code>
-              </p>
             </div>
 
             <button

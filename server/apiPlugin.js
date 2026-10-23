@@ -6,6 +6,28 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ---------------------------------------------------------------------------
+// Load .env into process.env early (Vite only auto-exposes VITE_ vars to
+// the frontend; non-VITE_ server-only vars need manual loading here)
+// ---------------------------------------------------------------------------
+(function loadEnvFile() {
+  const envPath = path.resolve(__dirname, '..', '.env');
+  if (!fs.existsSync(envPath)) return;
+  const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    const val = trimmed.slice(eqIdx + 1).trim();
+    // Only set if not already defined (respect existing process.env)
+    if (!(key in process.env)) {
+      process.env[key] = val;
+    }
+  }
+})();
+
 const DATA_FILE = path.resolve(__dirname, 'data', 'batches.json');
 const SERVICES_FILE = path.resolve(__dirname, 'data', 'services.json');
 const UPLOADS_DIR = path.resolve(__dirname, '..', 'public', 'uploads', 'batches');
@@ -13,7 +35,64 @@ const SERVICES_UPLOADS_DIR = path.resolve(__dirname, '..', 'public', 'uploads', 
 
 const JWT_SECRET = process.env.ADMIN_SECRET || 'sk-relax-studio-secret-key-2026';
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'skrelax2026';
+// Password verified via scrypt hash — never stored in plaintext
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || null;
+const ADMIN_PASSWORD_SALT = process.env.ADMIN_PASSWORD_SALT || null;
+
+/**
+ * Verify a submitted password against the stored scrypt hash.
+ * Returns true only if the hash and salt are configured and the password matches.
+ */
+function verifyPassword(submitted) {
+  if (!ADMIN_PASSWORD_HASH || !ADMIN_PASSWORD_SALT) {
+    // No hash configured — deny all logins for safety
+    return false;
+  }
+  try {
+    const derivedHash = crypto.scryptSync(submitted, ADMIN_PASSWORD_SALT, 64).toString('hex');
+    // Constant-time comparison to prevent timing attacks
+    return crypto.timingSafeEqual(
+      Buffer.from(derivedHash, 'hex'),
+      Buffer.from(ADMIN_PASSWORD_HASH, 'hex')
+    );
+  } catch {
+    return false;
+  }
+}
+
+// Simple in-memory rate limiter: track failed attempts per IP
+const loginAttempts = new Map(); // key: ip, value: { count, lockedUntil }
+const MAX_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const record = loginAttempts.get(ip);
+  if (!record) return { allowed: true };
+  if (record.lockedUntil && now < record.lockedUntil) {
+    const remaining = Math.ceil((record.lockedUntil - now) / 60000);
+    return { allowed: false, remaining };
+  }
+  // Lock expired — reset
+  if (record.lockedUntil && now >= record.lockedUntil) {
+    loginAttempts.delete(ip);
+  }
+  return { allowed: true };
+}
+
+function recordFailedAttempt(ip) {
+  const now = Date.now();
+  const record = loginAttempts.get(ip) || { count: 0, lockedUntil: null };
+  record.count += 1;
+  if (record.count >= MAX_ATTEMPTS) {
+    record.lockedUntil = now + LOCK_DURATION_MS;
+  }
+  loginAttempts.set(ip, record);
+}
+
+function clearFailedAttempts(ip) {
+  loginAttempts.delete(ip);
+}
 
 // Helper to ensure files and directories exist
 function ensureStorage() {
@@ -317,8 +396,17 @@ function handleMiddleware(middlewares) {
     try {
       // 1. POST /api/admin/login
       if (pathname === '/api/admin/login' && method === 'POST') {
+        const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+        const rateCheck = checkRateLimit(clientIp);
+        if (!rateCheck.allowed) {
+          return sendJson(429, {
+            success: false,
+            error: `Too many failed attempts. Please try again in ${rateCheck.remaining} minute(s).`
+          });
+        }
         const { username, password } = await parseJsonBody(req);
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        if (username === ADMIN_USERNAME && verifyPassword(password)) {
+          clearFailedAttempts(clientIp);
           const token = createToken(username);
           return sendJson(200, {
             success: true,
@@ -326,6 +414,7 @@ function handleMiddleware(middlewares) {
             user: { username, role: 'admin' }
           });
         }
+        recordFailedAttempt(clientIp);
         return sendJson(401, { success: false, error: 'Invalid username or password' });
       }
 
