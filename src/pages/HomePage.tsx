@@ -103,26 +103,29 @@ export const HomePage: React.FC = () => {
       <section id="brand-intro" className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            {/* Visual Column */}
-            <div className="lg:col-span-5 order-2 lg:order-1">
+            {/* Visual Column — Real SK RELAX Salon Client Haircut & Styling Photo */}
+            <div className="lg:col-span-5 order-1">
               <ScrollReveal direction="left">
-                <div className="relative">
-                  <div className="relative aspect-[3/4] rounded-sm overflow-hidden bg-cream-200 shadow-card">
-                    <img
-                      src="/images/services/hero-back-layer.jpg"
-                      alt="SK Relax Hair Artistry Back Layer Silhouette"
-                      className="w-full h-full object-cover object-center"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-forest-950/40 to-transparent pointer-events-none" />
+                <div className="relative mx-auto max-w-md lg:max-w-none">
+                  {/* Outer Frame with subtle luxury border & soft shadow */}
+                  <div className="relative rounded-sm overflow-hidden bg-cream-100/90 border border-forest-900/10 shadow-card p-2 sm:p-2.5">
+                    {/* Image Container preserving full uncropped portrait aspect ratio */}
+                    <div className="relative rounded-xs overflow-hidden bg-cream-50 flex items-center justify-center">
+                      <img
+                        src="/images/services/sk-relax-philosophy-real-hairstyle.png"
+                        alt="Real SK Relax Salon Client Finished Hair Styling with Long Golden Curls"
+                        className="w-full h-auto max-h-[620px] object-contain rounded-xs block mx-auto"
+                        loading="lazy"
+                      />
+                    </div>
                   </div>
 
                   {/* Editorial Floating Card */}
-                  <div className="absolute -bottom-6 -right-4 sm:-bottom-8 sm:-right-6 bg-white p-5 sm:p-6 rounded-sm shadow-elevated border border-forest-900/10 max-w-xs">
-                    <span className="text-rose-500 font-serif italic text-lg sm:text-xl block leading-snug">
+                  <div className="absolute -bottom-5 right-2 sm:-bottom-7 sm:-right-4 bg-white/95 backdrop-blur-sm p-4 sm:p-5 rounded-sm shadow-elevated border border-forest-900/10 max-w-xs z-10">
+                    <span className="text-rose-600 font-serif italic text-base sm:text-lg block leading-snug">
                       “Learn ♡ Practice ♡ Grow”
                     </span>
-                    <p className="mt-2 text-xs text-forest-700 font-sans uppercase tracking-wider">
+                    <p className="mt-1.5 text-[11px] text-forest-700 font-sans uppercase tracking-wider font-medium">
                       Academy & Salon · Satara
                     </p>
                   </div>
@@ -131,7 +134,7 @@ export const HomePage: React.FC = () => {
             </div>
 
             {/* Content Column */}
-            <div className="lg:col-span-7 order-1 lg:order-2 space-y-6">
+            <div className="lg:col-span-7 order-2 space-y-6">
               <ScrollReveal direction="right">
                 <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600">
                   <span className="w-6 h-[1px] bg-rose-400"></span>

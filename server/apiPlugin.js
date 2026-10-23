@@ -35,27 +35,30 @@ const SERVICES_UPLOADS_DIR = path.resolve(__dirname, '..', 'public', 'uploads', 
 
 const JWT_SECRET = process.env.ADMIN_SECRET || 'sk-relax-studio-secret-key-2026';
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-// Password verified via scrypt hash — never stored in plaintext
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || null;
-const ADMIN_PASSWORD_SALT = process.env.ADMIN_PASSWORD_SALT || null;
 
 /**
  * Verify a submitted password against the stored scrypt hash.
- * Returns true only if the hash and salt are configured and the password matches.
+ * Reads hash/salt from process.env at call-time so they're always fresh.
+ * Returns true only when credentials are configured AND the password matches.
  */
 function verifyPassword(submitted) {
-  if (!ADMIN_PASSWORD_HASH || !ADMIN_PASSWORD_SALT) {
-    // No hash configured — deny all logins for safety
+  if (!submitted || typeof submitted !== 'string') return false;
+  // Read at call-time so Vite HMR env reloads are respected
+  const storedHash = (process.env.ADMIN_PASSWORD_HASH || '').trim();
+  const storedSalt = (process.env.ADMIN_PASSWORD_SALT || '').trim();
+  if (!storedHash || !storedSalt) {
+    console.warn('[Auth] ADMIN_PASSWORD_HASH / ADMIN_PASSWORD_SALT not set — denying login');
     return false;
   }
   try {
-    const derivedHash = crypto.scryptSync(submitted, ADMIN_PASSWORD_SALT, 64).toString('hex');
-    // Constant-time comparison to prevent timing attacks
-    return crypto.timingSafeEqual(
-      Buffer.from(derivedHash, 'hex'),
-      Buffer.from(ADMIN_PASSWORD_HASH, 'hex')
-    );
-  } catch {
+    const derived = crypto.scryptSync(submitted, storedSalt, 64).toString('hex');
+    // Pad to equal length before timingSafeEqual to avoid length-mismatch throws
+    const maxLen = Math.max(derived.length, storedHash.length);
+    const a = derived.padEnd(maxLen, '0');
+    const b = storedHash.padEnd(maxLen, '0');
+    return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b)) && derived.length === storedHash.length;
+  } catch (err) {
+    console.error('[Auth] verifyPassword error:', err.message);
     return false;
   }
 }
@@ -379,9 +382,11 @@ function handleMiddleware(middlewares) {
       return res.end();
     }
 
-    // Helper to send JSON
+    // Helper to send JSON with consistent Content-Type and status code
     const sendJson = (statusCode, data) => {
+      if (res.writableEnded || res.headersSent) return;
       res.statusCode = statusCode;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
       res.end(JSON.stringify(data));
     };
 
@@ -394,28 +399,61 @@ function handleMiddleware(middlewares) {
     };
 
     try {
+      // Normalize pathname to strip trailing slashes (e.g. /api/admin/login/)
+      const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+
       // 1. POST /api/admin/login
-      if (pathname === '/api/admin/login' && method === 'POST') {
-        const clientIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+      if (normalizedPath === '/api/admin/login' && method === 'POST') {
+        const clientIp = (req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress || 'unknown').trim();
         const rateCheck = checkRateLimit(clientIp);
         if (!rateCheck.allowed) {
           return sendJson(429, {
             success: false,
-            error: `Too many failed attempts. Please try again in ${rateCheck.remaining} minute(s).`
+            message: `Too many failed login attempts. Please try again in ${rateCheck.remaining} minute(s).`,
+            error: `Too many failed login attempts. Please try again in ${rateCheck.remaining} minute(s).`
           });
         }
-        const { username, password } = await parseJsonBody(req);
-        if (username === ADMIN_USERNAME && verifyPassword(password)) {
+
+        let body;
+        try {
+          body = await parseJsonBody(req);
+        } catch (parseErr) {
+          return sendJson(400, {
+            success: false,
+            message: 'Invalid request payload. Expected JSON credentials.',
+            error: 'Invalid request payload. Expected JSON credentials.'
+          });
+        }
+
+        const { username, password } = body || {};
+        if (!username || typeof username !== 'string' || !password || typeof password !== 'string') {
+          return sendJson(400, {
+            success: false,
+            message: 'Username and password are required',
+            error: 'Username and password are required'
+          });
+        }
+
+        const cleanUsername = username.trim();
+        const cleanPassword = password;
+
+        if (cleanUsername === ADMIN_USERNAME && verifyPassword(cleanPassword)) {
           clearFailedAttempts(clientIp);
-          const token = createToken(username);
+          const token = createToken(cleanUsername);
           return sendJson(200, {
             success: true,
+            message: 'Login successful',
             token,
-            user: { username, role: 'admin' }
+            user: { username: cleanUsername, role: 'admin' }
           });
         }
+
         recordFailedAttempt(clientIp);
-        return sendJson(401, { success: false, error: 'Invalid username or password' });
+        return sendJson(401, {
+          success: false,
+          message: 'Invalid username or password',
+          error: 'Invalid username or password'
+        });
       }
 
       // 2. GET /api/admin/me
@@ -1017,10 +1055,23 @@ function handleMiddleware(middlewares) {
       }
 
       // Route not handled
-      return sendJson(404, { success: false, error: 'API endpoint not found' });
+      return sendJson(404, {
+        success: false,
+        message: 'API endpoint not found',
+        error: 'API endpoint not found'
+      });
     } catch (err) {
-      console.error('API Error:', err);
-      return sendJson(500, { success: false, error: err.message || 'Internal server error' });
+      console.error('[API Error]:', err);
+      if (!res.headersSent && !res.writableEnded) {
+        return sendJson(500, {
+          success: false,
+          message: 'Authentication service temporarily unavailable. Please try again.',
+          error: 'Authentication service temporarily unavailable. Please try again.'
+        });
+      }
+      try {
+        res.end();
+      } catch {}
     }
   });
 }

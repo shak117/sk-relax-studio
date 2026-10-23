@@ -117,14 +117,26 @@ export const BatchesPage: React.FC = () => {
             <div className="bg-white rounded-sm border-2 border-gold-500/40 shadow-card overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
                 {/* Poster / Visual */}
-                <div className="lg:col-span-5 relative bg-forest-950 min-h-[320px]">
+                <div className="lg:col-span-5 relative bg-forest-950 min-h-[360px] lg:min-h-[460px] overflow-hidden flex items-center justify-center p-3">
+                  {/* Ambient Backdrop */}
+                  <img
+                    src={flagship.image}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-30 scale-110 pointer-events-none"
+                  />
+                  <div className="absolute inset-0 bg-forest-950/40 pointer-events-none" />
+
+                  {/* Complete Original Poster */}
                   <img
                     src={flagship.image}
                     alt={flagship.title}
-                    className="w-full h-full object-cover"
+                    className="relative z-10 max-h-[480px] w-auto h-auto object-contain mx-auto drop-shadow-xl"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-forest-950/80 via-transparent to-transparent pointer-events-none" />
-                  <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                  <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-forest-950/80 via-transparent to-transparent pointer-events-none z-15" />
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-forest-950/80 via-transparent to-transparent pointer-events-none z-15" />
+
+                  <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-20">
                     <span className={`px-3 py-1 text-xs font-sans font-bold uppercase tracking-wider rounded-sm shadow-md ${
                       isFlagshipExpired ? 'bg-neutral-700 text-neutral-200' : 'bg-rose-600 text-white'
                     }`}>
@@ -293,43 +305,56 @@ export const BatchesPage: React.FC = () => {
                 return (
                   <ScrollReveal key={batch.id} delay={idx * 60}>
                     <div className="bg-white rounded-sm border border-forest-900/10 shadow-soft hover:shadow-card transition-all duration-300 flex flex-col h-full overflow-hidden group">
-                      {/* Image Banner */}
-                      <div className="relative aspect-[16/10] overflow-hidden bg-forest-950">
+                      {/* Image Banner Container with Increased Height & Full Original Poster Display */}
+                      <div className="relative h-80 sm:h-96 md:h-[400px] lg:h-[440px] w-full overflow-hidden bg-forest-950 flex items-center justify-center p-2.5">
+                        {/* Ambient Blurred Background to seamlessly match poster colors without harsh black bars */}
+                        <img
+                          src={batch.image}
+                          alt=""
+                          aria-hidden="true"
+                          className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-110 pointer-events-none"
+                        />
+                        <div className="absolute inset-0 bg-forest-950/40 pointer-events-none" />
+
+                        {/* Full Original Poster (100% complete, uncropped, preserving original aspect ratio) */}
                         <img
                           src={batch.image}
                           alt={batch.title}
                           loading="lazy"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain mx-auto rounded-xs group-hover:scale-[1.02] transition-transform duration-500 drop-shadow-md"
                         />
-                        <div className="absolute inset-0 bg-forest-950/20" />
+
+                        {/* Readability Gradients behind corner badges */}
+                        <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-forest-950/75 via-forest-950/30 to-transparent pointer-events-none z-15" />
+                        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-forest-950/80 via-forest-950/30 to-transparent pointer-events-none z-15" />
 
                         {/* Status Badge */}
-                        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-20 pointer-events-none">
                           {isEnrolling && (
-                            <span className="px-2.5 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider bg-rose-600 text-white shadow-sm">
+                            <span className="px-2.5 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider bg-rose-600 text-white shadow-md">
                               Enrolling Now
                             </span>
                           )}
                           {isUpcoming && (
-                            <span className="px-2.5 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider bg-forest-800 text-gold-300 shadow-sm">
+                            <span className="px-2.5 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider bg-forest-800 text-gold-300 border border-gold-500/30 shadow-md">
                               Upcoming
                             </span>
                           )}
                           {isCompleted && (
-                            <span className="px-2.5 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider bg-neutral-600 text-neutral-100 shadow-sm">
+                            <span className="px-2.5 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider bg-neutral-800 text-neutral-100 shadow-md">
                               Completed
                             </span>
                           )}
                           {batch.badge && (
-                            <span className="px-2.5 py-0.5 rounded-sm text-[10px] font-sans font-semibold uppercase tracking-wider bg-gold-400 text-forest-950 shadow-sm">
+                            <span className="px-2.5 py-0.5 rounded-sm text-[10px] font-sans font-semibold uppercase tracking-wider bg-gold-400 text-forest-950 shadow-md">
                               {batch.badge}
                             </span>
                           )}
                         </div>
 
                         {/* Category */}
-                        <div className="absolute bottom-3 left-3">
-                          <span className="text-[10px] font-sans uppercase tracking-widest text-white/90 bg-forest-950/80 px-2 py-0.5 rounded-sm backdrop-blur-xs">
+                        <div className="absolute bottom-3 left-3 z-20 pointer-events-none">
+                          <span className="text-[10px] font-sans uppercase tracking-widest text-white/95 bg-forest-950/90 border border-white/10 px-2.5 py-0.5 rounded-sm backdrop-blur-xs shadow-sm">
                             {batch.category}
                           </span>
                         </div>

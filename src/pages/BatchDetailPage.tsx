@@ -276,18 +276,28 @@ export const BatchDetailPage: React.FC = () => {
               <div className="sticky top-28 space-y-6">
                 {/* Poster Card */}
                 <div className="bg-white rounded-sm border border-forest-900/10 shadow-card overflow-hidden">
-                  <div className="relative aspect-[4/5] bg-forest-950">
+                  <div className="relative aspect-[4/5] bg-forest-950 overflow-hidden flex items-center justify-center p-2.5">
+                    {/* Ambient Background */}
+                    <img
+                      src={batch.image}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-110 pointer-events-none"
+                    />
+                    <div className="absolute inset-0 bg-forest-950/40 pointer-events-none" />
+
+                    {/* Complete Uncropped Poster */}
                     <img
                       src={batch.image}
                       alt={batch.title}
-                      className="w-full h-full object-cover"
+                      className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain mx-auto drop-shadow-md"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-forest-950/80 via-transparent to-transparent pointer-events-none" />
-                    <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <span className="text-[10px] uppercase font-sans font-bold tracking-widest bg-forest-900/90 text-gold-300 px-2.5 py-1 rounded-sm inline-block mb-1">
+                    <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-forest-950/90 via-forest-950/40 to-transparent pointer-events-none z-15" />
+                    <div className="absolute bottom-4 left-4 right-4 text-white z-20">
+                      <span className="text-[10px] uppercase font-sans font-bold tracking-widest bg-forest-900/95 border border-gold-500/30 text-gold-300 px-2.5 py-1 rounded-sm inline-block mb-1 shadow-sm">
                         Satara Workshop
                       </span>
-                      <h4 className="font-serif text-lg leading-tight text-ivory">{batch.title}</h4>
+                      <h4 className="font-serif text-lg leading-tight text-ivory drop-shadow-sm">{batch.title}</h4>
                     </div>
                   </div>
 

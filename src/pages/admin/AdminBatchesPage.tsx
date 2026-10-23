@@ -374,19 +374,29 @@ export const AdminBatchesPage: React.FC = () => {
               >
                 <div>
                   {/* Poster Thumbnail */}
-                  <div className="relative aspect-[16/9] bg-forest-950 overflow-hidden">
+                  <div className="relative h-64 sm:h-72 bg-forest-950 overflow-hidden flex items-center justify-center p-2">
+                    {/* Ambient Background */}
+                    <img
+                      src={batch.image}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-110 pointer-events-none"
+                    />
+                    <div className="absolute inset-0 bg-forest-950/40 pointer-events-none" />
+
+                    {/* Full Original Poster */}
                     <img
                       src={batch.image}
                       alt={batch.title}
-                      className="w-full h-full object-cover"
+                      className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain mx-auto drop-shadow-md"
                     />
-                    <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                    <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-20">
                       <span
-                        className={`px-2 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider ${
+                        className={`px-2 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider shadow-sm ${
                           batch.status === 'enrolling'
                             ? 'bg-rose-600 text-white'
                             : batch.status === 'upcoming'
-                            ? 'bg-forest-900 text-gold-300'
+                            ? 'bg-forest-900 text-gold-300 border border-gold-500/30'
                             : batch.status === 'draft'
                             ? 'bg-amber-500 text-forest-950'
                             : batch.status === 'archived'
@@ -396,12 +406,12 @@ export const AdminBatchesPage: React.FC = () => {
                       >
                         {batch.status}
                       </span>
-                      <span className="px-2 py-0.5 rounded-sm text-[10px] font-sans font-semibold uppercase tracking-wider bg-forest-950/80 text-white">
+                      <span className="px-2 py-0.5 rounded-sm text-[10px] font-sans font-semibold uppercase tracking-wider bg-forest-950/90 border border-white/10 text-white shadow-sm">
                         {batch.category}
                       </span>
                     </div>
 
-                    <div className="absolute bottom-2 right-2">
+                    <div className="absolute bottom-2 right-2 z-20">
                       <span className="px-2 py-0.5 rounded-sm text-xs font-serif font-bold bg-white text-forest-900 shadow-sm">
                         {batch.feeDisplay || `₹${batch.fee}`}
                       </span>

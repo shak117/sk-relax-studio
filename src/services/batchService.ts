@@ -208,20 +208,86 @@ export const batchService = {
   },
 
   async login(username: string, password: string): Promise<{ success: boolean; token?: string; error?: string }> {
+    const cleanUser = username?.trim();
+    if (!cleanUser || !password) {
+      return { success: false, error: 'Please enter both username and password.' };
+    }
+
     try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (data.success && data.token) {
+      let res: Response;
+      try {
+        res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({ username: cleanUser, password })
+        });
+      } catch (networkErr) {
+        // Network connection error / server offline
+        return {
+          success: false,
+          error: 'Unable to contact the authentication server. Please try again.'
+        };
+      }
+
+      // Read response text safely before parsing to avoid Unexpected end of JSON input
+      let text = '';
+      try {
+        text = await res.text();
+      } catch {
+        text = '';
+      }
+
+      let data: any = null;
+      if (text && text.trim()) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = null;
+        }
+      }
+
+      // Successful login
+      if (res.status === 200 && data?.success && data?.token) {
         this.setAuthToken(data.token);
         return { success: true, token: data.token };
       }
-      return { success: false, error: data.error || 'Invalid credentials' };
+
+      // Invalid credentials
+      if (res.status === 401) {
+        const errorMsg = data?.message || data?.error || 'Invalid username or password';
+        return { success: false, error: errorMsg };
+      }
+
+      // Rate limited
+      if (res.status === 429) {
+        const errorMsg = data?.message || data?.error || 'Too many failed login attempts. Please try again in 15 minutes.';
+        return { success: false, error: errorMsg };
+      }
+
+      // Bad request
+      if (res.status === 400) {
+        const errorMsg = data?.message || data?.error || 'Please enter valid login credentials.';
+        return { success: false, error: errorMsg };
+      }
+
+      // If backend returned a specific error message
+      if (data && (data.message || data.error)) {
+        return { success: false, error: data.message || data.error };
+      }
+
+      // Default safe error for any unexpected response
+      return {
+        success: false,
+        error: 'Unable to contact the authentication server. Please try again.'
+      };
     } catch (err: any) {
-      return { success: false, error: err.message || 'Connection error' };
+      return {
+        success: false,
+        error: 'Unable to contact the authentication server. Please try again.'
+      };
     }
   },
 

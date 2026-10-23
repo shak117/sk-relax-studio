@@ -31,6 +31,7 @@ export const AdminLoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Prevent duplicate submissions while in flight
     setError(null);
     setLoading(true);
 
@@ -89,9 +90,10 @@ export const AdminLoginPage: React.FC = () => {
                 <input
                   type="text"
                   required
+                  disabled={loading}
                   value={username}
                   onChange={e => setUsername(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 text-sm bg-cream-50 border border-forest-900/15 rounded-sm focus:outline-none focus:border-forest-900 text-forest-900 font-sans"
+                  className="w-full pl-10 pr-3 py-2 text-sm bg-cream-50 border border-forest-900/15 rounded-sm focus:outline-none focus:border-forest-900 text-forest-900 font-sans disabled:opacity-60"
                   placeholder="Enter admin username"
                   autoComplete="username"
                 />
@@ -109,9 +111,10 @@ export const AdminLoginPage: React.FC = () => {
                 <input
                   type="password"
                   required
+                  disabled={loading}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 text-sm bg-cream-50 border border-forest-900/15 rounded-sm focus:outline-none focus:border-forest-900 text-forest-900 font-sans"
+                  className="w-full pl-10 pr-3 py-2 text-sm bg-cream-50 border border-forest-900/15 rounded-sm focus:outline-none focus:border-forest-900 text-forest-900 font-sans disabled:opacity-60"
                   placeholder="Enter password"
                   autoComplete="current-password"
                 />
