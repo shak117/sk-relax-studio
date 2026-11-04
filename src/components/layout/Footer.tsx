@@ -7,9 +7,9 @@ import { trackContactAction, trackWhatsAppClick } from '../../services/analytics
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="bg-forest-950 text-ivory-200 border-t border-forest-800/80 pt-16 pb-12">
+    <footer className="bg-forest-950 text-ivory-200 border-t border-forest-800/80 pt-10 pb-5 sm:pt-16 sm:pb-14">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 mb-8 sm:mb-12">
           {/* Column 1 — Brand */}
           <div className="space-y-4">
             <BrandLogo variant="dark" size="md" />
@@ -217,7 +217,7 @@ export const Footer: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-2 border-t border-forest-900/80">
+            <div className="mt-3 border-t border-forest-900/60 pt-3">
               <div className="flex items-center gap-2 text-xs text-gold-300 font-medium mb-1">
                 <Clock size={13} />
                 <span>Studio Hours</span>
@@ -232,21 +232,23 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar: Clean Two-Sided Layout with Compact Lower Row */}
-        <div className="pt-8 border-t border-forest-900/90 space-y-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
+        <div className="pt-5 sm:pt-6 border-t border-forest-900/90 space-y-2">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-6 text-xs sm:text-sm px-12 sm:px-0 max-w-lg sm:max-w-none mx-auto">
             {/* Left side: Developer Credit */}
             <div className="text-center sm:text-left font-sans font-medium text-ivory-300">
               Designed & Developed by Cloud Technologies
             </div>
 
             {/* Right side: Salon Identity */}
-            <div className="text-center sm:text-right font-serif tracking-wide text-ivory-200">
-              SK Relax Beauty Academy & Salon
+            <div className="text-center sm:text-right">
+              <span className="font-serif font-medium text-[17px] sm:text-[20px] lg:text-[22px] text-white tracking-[0.04em] leading-tight">
+                SK Relax Beauty Academy & Salon
+              </span>
             </div>
           </div>
 
           {/* Lower compact row: Copyright Notice */}
-          <div className="pt-1 text-center text-[11px] sm:text-xs text-ivory-400 font-sans tracking-wide">
+          <div className="pt-0.5 text-center text-[11px] sm:text-xs text-ivory-400 font-sans tracking-wide px-12 sm:px-0 max-w-md mx-auto">
             © 2026 SK RELAX BEAUTY ACADEMY & SALON. All rights reserved.
           </div>
         </div>

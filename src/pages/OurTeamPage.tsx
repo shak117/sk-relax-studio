@@ -12,7 +12,7 @@ export const OurTeamPage: React.FC = () => {
     title: 'Our Team & Faculty | SK Relax Beauty Academy & Salon, Satara',
     description: 'Meet founder Salma Attar and the expert beauty, hair styling, and aesthetic faculty at SK Relax in Satara.',
     path: '/team',
-    image: '/images/team/salma-attar-founder.jpg',
+    image: '/images/team/salma-attar-founder-real.jpg',
     schema: [
       generateLocalBusinessSchema(),
       generateBreadcrumbSchema([
@@ -53,13 +53,19 @@ export const OurTeamPage: React.FC = () => {
               {/* Founder Image */}
               <div className="lg:col-span-5">
                 <ScrollReveal direction="left">
-                  <div className="relative rounded-sm overflow-hidden shadow-elevated border-2 border-gold-400/40 bg-forest-950 max-w-md mx-auto">
+                  <div className="relative rounded-sm overflow-hidden shadow-elevated border-2 border-gold-400/40 bg-forest-950 max-w-sm sm:max-w-md mx-auto flex flex-col justify-end min-h-[500px] sm:min-h-[560px]">
+                    <img
+                      src={founder.image}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-35 pointer-events-none select-none"
+                    />
                     <img
                       src={founder.image}
                       alt={founder.name}
-                      className="w-full h-auto object-cover object-center"
+                      className="relative z-10 w-full h-[500px] sm:h-[560px] object-contain object-top"
                     />
-                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-forest-950 via-forest-950/70 to-transparent p-5 text-ivory">
+                    <div className="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-forest-950 via-forest-950/80 to-transparent p-5 text-ivory pointer-events-none">
                       <p className="font-serif text-xl sm:text-2xl text-gold-300 font-normal">
                         {founder.name}
                       </p>

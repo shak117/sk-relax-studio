@@ -38,6 +38,7 @@ export const ServicesPage: React.FC = () => {
     title: string;
     description?: string;
     categoryLabel?: string;
+    posterImage?: string;
   } | null>(null);
 
   const [failedImages, setFailedImages] = useState<Record<number, boolean>>({});
@@ -216,7 +217,8 @@ export const ServicesPage: React.FC = () => {
                     setActiveVideo({
                       url: s.videoUrl,
                       title: s.title,
-                      description: s.description,
+                      description: s.description || s.shortDescription,
+                      posterImage: s.videoPoster || s.image || s.thumbnail,
                       categoryLabel: s.categoryLabel
                     });
                   }
@@ -235,7 +237,8 @@ export const ServicesPage: React.FC = () => {
                       setActiveVideo({
                         url: s.videoUrl,
                         title: s.title,
-                        description: s.description,
+                        description: s.description || s.shortDescription,
+                        posterImage: s.videoPoster || s.image || s.thumbnail,
                         categoryLabel: s.categoryLabel
                       });
                     }
@@ -255,7 +258,8 @@ export const ServicesPage: React.FC = () => {
                       setActiveVideo({
                         url: s.videoUrl,
                         title: s.title,
-                        description: s.description,
+                        description: s.description || s.shortDescription,
+                        posterImage: s.videoPoster || s.image || s.thumbnail,
                         categoryLabel: s.categoryLabel
                       });
                     }
@@ -291,7 +295,8 @@ export const ServicesPage: React.FC = () => {
                     setActiveVideo({
                       url: s.videoUrl,
                       title: s.title,
-                      description: s.description,
+                      description: s.description || s.shortDescription,
+                      posterImage: s.videoPoster || s.image || s.thumbnail,
                       categoryLabel: s.categoryLabel
                     });
                   }

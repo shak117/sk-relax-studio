@@ -101,6 +101,7 @@ export const SERVICES: ServiceItem[] = [
     shortDescription: 'Silky, pin-straight hair transformation with moisture-retention chemical formulas.',
     description: 'Advanced structural thermal realignment that tames resistant curls, stubborn frizz, and uneven texture into high-shine, velvety straight hair with lasting manageability.',
     image: '/images/services/long-layer-haircut.jpg',
+    videoUrl: '/uploads/services/service-1793106253086-63dc38c0-smoothning.mp4',
     features: ['Pin-straight sleek finish', 'Lasting humidity resistance', 'Thermal heat shield protection', 'Post-rebonding wash guide'],
     confirmed: true
   },
@@ -126,6 +127,7 @@ export const SERVICES: ServiceItem[] = [
     shortDescription: 'Deep conditioning cuticle filler that repairs hollow fibers with collagen and peptides.',
     description: 'Non-chemical, intensive restorative therapy that fills gaps in damaged, color-treated, or bleached hair cuticles, restoring softness, elasticity, and youthful bounce.',
     image: '/images/services/hair-styling-curls.jpg',
+    videoUrl: '/uploads/services/service-1793106479921-d3e39f50-keriten.mp4',
     features: ['Fills damaged cuticle gaps', 'Deep collagen & peptide infusion', 'Formaldehyde-free formula', 'Weightless natural volume'],
     isSignature: true,
     confirmed: true
@@ -172,6 +174,7 @@ export const SERVICES: ServiceItem[] = [
     shortDescription: 'Signature layered cut featuring short cascading crown layers and face-framing bounce.',
     description: 'Our most requested haircut in Satara. Short feathery layers crown the head, while longer lengths cascade gracefully over the shoulders for supreme movement.',
     image: '/images/services/butterfly-haircut.jpg',
+    videoUrl: '/uploads/services/service-1793106626650-200cceae-butterflt-vid.mp4',
     features: ['Face-flattering crown layers', 'Dynamic volume & bounce', 'Professional blow-dry finish', 'Personalized sectioning'],
     isSignature: true,
     badge: 'Masterclass Special',

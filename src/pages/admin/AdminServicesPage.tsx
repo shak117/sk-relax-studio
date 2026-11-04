@@ -20,6 +20,7 @@ import {
   ArrowDown,
   Layers,
   GraduationCap,
+  Image as ImageIcon,
   X
 } from 'lucide-react';
 import { ServiceItem, ServiceCategory, ServicePricingMode, ServicePublicationStatus } from '../../types';
@@ -213,7 +214,7 @@ export const AdminServicesPage: React.FC = () => {
       shortDescription: formData.shortDescription || 'Short description preview...',
       description: formData.description || '',
       image: formData.image,
-      thumbnail: formData.thumbnail || formData.image,
+      thumbnail: formData.image || formData.thumbnail,
       imagePosition: formData.imagePosition,
       videoUrl: formData.videoUrl,
       videoPoster: formData.videoPoster,
@@ -270,7 +271,7 @@ export const AdminServicesPage: React.FC = () => {
           setFormData((prev) => ({
             ...prev,
             image: uploadedUrl,
-            thumbnail: prev.thumbnail || uploadedUrl
+            thumbnail: uploadedUrl
           }));
         } else {
           setFormData((prev) => ({
@@ -307,7 +308,7 @@ export const AdminServicesPage: React.FC = () => {
       shortDescription: formData.shortDescription.trim(),
       description: formData.description.trim(),
       image: formData.image.trim(),
-      thumbnail: formData.thumbnail.trim() || formData.image.trim(),
+      thumbnail: formData.image.trim(),
       imagePosition: formData.imagePosition.trim(),
       videoUrl: formData.videoUrl.trim(),
       videoPoster: formData.videoPoster.trim(),
@@ -413,8 +414,8 @@ export const AdminServicesPage: React.FC = () => {
               <ShieldCheck size={18} />
             </div>
             <div>
-              <h1 className="font-serif text-lg text-white font-medium">SK Relax CMS</h1>
-              <p className="text-[10px] text-gold-300 font-sans uppercase tracking-widest">
+              <h1 className="font-serif text-base sm:text-lg text-white font-medium whitespace-nowrap">SK Relax CMS</h1>
+              <p className="text-[10px] text-gold-300 font-sans uppercase tracking-widest hidden sm:block">
                 Services & Salon Catalogue Manager
               </p>
             </div>
@@ -425,14 +426,21 @@ export const AdminServicesPage: React.FC = () => {
             <nav className="flex items-center gap-2">
               <span className="px-3 py-1.5 rounded-sm bg-forest-900 border border-gold-500/40 text-xs text-gold-300 font-sans font-medium flex items-center gap-1.5 shadow-xs">
                 <Scissors size={13} />
-                <span>Salon Services</span>
+                <span className="hidden sm:inline">Salon Services</span>
               </span>
               <Link
                 to="/admin/batches"
                 className="px-3 py-1.5 rounded-sm text-xs text-ivory-300 hover:text-white font-sans hover:bg-forest-900/60 transition-colors flex items-center gap-1.5"
               >
                 <GraduationCap size={13} />
-                <span>Academy Batches</span>
+                <span className="hidden sm:inline">Academy Batches</span>
+              </Link>
+              <Link
+                to="/admin/gallery"
+                className="px-3 py-1.5 rounded-sm text-xs text-ivory-300 hover:text-white font-sans hover:bg-forest-900/60 transition-colors flex items-center gap-1.5"
+              >
+                <ImageIcon size={13} />
+                <span className="hidden sm:inline">Gallery & Media</span>
               </Link>
             </nav>
 
@@ -627,7 +635,7 @@ export const AdminServicesPage: React.FC = () => {
                         <div className="w-16 h-12 rounded-sm bg-cream-200 border border-forest-900/10 overflow-hidden relative flex items-center justify-center">
                           {service.image ? (
                             <img
-                              src={service.thumbnail || service.image}
+                              src={service.image || service.thumbnail}
                               alt={service.title}
                               className="w-full h-full object-cover"
                             />
@@ -899,7 +907,10 @@ export const AdminServicesPage: React.FC = () => {
                       <input
                         type="text"
                         value={formData.image}
-                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setFormData(prev => ({ ...prev, image: val, thumbnail: val }));
+                        }}
                         placeholder="/images/services/... or upload"
                         className="flex-1 px-3 py-2 text-xs bg-white border border-forest-900/15 rounded-sm text-forest-900 font-sans"
                       />

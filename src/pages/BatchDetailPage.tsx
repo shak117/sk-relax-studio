@@ -254,7 +254,7 @@ export const BatchDetailPage: React.FC = () => {
               <div className="bg-cream-50 p-6 sm:p-8 rounded-sm border border-forest-900/10 flex flex-col sm:flex-row items-center gap-6">
                 <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-gold-500/40 shrink-0 shadow-soft">
                   <img
-                    src="/images/team/salma-attar-founder.jpg"
+                    src="/images/team/salma-attar-founder-real.jpg"
                     alt="Salma Attar - Founder & Lead Educator"
                     className="w-full h-full object-cover object-top"
                   />

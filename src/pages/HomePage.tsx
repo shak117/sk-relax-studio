@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, 
   Scissors, 
@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { SERVICES } from '../data/servicesData';
+import { salonService } from '../services/salonService';
+import { ServiceItem } from '../types';
 import { COURSES, ACADEMY_PROMO } from '../data/academyData';
 import { ACADEMY_EVENTS } from '../data/eventsData';
 import { STUDENT_FEEDBACK } from '../data/studentFeedbackData';
@@ -81,8 +83,26 @@ export const HomePage: React.FC = () => {
     }
   ];
 
-  // Select 6 featured catalogue services for homepage
-  const featuredServices = SERVICES.slice(0, 6);
+  // Select 6 featured catalogue services for homepage (dynamically synced with admin edits)
+  const [featuredServices, setFeaturedServices] = useState<ServiceItem[]>(() => SERVICES.slice(0, 6));
+
+  useEffect(() => {
+    let isMounted = true;
+    salonService
+      .getPublishedServices()
+      .then((data) => {
+        if (isMounted && data && data.length > 0) {
+          setFeaturedServices(data.slice(0, 6));
+        }
+      })
+      .catch((err) => {
+        console.warn('[HomePage] Live services fetch failed, using fallback:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Masterclass course reference
   const masterclass = COURSES[0];
@@ -112,8 +132,8 @@ export const HomePage: React.FC = () => {
                     {/* Image Container preserving full uncropped portrait aspect ratio */}
                     <div className="relative rounded-xs overflow-hidden bg-cream-50 flex items-center justify-center">
                       <img
-                        src="/images/services/sk-relax-philosophy-real-hairstyle.png"
-                        alt="Real SK Relax Salon Client Finished Hair Styling with Long Golden Curls"
+                        src="/images/services/sk-relax-straight-protein-hair.jpg"
+                        alt="Real SK Relax Salon Client Finished Straight Protein Hair Treatment & Smoothing"
                         className="w-full h-auto max-h-[620px] object-contain rounded-xs block mx-auto"
                         loading="lazy"
                       />
@@ -195,7 +215,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4E. Signature Hair Artistry (Masterclass Poster Showcase) */}
-      <section className="py-12 sm:py-16 bg-cream-50 text-forest-900 border-b border-forest-900/10">
+      <section className="pt-8 pb-8 sm:pt-10 sm:pb-10 bg-cream-50 text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <SectionHeading
@@ -249,23 +269,23 @@ export const HomePage: React.FC = () => {
             ))}
           </div>
 
-          <p className="mt-8 text-center text-xs text-forest-600 font-sans italic">
+          <p className="mt-4 sm:mt-6 text-center text-xs text-forest-600 font-sans italic">
             * Technique examples inspired by our masterclass syllabus. Service availability and customization are tailored upon in-studio consultation.
           </p>
         </div>
       </section>
 
       {/* 4D. Featured Services Catalogue Grid */}
-      <section id="services-section" className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">
+      <section id="services-section" className="pt-6 pb-10 sm:pt-8 sm:pb-14 bg-ivory text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
                 <span className="w-6 h-[1px] bg-rose-400"></span>
                 <span>Salon Offerings</span>
               </div>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-forest-900 font-light">
-                Curated Studio <span className="font-serif italic text-rose-600">Services</span>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-forest-900 font-medium">
+                Curated Studio <span className="font-serif italic font-medium text-rose-600">Services</span>
               </h2>
               <p className="mt-3 text-sm sm:text-base text-forest-700 max-w-xl font-sans">
                 Explore our proposed service menu across hair design, restorative skincare, and occasion beauty.
@@ -281,7 +301,20 @@ export const HomePage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredServices.map((service, idx) => (
               <ScrollReveal key={service.id} delay={idx * 80}>
-                <ServiceCard service={service} />
+                <ServiceCard 
+                  service={service} 
+                  onWatchVideo={(s) => {
+                    if (s.videoUrl) {
+                      setActiveVideo({
+                        url: s.videoUrl,
+                        title: s.title,
+                        description: s.description || s.shortDescription,
+                        posterImage: s.videoPoster || s.image || s.thumbnail,
+                        categoryLabel: s.categoryLabel
+                      });
+                    }
+                  }}
+                />
               </ScrollReveal>
             ))}
           </div>
@@ -289,26 +322,36 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* Team Spotlight Section */}
-      <section className="py-12 sm:py-16 bg-cream-100 text-forest-900 border-b border-forest-900/10">
+      <section id="team-spotlight" className="py-10 sm:py-14 lg:py-20 bg-cream-100 text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             {/* Visual Column */}
             <div className="lg:col-span-5">
               <ScrollReveal direction="left">
-                <div className="relative">
-                  <div className="relative aspect-[4/5] rounded-sm overflow-hidden bg-cream-300 shadow-luxury border-2 border-gold-500/30">
+                <div className="relative mx-auto max-w-sm lg:max-w-md">
+                  <div className="relative rounded-sm overflow-hidden bg-forest-950 shadow-luxury border-2 border-gold-500/30 flex flex-col justify-end min-h-[480px] sm:min-h-[540px] lg:min-h-[580px]">
+                    {/* Ambient Blurred Studio Backdrop */}
                     <img
-                      src="/images/team/salma-attar-founder.jpg"
+                      src="/images/team/salma-attar-founder-real.jpg"
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-35 pointer-events-none select-none"
+                    />
+
+                    {/* Single Real Portrait of Salma Attar — Full Head, Shoulders, and Hands visible */}
+                    <img
+                      src="/images/team/salma-attar-founder-real.jpg"
                       alt="Salma Attar - Founder & Master Beauty Educator SK Relax Satara"
-                      className="w-full h-full object-cover object-center"
+                      className="relative z-10 w-full h-[480px] sm:h-[540px] lg:h-[580px] object-contain object-top"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-forest-950/70 via-transparent to-transparent pointer-events-none" />
-                    <div className="absolute bottom-5 left-5 right-5 text-white">
-                      <span className="text-[10px] uppercase tracking-widest font-sans font-semibold text-gold-300 bg-forest-950/80 px-2.5 py-1 rounded-sm inline-block mb-1.5">
+
+                    {/* Dark Forest-Green Gradient Scrim for readable text overlay without covering hands */}
+                    <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-forest-950 via-forest-950/80 to-transparent pt-16 pb-5 px-5 sm:px-6 text-white pointer-events-none">
+                      <span className="text-[10px] uppercase tracking-widest font-sans font-semibold text-gold-300 bg-forest-950/90 border border-gold-500/30 px-2.5 py-1 rounded-sm inline-block mb-1.5 shadow-soft">
                         Founder & Director
                       </span>
-                      <h4 className="font-serif text-2xl text-ivory">Salma Attar</h4>
+                      <h4 className="font-serif text-2xl sm:text-3xl text-ivory">Salma Attar</h4>
                       <p className="text-xs text-ivory-200/90 font-sans">Master Beauty Educator · 15+ Yrs Satara</p>
                     </div>
                   </div>
@@ -317,43 +360,43 @@ export const HomePage: React.FC = () => {
             </div>
 
             {/* Content Column */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="lg:col-span-7">
               <ScrollReveal direction="right">
-                <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600">
+                <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-4">
                   <Users size={14} />
                   <span>The Artisans Behind SK Relax</span>
                 </div>
 
-                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-forest-900 font-light leading-tight">
+                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-forest-900 font-light leading-tight mb-5">
                   Meet Our Lead Educator &
                   <span className="block font-serif italic text-rose-600">
                     Professional Studio Team
                   </span>
                 </h2>
 
-                <p className="text-forest-700 font-sans text-sm sm:text-base leading-relaxed">
+                <p className="text-forest-700 font-sans text-sm sm:text-base leading-relaxed mb-6">
                   Led by founder <strong>Salma Attar</strong>, our salon and academy team combines 15+ years of beauty mastery with a genuine passion for personalized client transformation and student success in Satara.
                 </p>
 
                 {/* Key Badges */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                  <div className="p-4 bg-white rounded-sm border border-forest-900/10 shadow-soft flex items-start gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 sm:p-5 bg-white rounded-sm border border-forest-900/10 shadow-soft flex items-start gap-3">
                     <Award size={18} className="text-gold-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h5 className="font-serif text-sm font-medium text-forest-900">Certified PMU & Aesthetics</h5>
-                      <p className="text-xs text-forest-600 mt-0.5">International certifications in microblading, clinical peels & skin machines.</p>
+                      <h5 className="font-serif text-sm font-medium text-forest-900 mb-1">Certified PMU & Aesthetics</h5>
+                      <p className="text-xs text-forest-600 leading-relaxed">International certifications in microblading, clinical peels & skin machines.</p>
                     </div>
                   </div>
-                  <div className="p-4 bg-white rounded-sm border border-forest-900/10 shadow-soft flex items-start gap-3">
+                  <div className="p-4 sm:p-5 bg-white rounded-sm border border-forest-900/10 shadow-soft flex items-start gap-3">
                     <GraduationCap size={18} className="text-rose-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h5 className="font-serif text-sm font-medium text-forest-900">Personalized Mentorship</h5>
-                      <p className="text-xs text-forest-600 mt-0.5">Every student receives hands-on dummy practice and one-on-one guidance.</p>
+                      <h5 className="font-serif text-sm font-medium text-forest-900 mb-1">Personalized Mentorship</h5>
+                      <p className="text-xs text-forest-600 leading-relaxed">Every student receives hands-on dummy practice and one-on-one guidance.</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-4 flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <Button to="/team" variant="primary" size="md" icon={<ArrowRight size={14} />}>
                     Meet Our Full Team
                   </Button>
@@ -374,17 +417,17 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4F. Beauty Academy Feature Banner */}
-      <section className="py-12 sm:py-16 bg-forest-950 text-ivory relative overflow-hidden">
+      <section className="py-12 sm:py-16 lg:py-20 bg-forest-950 text-ivory relative overflow-hidden">
         {/* Subtle decorative background circles */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-forest-900/40 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             {/* Left Content */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="lg:col-span-7">
               <ScrollReveal direction="left">
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2 mb-5">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase">
                     <GraduationCap size={14} className="text-gold-400" />
                     <span>SK Relax Beauty Academy · Satara</span>
@@ -397,48 +440,48 @@ export const HomePage: React.FC = () => {
                   </div>
                 </div>
 
-                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-white font-light leading-tight">
+                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-white font-light leading-tight mb-5">
                   Transform Your Skills
                   <span className="block font-serif italic text-gold-300">
                     Into Success ♡
                   </span>
                 </h2>
 
-                <p className="text-sm sm:text-base text-ivory-200/90 leading-relaxed font-sans max-w-xl">
+                <p className="text-sm sm:text-base text-ivory-200/90 leading-relaxed font-sans max-w-xl mb-6">
                   {masterclass.subtitle} — Our hands-on masterclasses are crafted for aspiring hairstylists, salon artists, and cosmetology students who want practical mastery of trending haircuts.
                 </p>
 
                 {/* Masterclass Highlight Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="bg-forest-900/80 p-4 rounded-sm border border-forest-800">
-                    <p className="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-1">Reference Batch</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <div className="bg-forest-900/80 p-4 sm:p-5 rounded-sm border border-forest-800">
+                    <p className="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-2">Reference Batch</p>
                     <p className="font-serif text-xl text-white">{masterclass.nextBatch}</p>
-                    <p className="text-xs text-ivory-300/80 mt-1">Enquire now for the upcoming batch dates</p>
+                    <p className="text-xs text-ivory-300/80 mt-2">Enquire now for the upcoming batch dates</p>
                   </div>
 
-                  <div className="bg-forest-900/80 p-4 rounded-sm border border-forest-800">
-                    <p className="text-xs uppercase tracking-wider text-rose-400 font-semibold mb-1">Masterclass Fee</p>
+                  <div className="bg-forest-900/80 p-4 sm:p-5 rounded-sm border border-forest-800">
+                    <p className="text-xs uppercase tracking-wider text-rose-400 font-semibold mb-2">Masterclass Fee</p>
                     <p className="font-serif text-xl text-white">{masterclass.fee}</p>
-                    <p className="text-xs text-ivory-300/80 mt-1">Mannequin dummy head provided for practice</p>
+                    <p className="text-xs text-ivory-300/80 mt-2">Mannequin dummy head provided for practice</p>
                   </div>
                 </div>
 
                 {/* Bullet Inclusions */}
-                <div className="pt-2">
+                <div className="mb-7">
                   <h4 className="text-xs uppercase tracking-wider text-ivory-300 font-sans font-semibold mb-3">
                     Curriculum Inclusions:
                   </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-ivory-200">
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400" /> Hair Degree</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400" /> Hair Sectioning</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400" /> Hair Tools</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400" /> Butterfly Cut</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400" /> Curtain Bangs</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400" /> Dummy Provided</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5 text-xs text-ivory-200">
+                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Hair Degree</span>
+                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Hair Sectioning</span>
+                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Hair Tools</span>
+                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Butterfly Cut</span>
+                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Curtain Bangs</span>
+                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Dummy Provided</span>
                   </div>
                 </div>
 
-                <div className="pt-4 flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <Button
                     href={buildWhatsAppUrl(WhatsAppMessages.academyEnquiry(masterclass.title, masterclass.nextBatch))}
                     external
@@ -587,7 +630,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* Student Video Reviews & Feedback Preview */}
-      <section className="py-12 sm:py-16 bg-cream-50 text-forest-900 border-b border-forest-900/10">
+      <section className="pt-8 pb-8 sm:pt-10 sm:pb-10 bg-cream-50 text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
@@ -682,16 +725,16 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4G. Gallery Preview */}
-      <section className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">
+      <section className="pt-6 pb-8 sm:pt-8 sm:pb-12 bg-ivory text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
                 <span className="w-6 h-[1px] bg-rose-400"></span>
                 <span>Visual Portfolio</span>
               </div>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-forest-900 font-light">
-                Studio & Masterclass <span className="font-serif italic text-rose-600">Gallery</span>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-forest-900 font-medium">
+                Studio & Masterclass <span className="font-serif italic font-medium text-rose-600">Gallery</span>
               </h2>
               <p className="mt-3 text-sm sm:text-base text-forest-700 max-w-xl font-sans">
                 A glimpse into our haircuts, practical masterclass moments, and studio ambience in Satara.
@@ -709,7 +752,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4H. Experience & Standards Section */}
-      <section className="py-12 sm:py-16 bg-cream-100 text-forest-900 border-b border-forest-900/10">
+      <section className="pt-6 pb-10 sm:pt-8 sm:pb-14 bg-cream-100 text-forest-900 border-b border-forest-900/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
             <SectionHeading
@@ -720,7 +763,7 @@ export const HomePage: React.FC = () => {
             />
           </ScrollReveal>
 
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="mt-6 sm:mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
             <ScrollReveal delay={0}>
               <div className="bg-white p-8 rounded-sm border border-forest-900/10 shadow-soft h-full flex flex-col justify-between">
                 <div>

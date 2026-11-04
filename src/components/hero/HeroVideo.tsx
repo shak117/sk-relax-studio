@@ -278,22 +278,22 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
       {/* Hero Foreground Content — Clean Linear Flex Flow with Guaranteed Zero Overlaps */}
       <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
         {/* 1. Eyebrow */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-forest-900/75 backdrop-blur-md border border-gold-500/30 text-gold-300 text-[11px] sm:text-xs font-sans tracking-[0.25em] uppercase shadow-soft">
-          <Sparkles size={13} className="text-gold-400" />
-          <span>{BRAND.eyebrow}</span>
+        <div className="inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 rounded-full bg-forest-900/75 backdrop-blur-md border border-gold-500/30 text-gold-300 text-[10px] xs:text-[11px] sm:text-xs font-sans tracking-wider sm:tracking-[0.25em] uppercase shadow-soft max-w-[94vw] text-center">
+          <Sparkles size={12} className="text-gold-400 flex-shrink-0" />
+          <span className="truncate">{BRAND.eyebrow}</span>
         </div>
 
         {/* 2. Main Headline */}
-        <h1 className="mt-5 sm:mt-6 font-serif text-3xl xs:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight text-ivory leading-[1.1] sm:leading-[1.05] max-w-4xl text-balance drop-shadow-md">
+        <h1 className="mt-5 sm:mt-6 pt-0.5 font-serif text-3xl xs:text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight text-ivory leading-[1.1] sm:leading-[1.05] max-w-4xl text-balance drop-shadow-md text-center mx-auto">
           Your Beauty.
-          <span className="block font-serif italic text-gold-300 font-normal sm:mt-1 drop-shadow-sm">
+          <span className="block font-serif italic text-gold-300 font-normal mt-0.5 sm:mt-1 pt-0.5 drop-shadow-sm">
             Your Signature.
           </span>
         </h1>
 
         {/* 3. Supporting Description */}
-        <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-ivory-200/95 max-w-2xl font-sans font-light leading-relaxed drop-shadow-sm">
-          Bespoke hair artistry, clinical skin aesthetics, and professional beauty academy education in Satara.
+        <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-ivory-200/95 max-w-xl sm:max-w-2xl mx-auto font-sans font-light leading-relaxed drop-shadow-sm text-balance text-center">
+          Bespoke hair artistry, advanced skin treatments, and signature beauty experiences in Satara.
         </p>
 
         {/* 4. Action Buttons — Row on Desktop, Clean Wrapping on Mobile Screens */}

@@ -4,6 +4,7 @@ import { ServiceItem } from '../../types';
 import { WhatsAppMessages } from '../../data/brandData';
 import { Badge } from '../ui/Badge';
 import { trackWhatsAppClick } from '../../services/analytics';
+import { VideoPlayerModal } from '../ui/VideoPlayerModal';
 
 interface ServiceCardProps {
   service: ServiceItem;
@@ -17,6 +18,27 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   onWatchVideo
 }) => {
   const [imageError, setImageError] = useState(false);
+  const [internalModalOpen, setInternalModalOpen] = useState(false);
+
+  const hasVideo = Boolean(
+    service.videoUrl && 
+    typeof service.videoUrl === 'string' && 
+    service.videoUrl.trim() !== ''
+  );
+
+  const handleWatchVideo = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!hasVideo) return;
+    if (onWatchVideo) {
+      onWatchVideo(service);
+    } else {
+      setInternalModalOpen(true);
+    }
+  };
+
   const isBridal = service.category === 'makeup-bridal' || service.id.includes('bridal');
   
   // Custom or prefilled WhatsApp message
@@ -26,7 +48,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   const targetNumber = service.whatsappNumber || '918459890270';
   const whatsappUrl = `https://wa.me/${targetNumber.replace(/\D/g, '')}?text=${encodeURIComponent(rawMessage)}`;
 
-  const hasImage = Boolean(service.image && service.image.trim() !== '' && !imageError);
+  const hasImage = Boolean((service.image || service.thumbnail) && (service.image || service.thumbnail)!.trim() !== '' && !imageError);
 
   const renderPricing = () => {
     if (service.pricingMode === 'fixed' && service.price) {
@@ -70,7 +92,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
         /* Image Container with Restrained Zoom */
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-cream-200">
           <img
-            src={service.thumbnail || service.image}
+            src={service.image || service.thumbnail}
             alt={service.title}
             loading="lazy"
             onError={() => setImageError(true)}
@@ -79,7 +101,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           />
 
           {/* Top Badges */}
-          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none">
+          <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-20">
             <Badge variant={service.badge === 'Masterclass Special' ? 'rose' : service.badge === 'Signature' ? 'gold' : 'ivory'}>
               {service.categoryLabel}
             </Badge>
@@ -96,15 +118,22 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             ) : null}
           </div>
 
-          {/* Video Trigger Overlay if video exists */}
-          {service.videoUrl && onWatchVideo && (
+          {/* Professional Video Preview Overlay with Play Button if video exists */}
+          {hasVideo && (
             <button
-              onClick={() => onWatchVideo(service)}
-              className="absolute inset-0 bg-forest-950/30 group-hover:bg-forest-950/50 flex items-center justify-center transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400"
+              type="button"
+              onClick={handleWatchVideo}
+              className="absolute inset-0 bg-forest-950/25 hover:bg-forest-950/45 flex items-center justify-center transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold-400 group/video cursor-pointer z-10"
               aria-label={`Watch video demonstration for ${service.title}`}
             >
-              <div className="w-12 h-12 rounded-full bg-forest-950/80 border border-gold-400/60 text-gold-300 flex items-center justify-center shadow-luxury transform transition-transform duration-300 group-hover:scale-110">
-                <Play size={18} className="fill-gold-400 text-gold-400 ml-0.5" />
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-forest-950/90 border border-gold-400/80 text-gold-300 flex items-center justify-center shadow-luxury transform transition-transform duration-300 group-hover/video:scale-110">
+                <Play size={20} className="fill-gold-400 text-gold-400 ml-0.5" />
+              </div>
+
+              {/* Bottom Badge Indicator */}
+              <div className="absolute bottom-3 left-3 bg-forest-950/85 backdrop-blur-sm text-gold-300 text-[10px] font-sans font-medium px-2 py-0.5 rounded-sm border border-gold-400/40 tracking-wider uppercase flex items-center gap-1.5 shadow-soft pointer-events-none">
+                <Play size={10} className="fill-gold-400 text-gold-400" />
+                <span>Watch Video</span>
               </div>
             </button>
           )}
@@ -118,10 +147,21 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           <Badge variant={service.badge === 'Signature' ? 'gold' : 'ivory'}>
             {service.categoryLabel}
           </Badge>
-          <div className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-sans text-forest-700 bg-white px-2 py-0.5 rounded-sm border border-forest-900/10">
-            <Sparkles size={11} className="text-gold-500" />
-            <span>Salon Treatment</span>
-          </div>
+          {hasVideo ? (
+            <button
+              type="button"
+              onClick={handleWatchVideo}
+              className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-sans text-gold-300 bg-forest-950 px-2.5 py-1 rounded-sm border border-gold-400/40 hover:bg-forest-900 transition-colors cursor-pointer"
+            >
+              <Play size={11} className="fill-gold-400 text-gold-400" />
+              <span>Watch Video</span>
+            </button>
+          ) : (
+            <div className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-sans text-forest-700 bg-white px-2 py-0.5 rounded-sm border border-forest-900/10">
+              <Sparkles size={11} className="text-gold-500" />
+              <span>Salon Treatment</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -149,20 +189,20 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           )}
         </div>
 
-        {/* Card Footer: Video & Enquiry Actions */}
+        {/* Card Footer: Pricing, Video Trigger & Enquiry Actions */}
         <div className="mt-6 pt-4 border-t border-forest-900/10 flex items-center justify-between gap-3">
-          <div>
-            {service.videoUrl && onWatchVideo ? (
+          <div className="flex items-center gap-2">
+            {renderPricing()}
+            {hasVideo && (
               <button
                 type="button"
-                onClick={() => onWatchVideo(service)}
-                className="inline-flex items-center gap-1.5 text-xs font-sans font-semibold uppercase tracking-wider text-forest-900 hover:text-gold-600 transition-colors py-1"
+                onClick={handleWatchVideo}
+                className="inline-flex items-center gap-1 text-[11px] font-sans font-semibold uppercase tracking-wider text-forest-900 hover:text-gold-600 transition-colors py-0.5 px-2 rounded-sm bg-cream-100 hover:bg-cream-200 border border-forest-900/10 cursor-pointer"
+                aria-label={`Watch video demonstration for ${service.title}`}
               >
-                <Play size={12} className="text-gold-500 fill-gold-500" />
-                <span>Watch Video</span>
+                <Play size={10} className="text-gold-600 fill-gold-600" />
+                <span>Video</span>
               </button>
-            ) : (
-              renderPricing()
             )}
           </div>
 
@@ -180,6 +220,19 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           </a>
         </div>
       </div>
+
+      {/* Self-contained video modal fallback when parent does not supply onWatchVideo */}
+      {internalModalOpen && hasVideo && !onWatchVideo && (
+        <VideoPlayerModal
+          isOpen={internalModalOpen}
+          onClose={() => setInternalModalOpen(false)}
+          videoUrl={service.videoUrl!}
+          title={service.title}
+          description={service.description || service.shortDescription}
+          posterImage={service.videoPoster || service.image || service.thumbnail}
+          categoryLabel={service.categoryLabel}
+        />
+      )}
     </article>
   );
 };

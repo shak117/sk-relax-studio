@@ -5,7 +5,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     id: 'salma-attar',
     name: 'Salma Attar',
     role: 'Founder & Master Beauty Educator',
-    image: '/images/team/salma-attar-founder.jpg',
+    image: '/images/team/salma-attar-founder-real.jpg',
     bio: 'Founder and lead educator of SK Relax Beauty Academy & Salon in Satara. Certified in advanced hair styling, clinical skin aesthetics, permanent makeup (PMU), and bridal couture. She personally mentors every student with hands-on live demos and practical training.',
     expertise: [
       'Advanced Hair Cutting & Degree Geometry',

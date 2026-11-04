@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Maximize2, Tag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Maximize2, Tag, Play } from 'lucide-react';
 import { GalleryItem } from '../../types';
 import { GALLERY_CATEGORIES, GALLERY_ITEMS } from '../../data/galleryData';
+import { galleryService } from '../../services/galleryService';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 import { Lightbox } from './Lightbox';
 
 interface GalleryGridProps {
@@ -17,8 +19,21 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
 }) => {
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
+  const [items, setItems] = useState<GalleryItem[]>(GALLERY_ITEMS);
 
-  const filteredItems = GALLERY_ITEMS.filter((item) => {
+  useEffect(() => {
+    let isMounted = true;
+    galleryService.getGalleryItems().then((liveItems) => {
+      if (isMounted && liveItems && liveItems.length > 0) {
+        setItems(liveItems);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredItems = items.filter((item) => {
     if (activeCategory === 'all') return true;
     return item.category === activeCategory;
   });
@@ -61,13 +76,19 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
             className="group relative cursor-pointer overflow-hidden rounded-sm bg-cream-200 border border-forest-900/10 shadow-soft hover:shadow-card transition-all duration-500"
           >
             {/* Image */}
-            <div className="aspect-[4/5] w-full overflow-hidden bg-forest-950">
+            <div className="aspect-[4/5] w-full overflow-hidden bg-forest-950 relative">
               <img
-                src={item.image}
+                src={resolveMediaUrl(item.image)}
                 alt={item.alt}
                 loading="lazy"
                 className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
               />
+              {item.videoUrl && (
+                <div className="absolute top-3 right-3 z-10 px-2 py-1 rounded-full bg-forest-950/80 backdrop-blur-xs border border-gold-400/50 text-gold-300 text-[10px] font-sans font-medium flex items-center gap-1 shadow-md">
+                  <Play size={10} className="fill-gold-300" />
+                  <span>Video</span>
+                </div>
+              )}
             </div>
 
             {/* Hover Overlay */}

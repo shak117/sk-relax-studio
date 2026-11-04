@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, MessageCircle } from 'lucide-react';
 import { GalleryItem } from '../../types';
 import { buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
+import { resolveMediaUrl } from '../../utils/mediaUrl';
 
 interface LightboxProps {
   item: GalleryItem | null;
@@ -92,8 +93,8 @@ export const Lightbox: React.FC<LightboxProps> = ({
           {item.videoUrl ? (
             <video
               key={item.videoUrl}
-              src={item.videoUrl}
-              poster={item.image}
+              src={resolveMediaUrl(item.videoUrl)}
+              poster={resolveMediaUrl(item.image)}
               controls
               autoPlay
               playsInline
@@ -101,7 +102,7 @@ export const Lightbox: React.FC<LightboxProps> = ({
             />
           ) : (
             <img
-              src={item.image}
+              src={resolveMediaUrl(item.image)}
               alt={item.alt}
               className="w-full h-full object-contain max-h-[60vh] md:max-h-[85vh]"
             />

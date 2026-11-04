@@ -23,6 +23,7 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { AdminLoginPage } from './pages/admin/AdminLoginPage';
 import { AdminBatchesPage } from './pages/admin/AdminBatchesPage';
 import { AdminServicesPage } from './pages/admin/AdminServicesPage';
+import { AdminGalleryPage } from './pages/admin/AdminGalleryPage';
 
 // Scroll to top helper on route change
 function ScrollToTopOnRoute() {
@@ -54,6 +55,7 @@ export function App() {
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/admin/batches" element={<AdminBatchesPage />} />
           <Route path="/admin/services" element={<AdminServicesPage />} />
+          <Route path="/admin/gallery" element={<AdminGalleryPage />} />
           <Route path="/admin" element={<Navigate to="/admin/services" replace />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

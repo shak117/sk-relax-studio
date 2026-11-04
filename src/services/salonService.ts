@@ -36,7 +36,8 @@ export const salonService = {
       }
 
       const res = await fetch(url.toString(), {
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
       });
 
       if (!res.ok) {
@@ -83,7 +84,8 @@ export const salonService = {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
-        }
+        },
+        cache: 'no-store'
       });
 
       const data: ServiceResponse<ServiceItem[]> = await res.json();
@@ -106,7 +108,7 @@ export const salonService = {
       const headers: Record<string, string> = { 'Accept': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const res = await fetch(`/api/services/${id}`, { headers });
+      const res = await fetch(`/api/services/${id}`, { headers, cache: 'no-store' });
       if (!res.ok) return null;
       const data: ServiceResponse<ServiceItem> = await res.json();
       return data.data || null;

@@ -15,7 +15,8 @@ import {
   Search,
   Image as ImageIcon,
   Scissors,
-  GraduationCap
+  GraduationCap,
+  Star
 } from 'lucide-react';
 import { BatchItem, BatchCategory, BatchStatus } from '../../types';
 import { batchService } from '../../services/batchService';
@@ -44,6 +45,7 @@ interface BatchFormState {
   curriculumText: string;
   description: string;
   whatsappPreset: string;
+  featuredHomepage: boolean;
 }
 
 const DEFAULT_FORM: BatchFormState = {
@@ -66,7 +68,8 @@ const DEFAULT_FORM: BatchFormState = {
   includedText: '',
   curriculumText: '',
   description: '',
-  whatsappPreset: ''
+  whatsappPreset: '',
+  featuredHomepage: false
 };
 
 export const AdminBatchesPage: React.FC = () => {
@@ -148,10 +151,20 @@ export const AdminBatchesPage: React.FC = () => {
       includedText: (batch.included || []).join('\n'),
       curriculumText: (batch.curriculum || []).join('\n'),
       description: batch.description,
-      whatsappPreset: batch.whatsappPreset || ''
+      whatsappPreset: batch.whatsappPreset || '',
+      featuredHomepage: Boolean(batch.featuredHomepage)
     });
     setSaveStatus(null);
     setIsModalOpen(true);
+  };
+
+  const handleToggleFeature = async (id: string, featured: boolean) => {
+    const res = await batchService.setFeaturedBatch(id, featured);
+    if (res.success) {
+      await loadBatches();
+    } else {
+      alert(`Could not update featured batch: ${res.error || 'Error'}`);
+    }
   };
 
   const handleQuickStatusChange = async (id: string, newStatus: BatchStatus) => {
@@ -217,6 +230,7 @@ export const AdminBatchesPage: React.FC = () => {
         .map(s => s.trim())
         .filter(Boolean),
       description: formData.description,
+      featuredHomepage: formData.featuredHomepage,
       whatsappPreset:
         formData.whatsappPreset ||
         `Hello Salma Ma'am, I am interested in enrolling for the ${formData.title} at SK Relax Academy Satara.`
@@ -271,8 +285,8 @@ export const AdminBatchesPage: React.FC = () => {
               <ShieldCheck size={18} />
             </div>
             <div>
-              <h1 className="font-serif text-lg text-white font-medium">SK Relax CMS</h1>
-              <p className="text-[10px] text-gold-300 font-sans uppercase tracking-widest">
+              <h1 className="font-serif text-base sm:text-lg text-white font-medium whitespace-nowrap">SK Relax CMS</h1>
+              <p className="text-[10px] text-gold-300 font-sans uppercase tracking-widest hidden sm:block">
                 Academy Batches Dashboard
               </p>
             </div>
@@ -285,12 +299,19 @@ export const AdminBatchesPage: React.FC = () => {
                 className="px-3 py-1.5 rounded-sm text-xs text-ivory-300 hover:text-white font-sans hover:bg-forest-900/60 transition-colors flex items-center gap-1.5"
               >
                 <Scissors size={13} />
-                <span>Salon Services</span>
+                <span className="hidden sm:inline">Salon Services</span>
               </Link>
               <span className="px-3 py-1.5 rounded-sm bg-forest-900 border border-gold-500/40 text-xs text-gold-300 font-sans font-medium flex items-center gap-1.5 shadow-xs">
                 <GraduationCap size={13} />
-                <span>Academy Batches</span>
+                <span className="hidden sm:inline">Academy Batches</span>
               </span>
+              <Link
+                to="/admin/gallery"
+                className="px-3 py-1.5 rounded-sm text-xs text-ivory-300 hover:text-white font-sans hover:bg-forest-900/60 transition-colors flex items-center gap-1.5"
+              >
+                <ImageIcon size={13} />
+                <span className="hidden sm:inline">Gallery & Media</span>
+              </Link>
             </nav>
 
             <div className="h-5 w-px bg-forest-800" />

@@ -190,7 +190,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     title: 'Salma Attar — Founder & Master Educator',
     category: 'team',
     categoryLabel: 'Our Team',
-    image: '/images/team/salma-attar-founder.jpg',
+    image: '/images/team/salma-attar-founder-real.jpg',
     alt: 'Salma Attar, Founder & Master Educator at SK Relax Beauty Academy & Salon Satara',
     description: 'Leading our academy curriculum, clinical aesthetic mentoring, and signature bridal styling in Satara.',
     tag: 'Founder & Director'

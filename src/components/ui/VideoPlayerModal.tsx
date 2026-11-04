@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { X, MessageCircle } from 'lucide-react';
 import { buildWhatsAppUrl, WhatsAppMessages } from '../../data/brandData';
 import { trackWhatsAppClick } from '../../services/analytics';
+import { resolveMediaUrl, getVideoMimeType } from '../../utils/mediaUrl';
 import { Button } from './Button';
 
 interface VideoPlayerModalProps {
@@ -24,6 +25,9 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
   categoryLabel
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const resolvedVideoUrl = resolveMediaUrl(videoUrl);
+  const resolvedPoster = resolveMediaUrl(posterImage);
+  const mimeType = getVideoMimeType(videoUrl);
 
   // Close on Escape & stop scroll
   useEffect(() => {
@@ -44,12 +48,17 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  // Pause video on close
+  // Pause video on close & reload on change
   useEffect(() => {
     if (!isOpen && videoRef.current) {
       videoRef.current.pause();
+    } else if (isOpen && videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {
+        // Autoplay policy fallback: keep video ready with controls visible
+      });
     }
-  }, [isOpen]);
+  }, [isOpen, resolvedVideoUrl]);
 
   if (!isOpen) return null;
 
@@ -85,7 +94,7 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 text-ivory-300 hover:text-white rounded-full hover:bg-forest-800 transition-colors flex-shrink-0"
+            className="p-1.5 text-ivory-300 hover:text-white rounded-full hover:bg-forest-800 transition-colors flex-shrink-0 cursor-pointer"
             aria-label="Close video player"
           >
             <X size={20} />
@@ -96,16 +105,18 @@ export const VideoPlayerModal: React.FC<VideoPlayerModalProps> = ({
         <div className="relative aspect-[16/9] bg-black flex items-center justify-center overflow-hidden">
           <video
             ref={videoRef}
-            src={videoUrl}
-            poster={posterImage}
+            poster={resolvedPoster || undefined}
             controls
             autoPlay
             playsInline
+            {...{ 'webkit-playsinline': 'true' }}
             preload="metadata"
             className="w-full h-full object-contain"
           >
+            <source src={resolvedVideoUrl} type={mimeType} />
+            <source src={resolvedVideoUrl} type="video/mp4" />
             <p className="text-ivory-300 text-xs p-4 text-center">
-              Your browser does not support the video tag. Please update your browser or enquire on WhatsApp.
+              Your browser does not support HTML5 video streaming. Please update your browser or enquire on WhatsApp.
             </p>
           </video>
         </div>

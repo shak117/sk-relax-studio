@@ -45,8 +45,8 @@ export const FALLBACK_BATCHES: BatchItem[] = [
     eventType: 'multi-day',
     status: 'enrolling',
     badge: 'Hands-on Dummy Head Included',
-    startDate: '2026-10-23',
-    endDate: '2026-10-25',
+    startDate: '2026-11-20',
+    endDate: '2026-11-22',
     timing: '10:30 AM – 5:30 PM (Daily)',
     duration: '3 Days Intensive Hands-on Workshop',
     fee: 4000,
@@ -72,9 +72,10 @@ export const FALLBACK_BATCHES: BatchItem[] = [
       'Day 3: Professional Salon Blow-Dry Finish, Curls & Portfolio Photos'
     ],
     description: 'Join Salma Attar for an intensive 3-day practical haircutting masterclass in Satara. Every enrolled student receives an individual mannequin dummy head for direct hands-on practice. Master modern layer cuts, the viral butterfly technique, and graduation geometry to boost your salon revenue.',
-    whatsappPreset: "Hello Salma Ma'am, I would like to book my seat for the 3-Day Hair Cutting Masterclass (Oct 23–25, 2026) at SK Relax Academy in Satara.",
+    whatsappPreset: "Hello Salma Ma'am, I would like to book my seat for the 3-Day Hair Cutting Masterclass (Nov 20–22, 2026) at SK Relax Academy in Satara.",
+    featuredHomepage: true,
     createdAt: '2026-10-18T10:00:00.000Z',
-    updatedAt: '2026-10-18T10:00:00.000Z'
+    updatedAt: '2026-11-02T10:00:00.000Z'
   },
   {
     id: 'beauty-hair-diploma-nov-2026',
@@ -315,7 +316,7 @@ export const batchService = {
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      const res = await fetch('/api/batches', { headers });
+      const res = await fetch('/api/batches', { headers, cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
@@ -339,7 +340,7 @@ export const batchService = {
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
-      const res = await fetch(`/api/batches/${slugOrId}`, { headers });
+      const res = await fetch(`/api/batches/${slugOrId}`, { headers, cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
@@ -476,6 +477,47 @@ export const batchService = {
       return { success: false, error: json.error || 'Upload failed' };
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error during upload' };
+    }
+  },
+
+  async getFeaturedBatch(): Promise<BatchItem | null> {
+    try {
+      const res = await fetch('/api/batches/featured', { cache: 'no-store' });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) {
+          return json.data;
+        }
+      }
+    } catch (err) {
+      console.warn('API fetch failed for featured batch, checking fallback:', err);
+    }
+    // Fallback: Find batch with featuredHomepage === true, or first enrolling batch
+    const fallbackFeatured = FALLBACK_BATCHES.find(b => b.featuredHomepage && b.status === 'enrolling');
+    if (fallbackFeatured) return fallbackFeatured;
+    return FALLBACK_BATCHES.find(b => b.status === 'enrolling') || null;
+  },
+
+  async setFeaturedBatch(id: string, featured: boolean): Promise<{ success: boolean; data?: BatchItem; error?: string }> {
+    const token = this.getAuthToken();
+    if (!token) return { success: false, error: 'Unauthorized: Please login' };
+
+    try {
+      const res = await fetch(`/api/batches/${id}/feature`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ featured })
+      });
+      const json = await res.json();
+      if (json.success) {
+        return { success: true, data: json.data };
+      }
+      return { success: false, error: json.error || 'Failed to update featured batch' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network error' };
     }
   }
 };

@@ -157,6 +157,7 @@ export interface BatchItem {
   curriculum: string[];
   description: string;
   whatsappPreset?: string;
+  featuredHomepage?: boolean;
   createdAt: string;
   updatedAt: string;
 }

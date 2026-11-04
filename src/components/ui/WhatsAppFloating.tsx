@@ -9,7 +9,7 @@ export const WhatsAppFloating: React.FC = () => {
   const defaultUrl = buildWhatsAppUrl(WhatsAppMessages.general());
 
   return (
-    <aside aria-label="WhatsApp quick contact" className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex items-end gap-3 select-none">
+    <aside aria-label="WhatsApp quick contact" className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 flex items-end gap-3 select-none">
       {/* Friendly Chat Tooltip Pill */}
       {showTooltip && (
         <div className="hidden md:flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-full shadow-card border border-forest-900/10 text-xs font-sans text-forest-900 animate-fade-in">

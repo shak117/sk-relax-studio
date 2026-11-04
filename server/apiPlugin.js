@@ -30,8 +30,10 @@ const __dirname = path.dirname(__filename);
 
 const DATA_FILE = path.resolve(__dirname, 'data', 'batches.json');
 const SERVICES_FILE = path.resolve(__dirname, 'data', 'services.json');
+const GALLERY_FILE = path.resolve(__dirname, 'data', 'gallery.json');
 const UPLOADS_DIR = path.resolve(__dirname, '..', 'public', 'uploads', 'batches');
 const SERVICES_UPLOADS_DIR = path.resolve(__dirname, '..', 'public', 'uploads', 'services');
+const GALLERY_UPLOADS_DIR = path.resolve(__dirname, '..', 'public', 'uploads', 'gallery');
 
 const JWT_SECRET = process.env.ADMIN_SECRET || 'sk-relax-studio-secret-key-2026';
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
@@ -108,11 +110,17 @@ function ensureStorage() {
   if (!fs.existsSync(SERVICES_FILE)) {
     fs.writeFileSync(SERVICES_FILE, '[]', 'utf8');
   }
+  if (!fs.existsSync(GALLERY_FILE)) {
+    fs.writeFileSync(GALLERY_FILE, '[]', 'utf8');
+  }
   if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   }
   if (!fs.existsSync(SERVICES_UPLOADS_DIR)) {
     fs.mkdirSync(SERVICES_UPLOADS_DIR, { recursive: true });
+  }
+  if (!fs.existsSync(GALLERY_UPLOADS_DIR)) {
+    fs.mkdirSync(GALLERY_UPLOADS_DIR, { recursive: true });
   }
 }
 
@@ -129,6 +137,107 @@ function readServices() {
 function writeServices(services) {
   ensureStorage();
   fs.writeFileSync(SERVICES_FILE, JSON.stringify(services, null, 2), 'utf8');
+}
+
+function readGallery() {
+  ensureStorage();
+  try {
+    const content = fs.readFileSync(GALLERY_FILE, 'utf8');
+    return JSON.parse(content);
+  } catch {
+    return [];
+  }
+}
+
+function writeGallery(gallery) {
+  ensureStorage();
+  fs.writeFileSync(GALLERY_FILE, JSON.stringify(gallery, null, 2), 'utf8');
+}
+
+/**
+ * Check if a media file URL is referenced in other services, batches, or gallery items.
+ * Prevents accidental deletion of shared or cross-linked media files.
+ */
+function isFileReferencedElsewhere(relativeUrl, excludeGalleryId) {
+  if (!relativeUrl || typeof relativeUrl !== 'string') return false;
+  const cleanUrl = relativeUrl.trim();
+
+  // 1. Check services.json
+  const services = readServices();
+  for (const s of services) {
+    if (s.image === cleanUrl || s.thumbnail === cleanUrl || s.videoUrl === cleanUrl) {
+      return true;
+    }
+  }
+
+  // 2. Check batches.json
+  const batches = readBatches();
+  for (const b of batches) {
+    if (b.image === cleanUrl || b.thumbnail === cleanUrl || b.videoUrl === cleanUrl) {
+      return true;
+    }
+  }
+
+  // 3. Check remaining items in gallery.json
+  const gallery = readGallery();
+  for (const g of gallery) {
+    if (g.id !== excludeGalleryId) {
+      if (g.image === cleanUrl || g.videoUrl === cleanUrl) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Safely delete a physical media file from disk with path-traversal prevention
+ * and check against shared references.
+ */
+function safelyDeletePhysicalMedia(relativeUrl, excludeGalleryId) {
+  if (!relativeUrl || typeof relativeUrl !== 'string') {
+    return { deleted: false, reason: 'No URL provided' };
+  }
+
+  const cleanUrl = relativeUrl.trim();
+  // Don't touch external URLs (http/https)
+  if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+    return { deleted: false, reason: 'External URL' };
+  }
+
+  // Check if media file is shared elsewhere
+  if (isFileReferencedElsewhere(cleanUrl, excludeGalleryId)) {
+    return {
+      deleted: false,
+      reason: 'Preserved because file is referenced in services, batches, or other gallery items'
+    };
+  }
+
+  // Security checks against path traversal: must stay within public root
+  const publicRoot = path.resolve(__dirname, '..', 'public');
+  const normalizedPath = path.normalize(cleanUrl.replace(/^\/+/, ''));
+  const absoluteTarget = path.resolve(publicRoot, normalizedPath);
+
+  if (!absoluteTarget.startsWith(publicRoot)) {
+    return { deleted: false, reason: 'Security check failed: Path traversal disallowed' };
+  }
+
+  if (!fs.existsSync(absoluteTarget)) {
+    return { deleted: false, reason: 'File not found on disk (already removed or virtual path)' };
+  }
+
+  try {
+    const stat = fs.statSync(absoluteTarget);
+    if (!stat.isFile()) {
+      return { deleted: false, reason: 'Target is not a regular file' };
+    }
+    fs.unlinkSync(absoluteTarget);
+    return { deleted: true, path: cleanUrl };
+  } catch (err) {
+    console.error(`[Gallery Delete] Error removing ${absoluteTarget}:`, err.message);
+    return { deleted: false, reason: `Unlink error: ${err.message}` };
+  }
 }
 
 // Token creation and verification
@@ -333,13 +442,15 @@ export function batchApiPlugin() {
 
 function handleMiddleware(middlewares) {
   middlewares.use(async (req, res, next) => {
-    // 0. Publicly serve /uploads/ directly from disk with correct MIME types
+    // 0. Publicly serve /uploads/ directly from disk with correct MIME types and full HTTP 206 Range support for video streaming
     if (req.url && req.url.startsWith('/uploads/')) {
       try {
         const decodedUrl = decodeURIComponent(req.url.split('?')[0]);
         const filePath = path.resolve(__dirname, '..', 'public', decodedUrl.replace(/^\//, ''));
         const uploadsRoot = path.resolve(__dirname, '..', 'public', 'uploads');
         if (filePath.startsWith(uploadsRoot) && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+          const stat = fs.statSync(filePath);
+          const fileSize = stat.size;
           const ext = path.extname(filePath).toLowerCase();
           const mimes = {
             '.jpg': 'image/jpeg',
@@ -348,13 +459,57 @@ function handleMiddleware(middlewares) {
             '.webp': 'image/webp',
             '.svg': 'image/svg+xml',
             '.mp4': 'video/mp4',
-            '.webm': 'video/webm'
+            '.webm': 'video/webm',
+            '.mov': 'video/quicktime',
+            '.m4v': 'video/mp4'
           };
-          res.setHeader('Content-Type', mimes[ext] || 'application/octet-stream');
-          res.setHeader('Cache-Control', 'public, max-age=3600');
+          const contentType = mimes[ext] || 'application/octet-stream';
+
+          res.setHeader('Content-Type', contentType);
+          res.setHeader('Accept-Ranges', 'bytes');
+          res.setHeader('Cache-Control', 'public, max-age=86400');
           res.setHeader('Access-Control-Allow-Origin', '*');
-          const stream = fs.createReadStream(filePath);
-          return stream.pipe(res);
+          res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+          res.setHeader('Access-Control-Allow-Headers', 'Range, Accept, Content-Type');
+
+          if (req.method === 'OPTIONS') {
+            res.statusCode = 204;
+            return res.end();
+          }
+
+          if (req.method === 'HEAD') {
+            res.setHeader('Content-Length', fileSize);
+            res.statusCode = 200;
+            return res.end();
+          }
+
+          const range = req.headers.range;
+          if (range) {
+            const parts = range.replace(/bytes=/, '').split('-');
+            const start = parseInt(parts[0], 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+            if (isNaN(start) || start >= fileSize || (parts[1] && end < start)) {
+              res.setHeader('Content-Range', `bytes */${fileSize}`);
+              res.statusCode = 416; // Range Not Satisfiable
+              return res.end();
+            }
+
+            const clampedEnd = Math.min(end, fileSize - 1);
+            const chunkSize = clampedEnd - start + 1;
+
+            res.statusCode = 206; // Partial Content
+            res.setHeader('Content-Range', `bytes ${start}-${clampedEnd}/${fileSize}`);
+            res.setHeader('Content-Length', chunkSize);
+
+            const stream = fs.createReadStream(filePath, { start, end: clampedEnd });
+            return stream.pipe(res);
+          } else {
+            res.statusCode = 200;
+            res.setHeader('Content-Length', fileSize);
+            const stream = fs.createReadStream(filePath);
+            return stream.pipe(res);
+          }
         }
       } catch (err) {
         console.error('Error serving upload static file:', err);
@@ -371,6 +526,9 @@ function handleMiddleware(middlewares) {
     const method = req.method;
 
     res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
 
     // CORS helper for development flexibility
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -517,7 +675,7 @@ function handleMiddleware(middlewares) {
         }
 
         // Validate folder to prevent arbitrary directory writes
-        if (folder !== 'services' && folder !== 'batches') {
+        if (folder !== 'services' && folder !== 'batches' && folder !== 'gallery') {
           folder = 'services';
         }
 
@@ -550,7 +708,11 @@ function handleMiddleware(middlewares) {
         }
 
         ensureStorage();
-        const targetDir = folder === 'batches' ? UPLOADS_DIR : SERVICES_UPLOADS_DIR;
+        const targetDir = folder === 'batches'
+          ? UPLOADS_DIR
+          : folder === 'gallery'
+          ? GALLERY_UPLOADS_DIR
+          : SERVICES_UPLOADS_DIR;
         if (!fs.existsSync(targetDir)) {
           fs.mkdirSync(targetDir, { recursive: true });
         }
@@ -559,7 +721,7 @@ function handleMiddleware(middlewares) {
           .replace(/[^a-zA-Z0-9_-]/g, '-')
           .toLowerCase()
           .slice(0, 50);
-        const prefix = folder === 'batches' ? 'batch' : 'service';
+        const prefix = folder === 'batches' ? 'batch' : folder === 'gallery' ? 'gallery' : 'service';
         const uniqueId = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
         const uniqueName = `${prefix}-${uniqueId}-${safeBase}${ext}`;
         const targetPath = path.join(targetDir, uniqueName);
@@ -570,7 +732,7 @@ function handleMiddleware(middlewares) {
         }
 
         fs.writeFileSync(targetPath, buffer);
-        const publicUrl = `/uploads/${folder === 'batches' ? 'batches' : 'services'}/${uniqueName}`;
+        const publicUrl = `/uploads/${folder}/${uniqueName}`;
 
         return sendJson(200, {
           success: true,
@@ -603,6 +765,52 @@ function handleMiddleware(middlewares) {
           effectiveStatus: resolveBatchStatus(b)
         }));
         return sendJson(200, { success: true, data: adminBatches });
+      }
+
+      // 4b. GET /api/batches/featured (Public - get currently featured batch for homepage)
+      if (pathname === '/api/batches/featured' && method === 'GET') {
+        const batches = readBatches();
+        const eligibleStatuses = ['upcoming', 'enrolling'];
+
+        // 1. Check for batch explicitly marked as featured on homepage
+        let featured = batches.find(b => {
+          if (!b.featuredHomepage) return false;
+          if (b.status === 'draft' || b.status === 'archived') return false;
+          const effStatus = resolveBatchStatus(b);
+          return eligibleStatuses.includes(effStatus);
+        });
+
+        // 2. If no featured batch or it has completed/expired, auto fallback to next upcoming eligible batch
+        if (!featured) {
+          const eligibleUpcoming = batches
+            .filter(b => {
+              if (b.status === 'draft' || b.status === 'archived') return false;
+              const effStatus = resolveBatchStatus(b);
+              return eligibleStatuses.includes(effStatus);
+            })
+            .sort((a, b) => {
+              const dateA = new Date(a.startDate || 0).getTime();
+              const dateB = new Date(b.startDate || 0).getTime();
+              return dateA - dateB;
+            });
+
+          featured = eligibleUpcoming[0] || null;
+        }
+
+        if (featured) {
+          return sendJson(200, {
+            success: true,
+            data: {
+              ...featured,
+              status: resolveBatchStatus(featured)
+            }
+          });
+        }
+
+        return sendJson(200, {
+          success: true,
+          data: null
+        });
       }
 
       // 5. GET /api/batches/:slugOrId
@@ -702,14 +910,62 @@ function handleMiddleware(middlewares) {
           curriculum: Array.isArray(body.curriculum) ? body.curriculum.filter(Boolean) : [],
           description: body.description || '',
           whatsappPreset: body.whatsappPreset || `Hello Salma Ma'am, I would like to enquire about ${body.title} at SK Relax Academy Satara.`,
+          featuredHomepage: Boolean(body.featuredHomepage),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
+
+        if (newBatch.featuredHomepage) {
+          batches.forEach(b => {
+            b.featuredHomepage = false;
+          });
+        }
 
         batches.unshift(newBatch);
         writeBatches(batches);
 
         return sendJson(201, { success: true, data: newBatch });
+      }
+
+      // 6b. PUT /api/batches/:id/feature (Feature/Unfeature on Homepage - Admin only)
+      const featureBatchMatch = pathname.match(/^\/api\/batches\/([a-zA-Z0-9_-]+)\/feature$/);
+      if (featureBatchMatch && method === 'PUT') {
+        const user = getAuthUser();
+        if (!user) {
+          return sendJson(401, { success: false, error: 'Admin authentication required' });
+        }
+
+        const id = featureBatchMatch[1];
+        let batches = readBatches();
+        const index = batches.findIndex(b => b.id === id || b.slug === id);
+
+        if (index === -1) {
+          return sendJson(404, { success: false, error: 'Batch not found' });
+        }
+
+        const body = await parseJsonBody(req);
+        const shouldFeature = body.featured !== undefined ? Boolean(body.featured) : true;
+
+        if (shouldFeature) {
+          batches = batches.map((b, i) => ({
+            ...b,
+            featuredHomepage: i === index
+          }));
+        } else {
+          batches[index].featuredHomepage = false;
+        }
+
+        batches[index].updatedAt = new Date().toISOString();
+        writeBatches(batches);
+
+        return sendJson(200, {
+          success: true,
+          data: {
+            ...batches[index],
+            status: resolveBatchStatus(batches[index])
+          },
+          message: shouldFeature ? 'Batch is now featured on the homepage' : 'Batch unfeatured from homepage'
+        });
       }
 
       // 7. PUT /api/batches/:id (Update - Admin only)
@@ -744,11 +1000,19 @@ function handleMiddleware(middlewares) {
           ? Number(body.seatsRemaining)
           : existing.seatsRemaining;
 
+        const isFeatured = body.featuredHomepage !== undefined ? Boolean(body.featuredHomepage) : Boolean(existing.featuredHomepage);
+        if (isFeatured) {
+          batches.forEach((b, i) => {
+            if (i !== index) b.featuredHomepage = false;
+          });
+        }
+
         const updatedBatch = {
           ...existing,
           ...body,
           id: existing.id, // Immutable ID
           status: newStatus,
+          featuredHomepage: isFeatured,
           fee: feeNum,
           discount: body.discount !== undefined ? (body.discount !== '' ? Number(body.discount) : undefined) : existing.discount,
           feeDisplay: body.feeDisplay || (feeNum > 0 ? `₹${feeNum.toLocaleString('en-IN')}` : existing.feeDisplay),
@@ -920,8 +1184,8 @@ function handleMiddleware(middlewares) {
           categoryLabel: body.categoryLabel || getCategoryLabel(body.category),
           shortDescription: body.shortDescription ? body.shortDescription.trim() : '',
           description: body.description ? body.description.trim() : '',
-          image: body.image || '',
-          thumbnail: body.thumbnail || body.image || '',
+          image: body.image ? String(body.image).trim() : '',
+          thumbnail: body.thumbnail ? String(body.thumbnail).trim() : (body.image ? String(body.image).trim() : ''),
           imagePosition: body.imagePosition || '',
           videoUrl: body.videoUrl || '',
           videoPoster: body.videoPoster || '',
@@ -1002,10 +1266,19 @@ function handleMiddleware(middlewares) {
             features = body.features.split('\n').map(s => s.trim()).filter(Boolean);
           }
 
+          const newImage = body.image !== undefined ? String(body.image).trim() : existing.image;
+          let newThumbnail = body.thumbnail !== undefined ? String(body.thumbnail).trim() : existing.thumbnail;
+          // If image was updated or thumbnail is empty/stale, synchronize thumbnail with image
+          if (body.image !== undefined && (!newThumbnail || newThumbnail === existing.thumbnail || newThumbnail === existing.image)) {
+            newThumbnail = newImage;
+          }
+
           const updatedService = {
             ...existing,
             ...body,
             id: existing.id, // Immutable ID
+            image: newImage,
+            thumbnail: newThumbnail,
             status: newStatus,
             features,
             categoryLabel: body.category ? getCategoryLabel(body.category) : existing.categoryLabel,
@@ -1049,6 +1322,211 @@ function handleMiddleware(middlewares) {
               success: true,
               message: 'Service permanently deleted',
               data: removed
+            });
+          }
+        }
+      }
+
+      // =======================================================================
+      // GALLERY CRUD & MEDIA DELETION ENDPOINTS
+      // =======================================================================
+
+      // 13. GET /api/gallery
+      if (pathname === '/api/gallery' && method === 'GET') {
+        const gallery = readGallery();
+        const urlObj = new URL(req.url, 'http://localhost');
+        const category = urlObj.searchParams.get('category');
+        const mediaType = urlObj.searchParams.get('type') || urlObj.searchParams.get('mediaType');
+        const search = urlObj.searchParams.get('search');
+
+        let result = [...gallery];
+
+        if (category && category !== 'all') {
+          result = result.filter(item => item.category === category);
+        }
+
+        if (mediaType === 'video') {
+          result = result.filter(item => Boolean(item.videoUrl));
+        } else if (mediaType === 'photo' || mediaType === 'image') {
+          result = result.filter(item => !item.videoUrl && Boolean(item.image));
+        }
+
+        if (search) {
+          const q = search.toLowerCase();
+          result = result.filter(item =>
+            (item.title && item.title.toLowerCase().includes(q)) ||
+            (item.description && item.description.toLowerCase().includes(q)) ||
+            (item.tag && item.tag.toLowerCase().includes(q)) ||
+            (item.categoryLabel && item.categoryLabel.toLowerCase().includes(q))
+          );
+        }
+
+        return sendJson(200, { success: true, count: result.length, data: result });
+      }
+
+      // 14. POST /api/gallery (Create - Admin only)
+      if (pathname === '/api/gallery' && method === 'POST') {
+        const user = getAuthUser();
+        if (!user) {
+          return sendJson(401, { success: false, error: 'Admin authentication required' });
+        }
+
+        const body = await parseJsonBody(req);
+        if (!body.title || !body.title.trim()) {
+          return sendJson(400, { success: false, error: 'Title is required' });
+        }
+        if (!body.image && !body.videoUrl) {
+          return sendJson(400, { success: false, error: 'At least an image or video URL is required' });
+        }
+
+        const gallery = readGallery();
+        const category = body.category || 'hair';
+        const categoryLabels = {
+          hair: 'Hair Artistry',
+          skin: 'Facials & Skincare',
+          bridal: 'Makeup & Bridal',
+          academy: 'Academy Training',
+          team: 'Our Team',
+          events: 'Events & Batches'
+        };
+
+        const id = body.id || `gal-${category}-${Date.now()}`;
+        const newItem = {
+          id,
+          title: body.title.trim(),
+          category,
+          categoryLabel: body.categoryLabel || categoryLabels[category] || 'Portfolio',
+          image: body.image ? String(body.image).trim() : '',
+          imagePosition: body.imagePosition || 'center center',
+          videoUrl: body.videoUrl ? String(body.videoUrl).trim() : undefined,
+          alt: body.alt ? body.alt.trim() : body.title.trim(),
+          description: body.description ? body.description.trim() : '',
+          tag: body.tag ? body.tag.trim() : undefined,
+          createdAt: new Date().toISOString()
+        };
+
+        gallery.unshift(newItem);
+        writeGallery(gallery);
+
+        return sendJson(201, { success: true, message: 'Gallery item added successfully', data: newItem });
+      }
+
+      // 15. GET, PUT, DELETE /api/gallery/:id
+      const singleGalleryMatch = pathname.match(/^\/api\/gallery\/([a-zA-Z0-9_-]+)$/);
+      if (singleGalleryMatch) {
+        const id = singleGalleryMatch[1];
+        const gallery = readGallery();
+        const index = gallery.findIndex(g => g.id === id);
+
+        // GET single gallery item
+        if (method === 'GET') {
+          if (index === -1) {
+            return sendJson(404, { success: false, error: 'Gallery item not found' });
+          }
+          return sendJson(200, { success: true, data: gallery[index] });
+        }
+
+        // PUT update gallery item (Admin only)
+        if (method === 'PUT') {
+          const user = getAuthUser();
+          if (!user) {
+            return sendJson(401, { success: false, error: 'Admin authentication required' });
+          }
+
+          if (index === -1) {
+            return sendJson(404, { success: false, error: 'Gallery item not found' });
+          }
+
+          const body = await parseJsonBody(req);
+          const existing = gallery[index];
+
+          const updated = {
+            ...existing,
+            ...body,
+            id: existing.id,
+            updatedAt: new Date().toISOString()
+          };
+
+          // If videoUrl was explicitly set to empty, clean it up
+          if (body.videoUrl === '' || body.videoUrl === null) {
+            delete updated.videoUrl;
+          }
+
+          gallery[index] = updated;
+          writeGallery(gallery);
+
+          return sendJson(200, { success: true, message: 'Gallery item updated successfully', data: updated });
+        }
+
+        // DELETE gallery item or specific media file (Admin only)
+        if (method === 'DELETE') {
+          const user = getAuthUser();
+          if (!user) {
+            return sendJson(401, { success: false, error: 'Admin authentication required' });
+          }
+
+          if (index === -1) {
+            return sendJson(404, { success: false, error: 'Gallery item not found' });
+          }
+
+          const targetItem = gallery[index];
+          const urlObj = new URL(req.url, 'http://localhost');
+          const target = urlObj.searchParams.get('target') || 'all'; // 'all' | 'video'
+
+          const deletedFiles = [];
+          const preservedFiles = [];
+
+          if (target === 'video') {
+            // Delete only the video attachment from the item
+            if (!targetItem.videoUrl) {
+              return sendJson(400, { success: false, error: 'This gallery item has no video attachment' });
+            }
+
+            const videoPath = targetItem.videoUrl;
+            const resDelete = safelyDeletePhysicalMedia(videoPath, targetItem.id);
+            if (resDelete.deleted) {
+              deletedFiles.push(videoPath);
+            } else {
+              preservedFiles.push({ path: videoPath, reason: resDelete.reason });
+            }
+
+            delete targetItem.videoUrl;
+            targetItem.updatedAt = new Date().toISOString();
+            gallery[index] = targetItem;
+            writeGallery(gallery);
+
+            return sendJson(200, {
+              success: true,
+              message: 'Video attachment permanently removed and file processed',
+              data: targetItem,
+              deletedFiles,
+              preservedFiles
+            });
+          } else {
+            // Full gallery item deletion
+            const filesToCheck = [];
+            if (targetItem.image) filesToCheck.push(targetItem.image);
+            if (targetItem.videoUrl) filesToCheck.push(targetItem.videoUrl);
+
+            for (const fileUrl of filesToCheck) {
+              const resDelete = safelyDeletePhysicalMedia(fileUrl, targetItem.id);
+              if (resDelete.deleted) {
+                deletedFiles.push(fileUrl);
+              } else {
+                preservedFiles.push({ path: fileUrl, reason: resDelete.reason });
+              }
+            }
+
+            const removed = gallery.splice(index, 1)[0];
+            writeGallery(gallery);
+
+            return sendJson(200, {
+              success: true,
+              message: 'Gallery item and media deleted permanently',
+              deletedId: id,
+              deletedItem: removed,
+              deletedFiles,
+              preservedFiles
             });
           }
         }
