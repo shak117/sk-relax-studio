@@ -25,9 +25,7 @@ dist-ssr
 
 # Large archives and raw uncompressed frames
 *.zip
-public/hero-frames/part1/
-public/hero-frames/part2/
-public/hero-frames/part3/
+
 # environmne tvariables
 # Environment variables and secrets
 .env
