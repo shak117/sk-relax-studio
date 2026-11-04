@@ -19,8 +19,11 @@ import {
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { SERVICES } from '../data/servicesData';
 import { salonService } from '../services/salonService';
-import { ServiceItem } from '../types';
-import { COURSES, ACADEMY_PROMO } from '../data/academyData';
+import { ServiceItem, BatchItem } from '../types';
+import { batchService } from '../services/batchService';
+import { ACADEMY_PROMO } from '../data/academyData';
+import { formatEventDateRange } from '../utils/dateUtils';
+import { resolveMediaUrl } from '../utils/mediaUrl';
 import { ACADEMY_EVENTS } from '../data/eventsData';
 import { STUDENT_FEEDBACK } from '../data/studentFeedbackData';
 import { HeroVideo } from '../components/hero/HeroVideo';
@@ -104,8 +107,31 @@ export const HomePage: React.FC = () => {
     };
   }, []);
 
-  // Masterclass course reference
-  const masterclass = COURSES[0];
+  // Dynamic Featured Batch from Academy CMS
+  const [featuredBatch, setFeaturedBatch] = useState<BatchItem | null>(null);
+  const [batchLoading, setBatchLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    batchService
+      .getFeaturedBatch()
+      .then((batch) => {
+        if (isMounted) {
+          setFeaturedBatch(batch);
+          setBatchLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.warn('[HomePage] Featured batch fetch failed, using fallback:', err);
+        if (isMounted) {
+          setBatchLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="space-y-0 relative">
@@ -423,103 +449,183 @@ export const HomePage: React.FC = () => {
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
-            {/* Left Content */}
-            <div className="lg:col-span-7">
-              <ScrollReveal direction="left">
-                <div className="flex flex-wrap items-center gap-2 mb-5">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase">
-                    <GraduationCap size={14} className="text-gold-400" />
-                    <span>SK Relax Beauty Academy · Satara</span>
-                  </div>
-
-                  {/* 20% Discount Offer Banner */}
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-900/60 border border-rose-500/40 text-rose-200 text-xs font-sans">
-                    <Sparkles size={12} className="text-gold-400" />
-                    <span>{ACADEMY_PROMO.discountBadge} on 20 Certified Courses</span>
-                  </div>
-                </div>
-
-                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-white font-light leading-tight mb-5">
-                  Transform Your Skills
-                  <span className="block font-serif italic text-gold-300">
-                    Into Success ♡
-                  </span>
-                </h2>
-
-                <p className="text-sm sm:text-base text-ivory-200/90 leading-relaxed font-sans max-w-xl mb-6">
-                  {masterclass.subtitle} — Our hands-on masterclasses are crafted for aspiring hairstylists, salon artists, and cosmetology students who want practical mastery of trending haircuts.
-                </p>
-
-                {/* Masterclass Highlight Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  <div className="bg-forest-900/80 p-4 sm:p-5 rounded-sm border border-forest-800">
-                    <p className="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-2">Reference Batch</p>
-                    <p className="font-serif text-xl text-white">{masterclass.nextBatch}</p>
-                    <p className="text-xs text-ivory-300/80 mt-2">Enquire now for the upcoming batch dates</p>
-                  </div>
-
-                  <div className="bg-forest-900/80 p-4 sm:p-5 rounded-sm border border-forest-800">
-                    <p className="text-xs uppercase tracking-wider text-rose-400 font-semibold mb-2">Masterclass Fee</p>
-                    <p className="font-serif text-xl text-white">{masterclass.fee}</p>
-                    <p className="text-xs text-ivory-300/80 mt-2">Mannequin dummy head provided for practice</p>
-                  </div>
-                </div>
-
-                {/* Bullet Inclusions */}
-                <div className="mb-7">
-                  <h4 className="text-xs uppercase tracking-wider text-ivory-300 font-sans font-semibold mb-3">
-                    Curriculum Inclusions:
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5 text-xs text-ivory-200">
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Hair Degree</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Hair Sectioning</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Hair Tools</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Butterfly Cut</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Curtain Bangs</span>
-                    <span className="flex items-center gap-1.5"><Check size={13} className="text-emerald-400 flex-shrink-0" /> Dummy Provided</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4">
-                  <Button
-                    href={buildWhatsAppUrl(WhatsAppMessages.academyEnquiry(masterclass.title, masterclass.nextBatch))}
-                    external
-                    variant="gold"
-                    size="md"
-                    icon={<MessageCircle size={15} />}
-                  >
-                    Enquire Batch on WhatsApp
-                  </Button>
-
-                  <Button to="/batches" variant="outline" size="md" className="border-ivory/30 text-ivory hover:text-forest-950 hover:bg-ivory">
-                    Explore Course Batches
-                  </Button>
-                </div>
-              </ScrollReveal>
+          {batchLoading ? (
+            <div className="py-16 text-center">
+              <div className="w-8 h-8 mx-auto border-2 border-gold-400 border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-xs font-sans text-ivory-300 tracking-wider uppercase">Loading Academy Masterclass...</p>
             </div>
-
-            {/* Right Poster / Media Column */}
-            <div className="lg:col-span-5">
-              <ScrollReveal direction="right">
-                <div className="relative max-w-sm mx-auto">
-                  <div className="relative rounded-sm overflow-hidden shadow-luxury border-2 border-gold-500/40">
-                    <img
-                      src="/images/academy/hair-cutting-masterclass-poster.jpg"
-                      alt="SK Relax Beauty Academy 3-Day Hair Cutting Masterclass Poster Satara"
-                      className="w-full h-auto object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="mt-3 text-center">
-                    <p className="text-[11px] text-ivory-400 tracking-wider uppercase font-sans">
-                      Official SK Relax Masterclass Reference Poster
-                    </p>
-                  </div>
-                </div>
-              </ScrollReveal>
+          ) : !featuredBatch ? (
+            <div className="text-center py-12 px-4 max-w-2xl mx-auto">
+              <div className="w-12 h-12 mx-auto rounded-full bg-forest-900 border border-gold-500/30 flex items-center justify-center text-gold-300 mb-4">
+                <GraduationCap size={24} />
+              </div>
+              <h3 className="font-serif text-2xl sm:text-3xl text-white font-medium mb-3">
+                New Masterclass Batches Coming Soon
+              </h3>
+              <p className="text-ivory-200/90 text-sm sm:text-base leading-relaxed font-sans mb-6">
+                Our next practical hands-on masterclass schedule is currently being finalized. Pre-register or enquire today to get early-bird notifications and priority seating.
+              </p>
+              <div className="flex flex-wrap justify-center items-center gap-4">
+                <Button
+                  href={buildWhatsAppUrl("Hello Salma Ma'am, please notify me when the next Academy Masterclass batch dates are announced at SK Relax Satara.")}
+                  external
+                  variant="gold"
+                  size="md"
+                  icon={<MessageCircle size={15} />}
+                >
+                  Enquire for Next Batch on WhatsApp
+                </Button>
+                <Button
+                  to="/batches"
+                  variant="outline"
+                  size="md"
+                  className="border-ivory/30 text-ivory hover:text-forest-950 hover:bg-ivory"
+                >
+                  Explore Course Batches
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+              {/* Left Content */}
+              <div className="lg:col-span-7">
+                <ScrollReveal direction="left">
+                  <div className="flex flex-wrap items-center gap-2 mb-5">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-forest-900 border border-gold-500/30 text-gold-300 text-xs font-sans tracking-widest uppercase">
+                      <GraduationCap size={14} className="text-gold-400" />
+                      <span>{featuredBatch.badge || 'SK Relax Beauty Academy · Satara'}</span>
+                    </div>
+
+                    {/* Discount / Category Badge */}
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-900/60 border border-rose-500/40 text-rose-200 text-xs font-sans">
+                      <Sparkles size={12} className="text-gold-400" />
+                      <span>
+                        {featuredBatch.discount
+                          ? `${featuredBatch.discount}% Discount Available`
+                          : `${ACADEMY_PROMO.discountBadge} on Certified Courses`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-white font-light leading-tight mb-5">
+                    Transform Your Skills
+                    <span className="block font-serif italic text-gold-300">
+                      Into Success ♡
+                    </span>
+                  </h2>
+
+                  <p className="text-sm sm:text-base text-ivory-200/90 leading-relaxed font-sans max-w-xl mb-6">
+                    {featuredBatch.description || 'Our hands-on masterclasses are crafted for aspiring hairstylists, salon artists, and cosmetology students who want practical mastery of trending haircuts.'}
+                  </p>
+
+                  {/* Masterclass Highlight Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div className="bg-forest-900/80 p-4 sm:p-5 rounded-sm border border-forest-800">
+                      <p className="text-xs uppercase tracking-wider text-gold-400 font-semibold mb-2">Upcoming Batch Dates</p>
+                      <p className="font-serif text-xl text-white">
+                        {formatEventDateRange(featuredBatch.startDate, featuredBatch.endDate)}
+                      </p>
+                      <p className="text-xs text-ivory-300/80 mt-2">
+                        {featuredBatch.timing || 'Daily Practical Hands-on Sessions'}
+                      </p>
+                    </div>
+
+                    <div className="bg-forest-900/80 p-4 sm:p-5 rounded-sm border border-forest-800">
+                      <p className="text-xs uppercase tracking-wider text-rose-400 font-semibold mb-2">Masterclass Fee</p>
+                      <p className="font-serif text-xl text-white">
+                        {featuredBatch.feeDisplay || (featuredBatch.fee > 0 ? `₹${featuredBatch.fee.toLocaleString('en-IN')}` : 'Fee on Enquiry')}
+                      </p>
+                      <p className="text-xs text-ivory-300/80 mt-2">
+                        {featuredBatch.seatsRemaining !== undefined && featuredBatch.totalSeats
+                          ? `${featuredBatch.seatsRemaining} of ${featuredBatch.totalSeats} seats remaining`
+                          : 'Mannequin dummy head provided for practice'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Bullet Inclusions */}
+                  <div className="mb-7">
+                    <h4 className="text-xs uppercase tracking-wider text-ivory-300 font-sans font-semibold mb-3">
+                      Curriculum Inclusions:
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2.5 text-xs text-ivory-200">
+                      {(featuredBatch.curriculum && featuredBatch.curriculum.length > 0
+                        ? featuredBatch.curriculum.slice(0, 6)
+                        : [
+                            'Hair Degree Geometry',
+                            'Hair Sectioning',
+                            'Hair Tools Mastery',
+                            'Butterfly Layer Cut',
+                            'Curtain Bangs Styling',
+                            'Dummy Head Provided'
+                          ]
+                      ).map((item, idx) => (
+                        <span key={idx} className="flex items-center gap-1.5 line-clamp-1">
+                          <Check size={13} className="text-emerald-400 flex-shrink-0" />
+                          <span className="truncate">{item}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Button
+                      href={buildWhatsAppUrl(
+                        featuredBatch.whatsappPreset ||
+                        `Hello Salma Ma'am, I am interested in enrolling for the ${featuredBatch.title} (${formatEventDateRange(featuredBatch.startDate, featuredBatch.endDate)}) at SK Relax Academy Satara.`
+                      )}
+                      external
+                      variant="gold"
+                      size="md"
+                      icon={<MessageCircle size={15} />}
+                    >
+                      Enquire Batch on WhatsApp
+                    </Button>
+
+                    <Button
+                      to={featuredBatch.slug ? `/batches/${featuredBatch.slug}` : '/batches'}
+                      variant="outline"
+                      size="md"
+                      className="border-ivory/30 text-ivory hover:text-forest-950 hover:bg-ivory"
+                    >
+                      View Batch Details
+                    </Button>
+                  </div>
+                </ScrollReveal>
+              </div>
+
+              {/* Right Poster / Media Column */}
+              <div className="lg:col-span-5">
+                <ScrollReveal direction="right">
+                  <div className="relative max-w-sm mx-auto">
+                    <div className="relative rounded-sm overflow-hidden shadow-luxury border-2 border-gold-500/40 bg-forest-900/60 flex items-center justify-center p-2 min-h-[360px]">
+                      {/* Ambient background glow */}
+                      <img
+                        src={resolveMediaUrl(featuredBatch.image || '/images/academy/hair-cutting-masterclass-poster.jpg')}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-110 pointer-events-none"
+                      />
+                      <div className="absolute inset-0 bg-forest-950/30 pointer-events-none" />
+
+                      {/* Full Original Poster with Contain */}
+                      <img
+                        src={resolveMediaUrl(featuredBatch.image || '/images/academy/hair-cutting-masterclass-poster.jpg')}
+                        alt={featuredBatch.title}
+                        className="relative z-10 max-h-[500px] w-auto h-auto object-contain mx-auto drop-shadow-lg"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="mt-3 text-center">
+                      <p className="text-[11px] text-ivory-400 tracking-wider uppercase font-sans">
+                        {featuredBatch.title}
+                      </p>
+                    </div>
+                  </div>
+                </ScrollReveal>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

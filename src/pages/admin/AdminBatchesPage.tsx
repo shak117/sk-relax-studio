@@ -391,7 +391,11 @@ export const AdminBatchesPage: React.FC = () => {
             {filteredBatches.map(batch => (
               <div
                 key={batch.id}
-                className="bg-white rounded-sm border border-forest-900/10 shadow-soft overflow-hidden flex flex-col justify-between"
+                className={`bg-white rounded-sm border shadow-soft overflow-hidden flex flex-col justify-between transition-all ${
+                  batch.featuredHomepage
+                    ? 'border-gold-500/60 ring-2 ring-gold-500/20 shadow-md'
+                    : 'border-forest-900/10'
+                }`}
               >
                 <div>
                   {/* Poster Thumbnail */}
@@ -412,6 +416,11 @@ export const AdminBatchesPage: React.FC = () => {
                       className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain mx-auto drop-shadow-md"
                     />
                     <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-20">
+                      {batch.featuredHomepage && (
+                        <span className="px-2 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider bg-gold-400 text-forest-950 border border-gold-300 shadow-sm flex items-center gap-1">
+                          <Star size={10} className="fill-forest-950 text-forest-950" /> Featured on Homepage
+                        </span>
+                      )}
                       <span
                         className={`px-2 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider shadow-sm ${
                           batch.status === 'enrolling'
@@ -486,6 +495,44 @@ export const AdminBatchesPage: React.FC = () => {
                       <option value="completed">Completed</option>
                       <option value="archived">Archived</option>
                     </select>
+                  </div>
+
+                  {/* Homepage Featured Quick Toggle */}
+                  <div className="flex items-center justify-between text-xs font-sans pt-2 border-t border-forest-900/5">
+                    <div className="flex items-center gap-1.5">
+                      <Star
+                        size={13}
+                        className={batch.featuredHomepage ? 'fill-gold-500 text-gold-500' : 'text-forest-400'}
+                      />
+                      <span className="text-[11px] font-sans font-medium text-forest-800">
+                        Feature on Homepage
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={batch.status === 'completed' || batch.status === 'archived'}
+                      onClick={() => handleToggleFeature(batch.id, !batch.featuredHomepage)}
+                      title={
+                        batch.status === 'completed' || batch.status === 'archived'
+                          ? 'Completed or archived batches cannot be featured on homepage'
+                          : batch.featuredHomepage
+                          ? 'Click to remove from homepage'
+                          : 'Set this batch as the featured batch on homepage'
+                      }
+                      className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        batch.status === 'completed' || batch.status === 'archived'
+                          ? 'opacity-40 cursor-not-allowed bg-neutral-200'
+                          : batch.featuredHomepage
+                          ? 'bg-gold-500'
+                          : 'bg-neutral-300 hover:bg-neutral-400'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                          batch.featuredHomepage ? 'translate-x-4' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-forest-900/5">
@@ -626,6 +673,37 @@ export const AdminBatchesPage: React.FC = () => {
                     className="w-full px-3 py-2 text-xs bg-cream-50 border border-forest-900/20 rounded-sm focus:outline-none focus:border-forest-900 font-sans"
                   />
                 </div>
+              </div>
+
+              {/* Homepage Feature Toggle */}
+              <div className="p-3 bg-cream-50 border border-gold-500/30 rounded-sm flex items-center justify-between gap-4">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-7 h-7 rounded-full bg-gold-500/20 text-gold-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Star size={14} className={formData.featuredHomepage ? 'fill-gold-500 text-gold-500' : 'text-forest-600'} />
+                  </div>
+                  <div>
+                    <span className="text-xs font-sans font-semibold text-forest-900 block">
+                      Feature on Website Homepage
+                    </span>
+                    <p className="text-[11px] text-forest-600 font-sans leading-normal">
+                      Showcase this batch dynamically on the public homepage masterclass section. Only one batch can be featured at a time.
+                    </p>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={formData.featuredHomepage}
+                    disabled={formData.status === 'completed' || formData.status === 'archived'}
+                    onChange={e => setFormData({ ...formData, featuredHomepage: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className={`w-10 h-5.5 bg-neutral-300 rounded-full peer peer-focus:outline-none after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-neutral-300 after:rounded-full after:h-4.5 after:w-4.5 after:transition-all ${
+                    formData.status === 'completed' || formData.status === 'archived'
+                      ? 'opacity-40 cursor-not-allowed'
+                      : 'peer-checked:bg-gold-500 peer-checked:after:translate-x-full peer-checked:after:border-white'
+                  }`} />
+                </label>
               </div>
 
               {/* Row 3: Dates & Timing */}
