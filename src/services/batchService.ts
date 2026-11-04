@@ -482,7 +482,13 @@ export const batchService = {
 
   async getFeaturedBatch(): Promise<BatchItem | null> {
     try {
-      const res = await fetch('/api/batches/featured', { cache: 'no-store' });
+      const res = await fetch(`/api/batches/featured?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache'
+        }
+      });
       if (res.ok) {
         const json = await res.json();
         if (json.success) {
@@ -492,8 +498,8 @@ export const batchService = {
     } catch (err) {
       console.warn('API fetch failed for featured batch, checking fallback:', err);
     }
-    // Fallback: Find batch with featuredHomepage === true, or first enrolling batch
-    const fallbackFeatured = FALLBACK_BATCHES.find(b => b.featuredHomepage && b.status === 'enrolling');
+    // Fallback: Find batch with featuredHomepage === true or featured_homepage === true
+    const fallbackFeatured = FALLBACK_BATCHES.find(b => b.featuredHomepage || (b as any).featured_homepage);
     if (fallbackFeatured) return fallbackFeatured;
     return FALLBACK_BATCHES.find(b => b.status === 'enrolling') || null;
   },

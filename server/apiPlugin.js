@@ -545,6 +545,9 @@ function handleMiddleware(middlewares) {
       if (res.writableEnded || res.headersSent) return;
       res.statusCode = statusCode;
       res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       res.end(JSON.stringify(data));
     };
 
@@ -770,18 +773,20 @@ function handleMiddleware(middlewares) {
       // 4b. GET /api/batches/featured (Public - get currently featured batch for homepage)
       if (pathname === '/api/batches/featured' && method === 'GET') {
         const batches = readBatches();
-        const eligibleStatuses = ['upcoming', 'enrolling'];
 
-        // 1. Check for batch explicitly marked as featured on homepage
+        // 1. Check for batch explicitly marked as featured on homepage (supports featuredHomepage & featured_homepage)
+        // If the admin has chosen this batch as featured, honor the admin's explicit selection!
         let featured = batches.find(b => {
-          if (!b.featuredHomepage) return false;
+          const isMarked = b.featuredHomepage === true || b.featured_homepage === true;
+          if (!isMarked) return false;
+          // Do not show if explicitly marked as draft or archived
           if (b.status === 'draft' || b.status === 'archived') return false;
-          const effStatus = resolveBatchStatus(b);
-          return eligibleStatuses.includes(effStatus);
+          return true;
         });
 
-        // 2. If no featured batch or it has completed/expired, auto fallback to next upcoming eligible batch
+        // 2. If no featured batch is set, auto fallback to next upcoming active batch
         if (!featured) {
+          const eligibleStatuses = ['upcoming', 'enrolling'];
           const eligibleUpcoming = batches
             .filter(b => {
               if (b.status === 'draft' || b.status === 'archived') return false;
@@ -798,11 +803,17 @@ function handleMiddleware(middlewares) {
         }
 
         if (featured) {
+          const poster = featured.image || featured.poster || featured.imageUrl || featured.coverImage || featured.thumbnail || '';
           return sendJson(200, {
             success: true,
             data: {
               ...featured,
-              status: resolveBatchStatus(featured)
+              image: poster,
+              poster: poster,
+              imageUrl: poster,
+              featuredHomepage: true,
+              featured_homepage: true,
+              status: featured.status || 'enrolling'
             }
           });
         }
@@ -944,25 +955,35 @@ function handleMiddleware(middlewares) {
         }
 
         const body = await parseJsonBody(req);
-        const shouldFeature = body.featured !== undefined ? Boolean(body.featured) : true;
+        const shouldFeature = body.featured !== undefined 
+          ? Boolean(body.featured) 
+          : (body.featuredHomepage !== undefined 
+            ? Boolean(body.featuredHomepage) 
+            : (body.featured_homepage !== undefined ? Boolean(body.featured_homepage) : true));
 
         if (shouldFeature) {
           batches = batches.map((b, i) => ({
             ...b,
-            featuredHomepage: i === index
+            featuredHomepage: i === index,
+            featured_homepage: i === index
           }));
         } else {
           batches[index].featuredHomepage = false;
+          batches[index].featured_homepage = false;
         }
 
         batches[index].updatedAt = new Date().toISOString();
         writeBatches(batches);
 
+        const posterUrl = batches[index].image || batches[index].poster || batches[index].imageUrl || '';
         return sendJson(200, {
           success: true,
           data: {
             ...batches[index],
-            status: resolveBatchStatus(batches[index])
+            image: posterUrl,
+            poster: posterUrl,
+            imageUrl: posterUrl,
+            status: batches[index].status || 'enrolling'
           },
           message: shouldFeature ? 'Batch is now featured on the homepage' : 'Batch unfeatured from homepage'
         });
@@ -976,7 +997,7 @@ function handleMiddleware(middlewares) {
         }
 
         const id = singleBatchMatch[1];
-        const batches = readBatches();
+        let batches = readBatches();
         const index = batches.findIndex(b => b.id === id || b.slug === id);
 
         if (index === -1) {
@@ -1000,12 +1021,22 @@ function handleMiddleware(middlewares) {
           ? Number(body.seatsRemaining)
           : existing.seatsRemaining;
 
-        const isFeatured = body.featuredHomepage !== undefined ? Boolean(body.featuredHomepage) : Boolean(existing.featuredHomepage);
+        const isFeatured = body.featuredHomepage !== undefined 
+          ? Boolean(body.featuredHomepage) 
+          : (body.featured_homepage !== undefined 
+            ? Boolean(body.featured_homepage) 
+            : Boolean(existing.featuredHomepage || existing.featured_homepage));
+
         if (isFeatured) {
           batches.forEach((b, i) => {
-            if (i !== index) b.featuredHomepage = false;
+            if (i !== index) {
+              b.featuredHomepage = false;
+              b.featured_homepage = false;
+            }
           });
         }
+
+        const posterImg = body.image || body.poster || body.imageUrl || body.coverImage || existing.image || existing.poster || '';
 
         const updatedBatch = {
           ...existing,
@@ -1013,6 +1044,10 @@ function handleMiddleware(middlewares) {
           id: existing.id, // Immutable ID
           status: newStatus,
           featuredHomepage: isFeatured,
+          featured_homepage: isFeatured,
+          image: posterImg,
+          poster: posterImg,
+          imageUrl: posterImg,
           fee: feeNum,
           discount: body.discount !== undefined ? (body.discount !== '' ? Number(body.discount) : undefined) : existing.discount,
           feeDisplay: body.feeDisplay || (feeNum > 0 ? `₹${feeNum.toLocaleString('en-IN')}` : existing.feeDisplay),

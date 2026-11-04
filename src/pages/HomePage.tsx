@@ -601,7 +601,12 @@ export const HomePage: React.FC = () => {
                     <div className="relative rounded-sm overflow-hidden shadow-luxury border-2 border-gold-500/40 bg-forest-900/60 flex items-center justify-center p-2 min-h-[360px]">
                       {/* Ambient background glow */}
                       <img
-                        src={resolveMediaUrl(featuredBatch.image || '/images/academy/hair-cutting-masterclass-poster.jpg')}
+                        src={(() => {
+                          const raw = featuredBatch.image || (featuredBatch as any).poster || (featuredBatch as any).imageUrl || (featuredBatch as any).coverImage || featuredBatch.thumbnail || '';
+                          const resolved = resolveMediaUrl(raw || '/images/academy/hair-cutting-masterclass-poster.jpg');
+                          const v = featuredBatch.updatedAt ? new Date(featuredBatch.updatedAt).getTime() : '';
+                          return v && !resolved.includes('?') ? `${resolved}?v=${v}` : resolved;
+                        })()}
                         alt=""
                         aria-hidden="true"
                         className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-110 pointer-events-none"
@@ -610,7 +615,12 @@ export const HomePage: React.FC = () => {
 
                       {/* Full Original Poster with Contain */}
                       <img
-                        src={resolveMediaUrl(featuredBatch.image || '/images/academy/hair-cutting-masterclass-poster.jpg')}
+                        src={(() => {
+                          const raw = featuredBatch.image || (featuredBatch as any).poster || (featuredBatch as any).imageUrl || (featuredBatch as any).coverImage || featuredBatch.thumbnail || '';
+                          const resolved = resolveMediaUrl(raw || '/images/academy/hair-cutting-masterclass-poster.jpg');
+                          const v = featuredBatch.updatedAt ? new Date(featuredBatch.updatedAt).getTime() : '';
+                          return v && !resolved.includes('?') ? `${resolved}?v=${v}` : resolved;
+                        })()}
                         alt={featuredBatch.title}
                         className="relative z-10 max-h-[500px] w-auto h-auto object-contain mx-auto drop-shadow-lg"
                         loading="lazy"

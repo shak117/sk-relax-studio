@@ -89,6 +89,17 @@ export const AdminBatchesPage: React.FC = () => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error';
+    message: string;
+  } | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 4500);
+  };
 
   // 1. Auth Guard
   useEffect(() => {
@@ -144,7 +155,7 @@ export const AdminBatchesPage: React.FC = () => {
       fee: batch.fee || 0,
       totalSeats: batch.totalSeats ?? 0,
       seatsRemaining: batch.seatsRemaining ?? 0,
-      image: batch.image,
+      image: batch.image || (batch as any).poster || (batch as any).imageUrl || '',
       leadTrainer: batch.leadTrainer,
       venue: batch.venue,
       prerequisites: batch.prerequisites || '',
@@ -152,18 +163,25 @@ export const AdminBatchesPage: React.FC = () => {
       curriculumText: (batch.curriculum || []).join('\n'),
       description: batch.description,
       whatsappPreset: batch.whatsappPreset || '',
-      featuredHomepage: Boolean(batch.featuredHomepage)
+      featuredHomepage: Boolean(batch.featuredHomepage || (batch as any).featured_homepage)
     });
     setSaveStatus(null);
     setIsModalOpen(true);
   };
 
   const handleToggleFeature = async (id: string, featured: boolean) => {
+    const targetBatch = batches.find(b => b.id === id);
     const res = await batchService.setFeaturedBatch(id, featured);
     if (res.success) {
       await loadBatches();
+      showNotification(
+        featured
+          ? `"${targetBatch?.title || 'Batch'}" is now the primary featured batch on the homepage!`
+          : `"${targetBatch?.title || 'Batch'}" removed from homepage feature.`,
+        'success'
+      );
     } else {
-      alert(`Could not update featured batch: ${res.error || 'Error'}`);
+      showNotification(`Could not update featured batch: ${res.error || 'Error'}`, 'error');
     }
   };
 
@@ -171,8 +189,9 @@ export const AdminBatchesPage: React.FC = () => {
     const res = await batchService.updateBatch(id, { status: newStatus });
     if (res.success) {
       await loadBatches();
+      showNotification(`Batch status updated to ${newStatus}`, 'success');
     } else {
-      alert(`Could not update status: ${res.error || 'Error'}`);
+      showNotification(`Could not update status: ${res.error || 'Error'}`, 'error');
     }
   };
 
@@ -187,8 +206,9 @@ export const AdminBatchesPage: React.FC = () => {
 
     if (result.success && result.url) {
       setFormData(prev => ({ ...prev, image: result.url! }));
+      showNotification('New poster uploaded successfully! Click "Update Batch" to save.', 'success');
     } else {
-      alert(`Upload error: ${result.error || 'Failed to upload image'}`);
+      showNotification(`Upload error: ${result.error || 'Failed to upload image'}`, 'error');
     }
   };
 
@@ -245,6 +265,7 @@ export const AdminBatchesPage: React.FC = () => {
 
     if (result.success) {
       setSaveStatus('Batch saved successfully to server!');
+      showNotification('Batch saved successfully to server database!', 'success');
       await loadBatches();
       setTimeout(() => {
         setIsModalOpen(false);
@@ -252,6 +273,7 @@ export const AdminBatchesPage: React.FC = () => {
       }, 500);
     } else {
       setSaveStatus(`Error: ${result.error || 'Failed to save batch'}`);
+      showNotification(`Error: ${result.error || 'Failed to save batch'}`, 'error');
     }
   };
 
@@ -338,6 +360,28 @@ export const AdminBatchesPage: React.FC = () => {
 
       {/* Main Admin Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        {/* Floating / Toast Action Notification */}
+        {notification && (
+          <div
+            className={`mb-6 p-4 rounded-sm border flex items-center justify-between text-xs font-sans transition-all shadow-sm ${
+              notification.type === 'success'
+                ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-medium'
+                : 'bg-rose-50 border-rose-300 text-rose-950 font-medium'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-bold">{notification.type === 'success' ? '✓' : '✕'}</span>
+              <span>{notification.message}</span>
+            </div>
+            <button
+              onClick={() => setNotification(null)}
+              className="text-forest-400 hover:text-forest-900 text-xs ml-4"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
         {/* Actions Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
@@ -388,11 +432,14 @@ export const AdminBatchesPage: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredBatches.map(batch => (
+            {filteredBatches.map(batch => {
+              const isFeatured = Boolean(batch.featuredHomepage || (batch as any).featured_homepage);
+              const posterSrc = batch.image || (batch as any).poster || (batch as any).imageUrl || '';
+              return (
               <div
                 key={batch.id}
                 className={`bg-white rounded-sm border shadow-soft overflow-hidden flex flex-col justify-between transition-all ${
-                  batch.featuredHomepage
+                  isFeatured
                     ? 'border-gold-500/60 ring-2 ring-gold-500/20 shadow-md'
                     : 'border-forest-900/10'
                 }`}
@@ -402,7 +449,7 @@ export const AdminBatchesPage: React.FC = () => {
                   <div className="relative h-64 sm:h-72 bg-forest-950 overflow-hidden flex items-center justify-center p-2">
                     {/* Ambient Background */}
                     <img
-                      src={batch.image}
+                      src={posterSrc}
                       alt=""
                       aria-hidden="true"
                       className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-110 pointer-events-none"
@@ -411,12 +458,12 @@ export const AdminBatchesPage: React.FC = () => {
 
                     {/* Full Original Poster */}
                     <img
-                      src={batch.image}
+                      src={posterSrc}
                       alt={batch.title}
                       className="relative z-10 max-h-full max-w-full w-auto h-auto object-contain mx-auto drop-shadow-md"
                     />
                     <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-20">
-                      {batch.featuredHomepage && (
+                      {isFeatured && (
                         <span className="px-2 py-0.5 rounded-sm text-[10px] font-sans font-bold uppercase tracking-wider bg-gold-400 text-forest-950 border border-gold-300 shadow-sm flex items-center gap-1">
                           <Star size={10} className="fill-forest-950 text-forest-950" /> Featured on Homepage
                         </span>
@@ -502,7 +549,7 @@ export const AdminBatchesPage: React.FC = () => {
                     <div className="flex items-center gap-1.5">
                       <Star
                         size={13}
-                        className={batch.featuredHomepage ? 'fill-gold-500 text-gold-500' : 'text-forest-400'}
+                        className={isFeatured ? 'fill-gold-500 text-gold-500' : 'text-forest-400'}
                       />
                       <span className="text-[11px] font-sans font-medium text-forest-800">
                         Feature on Homepage
@@ -510,26 +557,26 @@ export const AdminBatchesPage: React.FC = () => {
                     </div>
                     <button
                       type="button"
-                      disabled={batch.status === 'completed' || batch.status === 'archived'}
-                      onClick={() => handleToggleFeature(batch.id, !batch.featuredHomepage)}
+                      disabled={batch.status === 'archived'}
+                      onClick={() => handleToggleFeature(batch.id, !isFeatured)}
                       title={
-                        batch.status === 'completed' || batch.status === 'archived'
-                          ? 'Completed or archived batches cannot be featured on homepage'
-                          : batch.featuredHomepage
+                        batch.status === 'archived'
+                          ? 'Archived batches cannot be featured on homepage'
+                          : isFeatured
                           ? 'Click to remove from homepage'
                           : 'Set this batch as the featured batch on homepage'
                       }
                       className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                        batch.status === 'completed' || batch.status === 'archived'
+                        batch.status === 'archived'
                           ? 'opacity-40 cursor-not-allowed bg-neutral-200'
-                          : batch.featuredHomepage
+                          : isFeatured
                           ? 'bg-gold-500'
                           : 'bg-neutral-300 hover:bg-neutral-400'
                       }`}
                     >
                       <span
                         className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
-                          batch.featuredHomepage ? 'translate-x-4' : 'translate-x-0'
+                          isFeatured ? 'translate-x-4' : 'translate-x-0'
                         }`}
                       />
                     </button>
@@ -565,7 +612,8 @@ export const AdminBatchesPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         )}
       </main>
