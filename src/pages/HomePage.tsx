@@ -33,6 +33,11 @@ import { SectionHeading } from '../components/ui/SectionHeading';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
 import { VideoPlayerModal } from '../components/ui/VideoPlayerModal';
+import { 
+  LuxuryBotanicalShadow, 
+  LuxuryCurvedLines, 
+  LuxuryLineArt 
+} from '../components/ui/LuxuryBackgroundDecorations';
 import { usePageSEO } from '../hooks/usePageSEO';
 import { generateLocalBusinessSchema } from '../utils/schemaGenerator';
 
@@ -145,16 +150,32 @@ export const HomePage: React.FC = () => {
         }}
       />
 
-      {/* 4C. Brand Introduction — Editorial Split Layout */}
-      <section id="brand-intro" className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 4C. Brand Introduction — Editorial Split Layout with Luxury Background */}
+      <section id="brand-intro" className="relative py-14 sm:py-20 bg-luxury-ivory text-forest-900 border-b border-forest-900/10 overflow-hidden">
+        {/* Soft botanical leaf shadow on top-left corner */}
+        <LuxuryBotanicalShadow position="top-left" opacity={0.24} />
+
+        {/* Delicate champagne-gold flowing ribbon curves on top-right */}
+        <LuxuryCurvedLines position="top-right" variant="ribbon" className="opacity-80" />
+
+        {/* Soft satin flowing wave on bottom-left */}
+        <LuxuryCurvedLines position="bottom-left" variant="waves" className="opacity-60 -mb-4" />
+
+        {/* Editorial feminine beauty profile line-art behind the right column */}
+        <LuxuryLineArt 
+          motif="beauty-profile" 
+          opacity={0.18} 
+          className="right-0 sm:right-6 lg:right-10 top-2 sm:top-6 pointer-events-none" 
+        />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Visual Column — Real SK RELAX Salon Client Haircut & Styling Photo */}
             <div className="lg:col-span-5 order-1">
               <ScrollReveal direction="left">
                 <div className="relative mx-auto max-w-md lg:max-w-none">
                   {/* Outer Frame with subtle luxury border & soft shadow */}
-                  <div className="relative rounded-sm overflow-hidden bg-cream-100/90 border border-forest-900/10 shadow-card p-2 sm:p-2.5">
+                  <div className="relative rounded-sm overflow-hidden bg-white/80 backdrop-blur-xs border border-forest-900/10 shadow-card p-2 sm:p-2.5">
                     {/* Image Container preserving full uncropped portrait aspect ratio */}
                     <div className="relative rounded-xs overflow-hidden bg-cream-50 flex items-center justify-center">
                       <img
@@ -241,8 +262,10 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4E. Signature Hair Artistry (Masterclass Poster Showcase) */}
-      <section className="pt-8 pb-8 sm:pt-10 sm:pb-10 bg-cream-50 text-forest-900 border-b border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-10 pb-12 sm:pt-14 sm:pb-16 bg-luxury-cream text-forest-900 border-b border-forest-900/10 overflow-hidden">
+        <LuxuryLineArt motif="hair-flow" opacity={0.14} className="top-8 left-6 sm:left-12 pointer-events-none" />
+        <LuxuryCurvedLines position="bottom-right" variant="waves" className="opacity-50" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <ScrollReveal>
             <SectionHeading
               eyebrow="Signature Hair Artistry"
@@ -302,8 +325,10 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4D. Featured Services Catalogue Grid */}
-      <section id="services-section" className="pt-6 pb-10 sm:pt-8 sm:pb-14 bg-ivory text-forest-900 border-b border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="services-section" className="relative pt-10 pb-14 sm:pt-14 sm:pb-18 bg-luxury-ivory text-forest-900 border-b border-forest-900/10 overflow-hidden">
+        <LuxuryLineArt motif="botanical-sprig" opacity={0.16} className="top-10 right-4 sm:right-10 pointer-events-none" />
+        <LuxuryBotanicalShadow position="bottom-left" opacity={0.18} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
@@ -348,8 +373,10 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* Team Spotlight Section */}
-      <section id="team-spotlight" className="py-10 sm:py-14 lg:py-20 bg-cream-100 text-forest-900 border-b border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="team-spotlight" className="relative py-12 sm:py-16 lg:py-20 bg-luxury-cream text-forest-900 border-b border-forest-900/10 overflow-hidden">
+        <LuxuryCurvedLines position="top-right" variant="ribbon" className="opacity-50" />
+        <LuxuryBotanicalShadow position="bottom-left" opacity={0.20} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
             {/* Visual Column */}
             <div className="lg:col-span-5">
@@ -640,8 +667,10 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* Batch Celebrations & Events Preview Section */}
-      <section className="py-12 sm:py-16 bg-ivory text-forest-900 border-b border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-14 sm:py-20 bg-luxury-ivory text-forest-900 border-b border-forest-900/10 overflow-hidden">
+        <LuxuryCurvedLines position="top-left" variant="arcs" className="opacity-40" />
+        <LuxuryLineArt motif="hair-flow" opacity={0.14} className="bottom-8 right-6 pointer-events-none" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
@@ -746,8 +775,10 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* Student Video Reviews & Feedback Preview */}
-      <section className="pt-8 pb-8 sm:pt-10 sm:pb-10 bg-cream-50 text-forest-900 border-b border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-10 pb-12 sm:pt-14 sm:pb-16 bg-luxury-cream text-forest-900 border-b border-forest-900/10 overflow-hidden">
+        <LuxuryBotanicalShadow position="top-right" opacity={0.18} />
+        <LuxuryCurvedLines position="bottom-left" variant="waves" className="opacity-45" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
@@ -841,8 +872,9 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4G. Gallery Preview */}
-      <section className="pt-6 pb-8 sm:pt-8 sm:pb-12 bg-ivory text-forest-900 border-b border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-8 pb-10 sm:pt-12 sm:pb-14 bg-luxury-ivory text-forest-900 border-b border-forest-900/10 overflow-hidden">
+        <LuxuryCurvedLines position="bottom-right" variant="ribbon" className="opacity-40" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-sans font-semibold uppercase tracking-[0.25em] text-rose-600 mb-2">
@@ -868,8 +900,10 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4H. Experience & Standards Section */}
-      <section className="pt-6 pb-10 sm:pt-8 sm:pb-14 bg-cream-100 text-forest-900 border-b border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative pt-10 pb-14 sm:pt-14 sm:pb-18 bg-luxury-cream text-forest-900 border-b border-forest-900/10 overflow-hidden">
+        <LuxuryCurvedLines position="top-left" variant="ribbon" className="opacity-45" />
+        <LuxuryBotanicalShadow position="bottom-right" opacity={0.18} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <ScrollReveal>
             <SectionHeading
               eyebrow="The SK Relax Standard"
@@ -987,8 +1021,10 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* 4J. Google Maps Studio Location */}
-      <section className="py-12 sm:py-16 bg-cream-100 text-forest-900 border-t border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="studio-location" className="relative py-12 sm:py-16 bg-luxury-cream text-forest-900 border-t border-forest-900/10 overflow-hidden">
+        <LuxuryBotanicalShadow position="bottom-left" opacity={0.20} />
+        <LuxuryCurvedLines position="top-right" variant="waves" className="opacity-50" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             <div className="lg:col-span-5 space-y-4">
               <ScrollReveal direction="left">

@@ -17,6 +17,10 @@ import { BatchItem, BatchCategory, BatchStatus } from '../types';
 import { batchService } from '../services/batchService';
 import { buildWhatsAppUrl } from '../data/brandData';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
+import { 
+  LuxuryBotanicalShadow, 
+  LuxuryCurvedLines 
+} from '../components/ui/LuxuryBackgroundDecorations';
 import { usePageSEO } from '../hooks/usePageSEO';
 import { generateLocalBusinessSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
 import { formatEventDateRange, isDateInPast } from '../utils/dateUtils';
@@ -90,7 +94,7 @@ export const BatchesPage: React.FC = () => {
   const isFlagshipExpired = flagship ? isBatchExpired(flagship) : false;
 
   return (
-    <div className="bg-ivory text-forest-900 min-h-screen">
+    <div className="bg-luxury-ivory text-forest-900 min-h-screen">
       {/* Editorial Header */}
       <section className="bg-forest-950 text-ivory py-12 sm:py-16 relative overflow-hidden border-b border-forest-800">
         <div className="absolute top-0 right-0 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -112,8 +116,9 @@ export const BatchesPage: React.FC = () => {
 
       {/* Flagship Masterclass Hero Spotlight */}
       {flagship && (
-        <section className="py-10 bg-cream-100 border-b border-forest-900/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="relative py-10 bg-luxury-cream border-b border-forest-900/10 overflow-hidden">
+          <LuxuryCurvedLines position="top-right" variant="ribbon" className="opacity-40" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="bg-white rounded-sm border-2 border-gold-500/40 shadow-card overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-12 items-stretch">
                 {/* Poster / Visual */}
@@ -236,8 +241,9 @@ export const BatchesPage: React.FC = () => {
       )}
 
       {/* Filters & Catalogue Section */}
-      <section className="py-12 bg-ivory">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 bg-luxury-ivory relative overflow-hidden">
+        <LuxuryBotanicalShadow position="bottom-right" opacity={0.16} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Controls Bar */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             {/* Status Pills */}
@@ -454,8 +460,9 @@ export const BatchesPage: React.FC = () => {
       </section>
 
       {/* Academy Standards & Private Consultation */}
-      <section className="py-12 bg-cream-100 border-t border-forest-900/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 bg-luxury-cream border-t border-forest-900/10 relative overflow-hidden">
+        <LuxuryCurvedLines position="bottom-right" variant="waves" className="opacity-45" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-white p-6 rounded-sm border border-forest-900/10 shadow-soft">
               <div className="w-10 h-10 rounded-full bg-forest-50 flex items-center justify-center text-forest-900 mb-4">

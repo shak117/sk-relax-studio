@@ -64,7 +64,7 @@ export const BatchDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-ivory flex items-center justify-center text-forest-700 font-sans text-sm">
+      <div className="min-h-screen bg-luxury-ivory flex items-center justify-center text-forest-700 font-sans text-sm">
         Loading batch details...
       </div>
     );
@@ -72,7 +72,7 @@ export const BatchDetailPage: React.FC = () => {
 
   if (!batch) {
     return (
-      <div className="min-h-screen bg-ivory flex flex-col items-center justify-center px-4 text-center">
+      <div className="min-h-screen bg-luxury-ivory flex flex-col items-center justify-center px-4 text-center">
         <h1 className="font-serif text-3xl text-forest-900 mb-3">Batch Not Found</h1>
         <p className="text-forest-600 text-sm max-w-md mb-6 font-sans">
           The requested academy batch or masterclass could not be located. Please check our upcoming schedule.
@@ -103,7 +103,7 @@ export const BatchDetailPage: React.FC = () => {
   );
 
   return (
-    <div className="bg-ivory text-forest-900 min-h-screen">
+    <div className="bg-luxury-ivory text-forest-900 min-h-screen">
       {/* Editorial Header */}
       <section className="bg-forest-950 text-ivory py-10 sm:py-14 border-b border-forest-800 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -161,7 +161,7 @@ export const BatchDetailPage: React.FC = () => {
       </section>
 
       {/* Main Content Layout */}
-      <section className="py-12 bg-ivory">
+      <section className="py-12 bg-luxury-ivory">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
             {/* Left Column — Curriculum, Inclusions & Details */}

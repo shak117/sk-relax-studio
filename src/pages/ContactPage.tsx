@@ -9,6 +9,10 @@ import {
 } from 'lucide-react';
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { ContactForm } from '../components/forms/ContactForm';
+import { 
+  LuxuryBotanicalShadow, 
+  LuxuryCurvedLines 
+} from '../components/ui/LuxuryBackgroundDecorations';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
 import { usePageSEO } from '../hooks/usePageSEO';
 import { generateLocalBusinessSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
@@ -28,7 +32,9 @@ export const ContactPage: React.FC = () => {
   });
 
   return (
-    <div className="bg-ivory text-forest-900 min-h-screen">
+    <div className="bg-luxury-ivory text-forest-900 min-h-screen relative overflow-hidden">
+      <LuxuryBotanicalShadow position="top-left" opacity={0.16} />
+      <LuxuryCurvedLines position="bottom-right" variant="waves" className="opacity-45" />
       {/* Contact Hero */}
       <section className="bg-forest-950 text-ivory py-10 sm:py-14 relative overflow-hidden border-b border-forest-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">

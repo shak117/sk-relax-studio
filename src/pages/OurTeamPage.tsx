@@ -4,6 +4,10 @@ import { buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { TEAM_MEMBERS } from '../data/teamData';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
+import { 
+  LuxuryBotanicalShadow, 
+  LuxuryCurvedLines 
+} from '../components/ui/LuxuryBackgroundDecorations';
 import { usePageSEO } from '../hooks/usePageSEO';
 import { generateLocalBusinessSchema, generateBreadcrumbSchema } from '../utils/schemaGenerator';
 
@@ -26,7 +30,7 @@ export const OurTeamPage: React.FC = () => {
   const otherMembers = TEAM_MEMBERS.filter(m => !m.isFounder && m.published);
 
   return (
-    <div className="bg-ivory text-forest-900 min-h-screen">
+    <div className="bg-luxury-ivory text-forest-900 min-h-screen">
       {/* Editorial Header */}
       <section className="bg-forest-950 text-ivory py-10 sm:py-14 relative overflow-hidden border-b border-forest-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -47,8 +51,10 @@ export const OurTeamPage: React.FC = () => {
 
       {/* Founder Spotlight: Salma Attar */}
       {founder && (
-        <section className="py-12 sm:py-16 bg-cream-50 border-b border-forest-900/10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="relative py-12 sm:py-16 bg-luxury-cream border-b border-forest-900/10 overflow-hidden">
+          <LuxuryBotanicalShadow position="top-left" opacity={0.20} />
+          <LuxuryCurvedLines position="bottom-right" variant="waves" className="opacity-45" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
               {/* Founder Image */}
               <div className="lg:col-span-5">

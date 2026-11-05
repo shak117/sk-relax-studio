@@ -64,7 +64,7 @@ export function App() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-ivory selection:bg-rose-200 selection:text-forest-950">
+    <div className="flex flex-col min-h-screen bg-luxury-ivory selection:bg-rose-200 selection:text-forest-950">
       <ScrollToTopOnRoute />
       
       {/* 4A. Slim Announcement Strip */}

@@ -9,7 +9,7 @@
   }
   
   body {
-    background-color: #FAF7F2;
+    background-color: #FAF6F0;
     color: #173222;
     font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
@@ -50,6 +50,64 @@
   position: relative;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(202, 164, 84, 0.5), transparent);
+}
+
+/* ==========================================================================
+   SK Relax Luxury Background Palette & Textures
+   Warm ivory, soft champagne, muted dusty rose and sage undertones
+   ========================================================================== */
+
+.bg-luxury-ivory {
+  background-color: #FAF6F0;
+  background-image: 
+    radial-gradient(ellipse 70% 50% at 10% 12%, rgba(244, 231, 203, 0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 92% 18%, rgba(227, 181, 181, 0.24) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 55% at 82% 85%, rgba(212, 179, 106, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 16% 88%, rgba(184, 205, 191, 0.24) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.5) 0%, transparent 70%),
+    linear-gradient(145deg, #FAF6F0 0%, #F5ECE0 35%, #FAF5EE 70%, #F1E6D6 100%);
+  background-attachment: scroll;
+}
+
+.bg-luxury-cream {
+  background-color: #F7EFE5;
+  background-image:
+    radial-gradient(ellipse 65% 50% at 88% 15%, rgba(212, 179, 106, 0.30) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 12% 82%, rgba(227, 181, 181, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 45% at 20% 18%, rgba(184, 205, 191, 0.18) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.45) 0%, transparent 65%),
+    linear-gradient(150deg, #F8F0E6 0%, #EFE3D2 40%, #F8F0E5 75%, #EBDCC8 100%);
+  background-attachment: scroll;
+}
+
+.bg-luxury-silk {
+  background-color: #FCFAF7;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(255, 255, 255, 0.9) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 45% at 82% 82%, rgba(244, 231, 203, 0.40) 0%, transparent 55%),
+    linear-gradient(160deg, #FCFAF7 0%, #F8F3EA 55%, #F3EAE0 100%);
+}
+
+/* Subtle organic linen/paper micro-texture overlay */
+.luxury-texture-overlay {
+  position: relative;
+}
+.luxury-texture-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Soft champagne gold border */
+.border-gold-soft {
+  border-color: rgba(202, 164, 84, 0.28);
+}
+.border-gold-soft:hover {
+  border-color: rgba(202, 164, 84, 0.55);
 }
 
 /* Animations and reveals */

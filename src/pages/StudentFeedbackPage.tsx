@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { MessageSquare, Play, GraduationCap } from 'lucide-react';
 import { STUDENT_FEEDBACK } from '../data/studentFeedbackData';
 import { VideoPlayerModal } from '../components/ui/VideoPlayerModal';
+import { 
+  LuxuryBotanicalShadow, 
+  LuxuryCurvedLines 
+} from '../components/ui/LuxuryBackgroundDecorations';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
 import { usePageSEO } from '../hooks/usePageSEO';
@@ -29,7 +33,9 @@ export const StudentFeedbackPage: React.FC = () => {
   } | null>(null);
 
   return (
-    <div className="bg-ivory text-forest-900 min-h-screen">
+    <div className="bg-luxury-ivory text-forest-900 min-h-screen relative overflow-hidden">
+      <LuxuryBotanicalShadow position="top-right" opacity={0.16} />
+      <LuxuryCurvedLines position="bottom-left" variant="waves" className="opacity-45" />
       {/* Header */}
       <section className="bg-forest-950 text-ivory py-10 sm:py-14 relative overflow-hidden border-b border-forest-800">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">

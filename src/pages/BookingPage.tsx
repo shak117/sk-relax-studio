@@ -2,6 +2,10 @@ import React from 'react';
 import { Calendar, MessageCircle, Phone, Clock, MapPin } from 'lucide-react';
 import { BRAND, buildWhatsAppUrl, WhatsAppMessages } from '../data/brandData';
 import { BookingForm } from '../components/forms/BookingForm';
+import { 
+  LuxuryBotanicalShadow, 
+  LuxuryCurvedLines 
+} from '../components/ui/LuxuryBackgroundDecorations';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
 import { usePageSEO } from '../hooks/usePageSEO';
@@ -22,8 +26,10 @@ export const BookingPage: React.FC = () => {
   });
 
   return (
-    <div className="bg-ivory text-forest-900 min-h-screen py-8 sm:py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="bg-luxury-ivory text-forest-900 min-h-screen py-8 sm:py-12 relative overflow-hidden">
+      <LuxuryBotanicalShadow position="top-right" opacity={0.16} />
+      <LuxuryCurvedLines position="bottom-left" variant="waves" className="opacity-40" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Compact Heading */}
         <div className="mb-6 sm:mb-8 border-b border-forest-900/10 pb-4 sm:pb-6">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-forest-100 text-forest-800 text-[11px] font-sans font-semibold tracking-wider uppercase mb-2">
