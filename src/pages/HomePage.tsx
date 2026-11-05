@@ -96,19 +96,38 @@ export const HomePage: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    salonService
-      .getPublishedServices()
-      .then((data) => {
-        if (isMounted && data && data.length > 0) {
-          setFeaturedServices(data.slice(0, 6));
-        }
-      })
-      .catch((err) => {
-        console.warn('[HomePage] Live services fetch failed, using fallback:', err);
-      });
+
+    const fetchFeatured = () => {
+      salonService
+        .getPublishedServices()
+        .then((data) => {
+          if (isMounted && data && data.length > 0) {
+            setFeaturedServices(data.slice(0, 6));
+          }
+        })
+        .catch((err) => {
+          console.warn('[HomePage] Live services fetch failed, using fallback:', err);
+        });
+    };
+
+    fetchFeatured();
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'skrelax_services_updated_at') {
+        fetchFeatured();
+      }
+    };
+    const handleCustomUpdate = () => {
+      fetchFeatured();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('skrelax:services-updated', handleCustomUpdate);
 
     return () => {
       isMounted = false;
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('skrelax:services-updated', handleCustomUpdate);
     };
   }, []);
 

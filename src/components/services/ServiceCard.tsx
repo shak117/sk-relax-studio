@@ -92,7 +92,12 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
         /* Image Container with Restrained Zoom */
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-cream-200">
           <img
-            src={service.image || service.thumbnail}
+            src={(() => {
+              const base = service.image || service.thumbnail || '';
+              if (!base) return '';
+              const v = service.updatedAt ? new Date(service.updatedAt).getTime() : '';
+              return v ? `${base}${base.includes('?') ? '&' : '?'}v=${v}` : base;
+            })()}
             alt={service.title}
             loading="lazy"
             onError={() => setImageError(true)}

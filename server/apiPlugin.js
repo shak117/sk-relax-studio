@@ -137,6 +137,61 @@ function readServices() {
 function writeServices(services) {
   ensureStorage();
   fs.writeFileSync(SERVICES_FILE, JSON.stringify(services, null, 2), 'utf8');
+
+  // Keep src/data/servicesData.ts and public/api/services.json in sync
+  try {
+    const servicesTsPath = path.resolve(__dirname, '..', 'src', 'data', 'servicesData.ts');
+    const published = services.filter(s => s.status === 'published');
+    const fileContent = `import { ServiceItem } from '../types';
+
+export const SERVICE_CATEGORIES = [
+  { 
+    id: 'all', 
+    label: 'All Services',
+    description: 'Explore our complete salon and academy treatment catalogue in Satara' 
+  },
+  { 
+    id: 'hair-treatments', 
+    label: 'Hair Treatments & Science',
+    description: 'Advanced hair smoothing, split-end care, keratin botox, and precision haircuts' 
+  },
+  { 
+    id: 'facials-skin', 
+    label: 'Facials & Skin Treatments',
+    description: 'Clinical Hydra facials, Korean glass skin, BB Glow, and crystal diamond polishing' 
+  },
+  { 
+    id: 'makeup-bridal', 
+    label: 'Makeup & Bridal Artistry',
+    description: 'Bespoke bridal packages, HD 3D makeup, sweat-resistant looks, and saree draping' 
+  },
+  { 
+    id: 'permanent-makeup', 
+    label: 'Permanent Makeup (PMU)',
+    description: 'Microblading, powder brows, lip blush, neutralization, and precision mapping' 
+  },
+  { 
+    id: 'equipment-machines', 
+    label: 'Aesthetic Machines & Tech',
+    description: '7-in-1 Hydra machine, OxyGeneo, LED phototherapy, and microdermabrasion' 
+  },
+] as const;
+
+/**
+ * Salon Services Catalogue — Synchronized with Database (server/data/services.json).
+ * Single Source of Truth maintained by SK Relax CMS.
+ */
+export const SERVICES: ServiceItem[] = ${JSON.stringify(published, null, 2)};
+`;
+    fs.writeFileSync(servicesTsPath, fileContent, 'utf8');
+
+    // Also write a static JSON in public/api/services.json for static hosts / serverless fallback
+    const publicApiDir = path.resolve(__dirname, '..', 'public', 'api');
+    if (!fs.existsSync(publicApiDir)) fs.mkdirSync(publicApiDir, { recursive: true });
+    fs.writeFileSync(path.join(publicApiDir, 'services.json'), JSON.stringify({ success: true, data: published }, null, 2), 'utf8');
+  } catch (err) {
+    console.error('[writeServices] Error syncing static services files:', err.message);
+  }
 }
 
 function readGallery() {

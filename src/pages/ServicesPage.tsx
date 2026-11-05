@@ -65,17 +65,38 @@ export const ServicesPage: React.FC = () => {
 
   useEffect(() => {
     let isMounted = true;
-    salonService
-      .getPublishedServices()
-      .then((data) => {
-        if (isMounted && data && data.length > 0) {
-          setServicesList(data);
-        }
-      })
-      .catch(() => {});
+
+    const fetchServices = () => {
+      salonService
+        .getPublishedServices()
+        .then((data) => {
+          if (isMounted && data) {
+            setServicesList(data);
+          }
+        })
+        .catch((err) => {
+          console.warn('[ServicesPage] Error loading published services:', err);
+        });
+    };
+
+    fetchServices();
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'skrelax_services_updated_at') {
+        fetchServices();
+      }
+    };
+    const handleCustomUpdate = () => {
+      fetchServices();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('skrelax:services-updated', handleCustomUpdate);
 
     return () => {
       isMounted = false;
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('skrelax:services-updated', handleCustomUpdate);
     };
   }, []);
 

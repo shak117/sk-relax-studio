@@ -22,12 +22,28 @@ export const salonService = {
   },
 
   /**
+   * Notify frontend components across tabs that service records were updated in CMS.
+   */
+  notifyServicesUpdated() {
+    try {
+      localStorage.setItem('skrelax_services_updated_at', Date.now().toString());
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('skrelax:services-updated'));
+      }
+    } catch {
+      // Ignore in non-browser env
+    }
+  },
+
+  /**
    * Fetch published services for the public website.
-   * Gracefully falls back to local data if network fails.
+   * Dynamically retrieves live database records with strict anti-caching headers.
+   * Gracefully falls back to generated static database json if network/proxy is down.
    */
   async getPublishedServices(params?: ServiceFilterParams): Promise<ServiceItem[]> {
     try {
       const url = new URL('/api/services', window.location.origin);
+      url.searchParams.set('t', Date.now().toString());
       if (params?.category && params.category !== 'all') {
         url.searchParams.set('category', params.category);
       }
@@ -36,21 +52,47 @@ export const salonService = {
       }
 
       const res = await fetch(url.toString(), {
-        headers: { 'Accept': 'application/json' },
+        headers: { 
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
         cache: 'no-store'
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP error ${res.status}`);
+      if (res.ok) {
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data: ServiceResponse<ServiceItem[]> = await res.json();
+          if (data.success && Array.isArray(data.data)) {
+            return data.data;
+          }
+        }
       }
 
-      const data: ServiceResponse<ServiceItem[]> = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        return data.data;
+      // Secondary fallback for static hosting / CDN deployments: load public/api/services.json
+      const staticRes = await fetch(`/api/services.json?t=${Date.now()}`, {
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
+      });
+      if (staticRes.ok) {
+        const staticData = await staticRes.json();
+        if (staticData.success && Array.isArray(staticData.data)) {
+          let list = staticData.data;
+          if (params?.category && params.category !== 'all') {
+            list = list.filter((s: ServiceItem) => s.category === params.category);
+          }
+          if (params?.search) {
+            const q = params.search.toLowerCase();
+            list = list.filter((s: ServiceItem) => s.title.toLowerCase().includes(q) || s.shortDescription.toLowerCase().includes(q));
+          }
+          return list;
+        }
       }
+
       return SERVICES;
     } catch (err) {
-      console.warn('[salonService] Falling back to default static catalogue:', err);
+      console.warn('[salonService] Falling back to default synchronized catalogue:', err);
       let list = [...SERVICES];
       if (params?.category && params.category !== 'all') {
         list = list.filter(s => s.category === params.category);
@@ -72,6 +114,7 @@ export const salonService = {
 
     try {
       const url = new URL('/api/services', window.location.origin);
+      url.searchParams.set('t', Date.now().toString());
       url.searchParams.set('status', params?.status || 'all');
       if (params?.category && params.category !== 'all') {
         url.searchParams.set('category', params.category);
@@ -83,7 +126,9 @@ export const salonService = {
       const res = await fetch(url.toString(), {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         },
         cache: 'no-store'
       });
@@ -135,7 +180,11 @@ export const salonService = {
         body: JSON.stringify(payload)
       });
 
-      return await res.json();
+      const data = await res.json();
+      if (data.success) {
+        this.notifyServicesUpdated();
+      }
+      return data;
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
     }
@@ -158,7 +207,11 @@ export const salonService = {
         body: JSON.stringify(payload)
       });
 
-      return await res.json();
+      const data = await res.json();
+      if (data.success) {
+        this.notifyServicesUpdated();
+      }
+      return data;
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
     }
@@ -179,7 +232,11 @@ export const salonService = {
         }
       });
 
-      return await res.json();
+      const data = await res.json();
+      if (data.success) {
+        this.notifyServicesUpdated();
+      }
+      return data;
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
     }
@@ -202,7 +259,11 @@ export const salonService = {
         body: JSON.stringify({ order })
       });
 
-      return await res.json();
+      const data = await res.json();
+      if (data.success) {
+        this.notifyServicesUpdated();
+      }
+      return data;
     } catch (err: any) {
       return { success: false, error: err.message || 'Network error' };
     }

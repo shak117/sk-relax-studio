@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-sitemap.js && tsc && vite build",
-    "preview": "vite preview"
+    "build": "node scripts/sync-services-data.js && node scripts/generate-sitemap.js && tsc && vite build",
+    "preview": "vite preview",
+    "test:services-sync": "node scripts/test-services-sync.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",
