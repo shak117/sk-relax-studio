@@ -568,21 +568,19 @@ export const apiMiddlewareHandler = async (req, res, next = () => {}) => {
 
   // CORS Configuration: Restricted in production, flexible in development
   const origin = req.headers['origin'];
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = (process.env.NODE_ENV || 'production') === 'production';
   const allowedOrigins = [
     'https://skrelaxbeauty.com',
     'https://www.skrelaxbeauty.com',
-    (process.env.VITE_SITE_URL || '').replace(/\/+$/, '')
+    (process.env.VITE_SITE_URL || '').replace(/\/+$/, ''),
+    process.env.ALLOWED_ORIGIN
   ].filter(Boolean);
 
   if (origin) {
-    if (!isProd || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+    if (!isProd || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
       res.setHeader('Access-Control-Allow-Origin', origin);
-    } else {
-      res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0] || 'https://skrelaxbeauty.com');
+      res.setHeader('Vary', 'Origin');
     }
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
   }
 
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');

@@ -315,11 +315,15 @@ export const HomePage: React.FC = () => {
           </ScrollReveal>
 
           {/* 5 Haircuts Showcase */}
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6">
             {signatureHaircuts.map((cut, idx) => (
-              <ScrollReveal key={idx} delay={idx * 100}>
+              <ScrollReveal 
+                key={idx} 
+                delay={idx * 80}
+                className={idx === 4 ? "col-span-2 sm:col-span-1 max-w-[280px] sm:max-w-none mx-auto sm:mx-0 w-full" : "w-full"}
+              >
                 <div className="group relative bg-white rounded-sm overflow-hidden border border-forest-900/10 shadow-soft hover:shadow-card transition-all duration-300 flex flex-col h-full">
-                  <div className="aspect-[3/4] w-full overflow-hidden bg-forest-950">
+                  <div className="aspect-[3/4] w-full overflow-hidden bg-forest-950 relative">
                     <img
                       src={cut.image}
                       alt={cut.name}
@@ -327,27 +331,27 @@ export const HomePage: React.FC = () => {
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                     />
                   </div>
-                  <div className="p-4 flex-1 flex flex-col justify-between">
+                  <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
                     <div>
-                      <span className="text-[10px] font-sans uppercase tracking-widest text-rose-600 font-semibold block mb-1">
+                      <span className="text-[9px] sm:text-[10px] font-sans uppercase tracking-widest text-rose-600 font-semibold block mb-1">
                         {cut.tag}
                       </span>
-                      <h3 className="font-serif text-lg text-forest-900 font-medium leading-tight">
+                      <h3 className="font-serif text-base sm:text-lg text-forest-900 font-medium leading-tight">
                         {cut.name}
                       </h3>
-                      <p className="mt-2 text-xs text-forest-700/80 leading-relaxed font-sans">
+                      <p className="mt-1.5 sm:mt-2 text-[11px] sm:text-xs text-forest-700/80 leading-relaxed font-sans line-clamp-2 sm:line-clamp-none">
                         {cut.description}
                       </p>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-forest-900/10">
+                    <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-forest-900/10">
                       <a
                         href={buildWhatsAppUrl(WhatsAppMessages.serviceEnquiry(cut.name))}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-forest-900 hover:text-emerald-700 font-medium font-sans uppercase tracking-wider"
+                        className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-forest-900 hover:text-emerald-700 font-medium font-sans uppercase tracking-wider"
                       >
-                        <MessageCircle size={13} className="text-emerald-600" />
+                        <MessageCircle size={12} className="text-emerald-600" />
                         <span>Enquire Cut</span>
                       </a>
                     </div>

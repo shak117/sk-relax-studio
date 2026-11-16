@@ -166,15 +166,23 @@ Expected output:
 ---
 
 ### Step 6: Configure Nginx & SSL
-Copy the provided Nginx configuration:
+Copy the initial bootstrap configuration (which listens on HTTP port 80 and enables domain verification):
 ```bash
-sudo cp deployment/nginx.conf /etc/nginx/sites-available/skrelaxbeauty.com
+sudo cp deployment/nginx-initial.conf /etc/nginx/sites-available/skrelaxbeauty.com
 sudo ln -sf /etc/nginx/sites-available/skrelaxbeauty.com /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
-Test Nginx configuration:
+Obtain free SSL certificate via Let's Encrypt:
 ```bash
+sudo certbot --nginx -d skrelaxbeauty.com -d www.skrelaxbeauty.com
+```
+
+Once certificates are issued, copy the full production HTTPS configuration with HTTP/2 and 1-year asset caching:
+```bash
+sudo cp deployment/nginx.conf /etc/nginx/sites-available/skrelaxbeauty.com
 sudo nginx -t
 sudo systemctl reload nginx
 ```

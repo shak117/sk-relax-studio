@@ -5,7 +5,7 @@
     "endpoint": "/api/admin/login",
     "status": 400,
     "expectedStatus": 400,
-    "duration": 81,
+    "duration": 122,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -20,7 +20,7 @@
     "endpoint": "/api/admin/login",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 49,
+    "duration": 52,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -35,7 +35,7 @@
     "endpoint": "/api/admin/me",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 4,
+    "duration": 13,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -49,7 +49,7 @@
     "endpoint": "/api/admin/me",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 3,
+    "duration": 4,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -63,7 +63,7 @@
     "endpoint": "/api/admin/me",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 2,
+    "duration": 5,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -118,9 +118,9 @@
           "description": "One-day practical look & learn hair cutting seminar at SK Relax Beauty Academy, Satara. Learn 4 trending haircut techniques — Butterfly Cut, Long Layer, Face Framing, and Curtain Bangs with personal attention and expert guidance from Salma Attar.",
           "whatsappPreset": "Hello Salma Ma'am, I would like to book my seat for the One-Day Hair Cutting Seminar (22 Oct 2026) at SK Relax Academy Satara.",
           "createdAt": "2026-10-19T09:47:21.331Z",
-          "updatedAt": "2026-11-15T17:49:23.539Z",
-          "featuredHomepage": true,
-          "featured_homepage": true
+          "updatedAt": "2026-11-16T04:50:00.544Z",
+          "featuredHomepage": false,
+          "featured_homepage": false
         },
         {
           "id": "hair-cutting-masterclass-oct-2026",
@@ -209,48 +209,53 @@
     "endpoint": "/api/batches/featured",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 2,
+    "duration": 4,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "data": {
-        "id": "hair-cutting-seminar-22-oct-2026",
-        "slug": "advance-hair-cutting-22-oct",
-        "title": "One-Day Hair Cutting Seminar",
-        "category": "workshop",
-        "eventType": "one-day",
+        "id": "hair-cutting-masterclass-oct-2026",
+        "slug": "hair-cutting-masterclass",
+        "title": "3-Day Advanced Hair Cutting & Layering Masterclass",
+        "category": "masterclass",
+        "eventType": "multi-day",
         "status": "enrolling",
-        "badge": "Look & Learn Seminar",
-        "startDate": "2026-10-22",
-        "endDate": "2026-10-22",
-        "timing": "10:30 AM – 5:30 PM",
-        "duration": "One Day Seminar",
-        "fee": 500,
-        "feeDisplay": "₹500",
-        "image": "/uploads/batches/batch-1792403187768-whatsapp-image-2026-10-17-at-11-31-01-am.jpeg",
+        "badge": "Hands-on Dummy Head Included",
+        "startDate": "2026-11-20",
+        "endDate": "2026-11-22",
+        "timing": "10:30 AM – 5:30 PM (Daily)",
+        "duration": "3 Days Intensive Hands-on Workshop",
+        "fee": 4000,
+        "feeDisplay": "₹4,000",
+        "image": "/images/academy/hair-cutting-masterclass-poster.jpg",
         "leadTrainer": "Salma Attar (Founder & Master Beauty Educator)",
         "venue": "SK Relax Beauty Academy & Salon, Satara, Maharashtra",
-        "prerequisites": "Open to salon stylists, beauty students, and passionate beginners.",
+        "prerequisites": "Open to salon stylists, beauty academy students, and beginners passionate about modern haircutting techniques.",
         "included": [
-          "Look & Learn 4 Trending Haircuts",
-          "Live Model Demonstration by Salma Attar",
-          "Official Academy Certificate of Seminar Attendance"
+          "Individual Practice Mannequin Dummy Head (Yours to keep)",
+          "Official Academy Certificate of Haircut Artistry",
+          "Live Step-by-Step Model Demonstrations by Salma Attar",
+          "Hands-on Sectioning, Degree Geometry & Elevation Guidance",
+          "All Required Styling Tools & Products during the Workshop",
+          "Lunch, Tea & Refreshments during Training Days"
         ],
         "curriculum": [
-          "Trending Butterfly Haircut Demonstration",
-          "Classic Long Layer Haircut Technique",
-          "Face Framing & Elevation Angles",
-          "Curtain Bangs Styling & Finishing"
+          "Day 1: Elevation Degree Geometry (0°, 45°, 90°, 180°) & Finger Grip Angles",
+          "Day 1: Classic Long Layers & Seamless Graduation Techniques",
+          "Day 2: Trending Butterfly Cut & Volume Weight Removal",
+          "Day 2: Face-Framing Fringe, Curtain Bangs & Texturizing Feathers",
+          "Day 3: Client Head Shape Consultation & Hair Density Analysis",
+          "Day 3: Professional Salon Blow-Dry Finish, Curls & Portfolio Photos"
         ],
-        "description": "One-day practical look & learn hair cutting seminar at SK Relax Beauty Academy, Satara. Learn 4 trending haircut techniques — Butterfly Cut, Long Layer, Face Framing, and Curtain Bangs with personal attention and expert guidance from Salma Attar.",
-        "whatsappPreset": "Hello Salma Ma'am, I would like to book my seat for the One-Day Hair Cutting Seminar (22 Oct 2026) at SK Relax Academy Satara.",
-        "createdAt": "2026-10-19T09:47:21.331Z",
-        "updatedAt": "2026-11-15T17:49:23.539Z",
+        "description": "Join Salma Attar for an intensive 3-day practical haircutting masterclass in Satara. Every enrolled student receives an individual mannequin dummy head for direct hands-on practice. Master modern layer cuts, the viral butterfly technique, and graduation geometry to boost your salon revenue.",
+        "whatsappPreset": "Hello Salma Ma'am, I would like to book my seat for the 3-Day Hair Cutting Masterclass (Nov 20–22, 2026) at SK Relax Academy in Satara.",
         "featuredHomepage": true,
+        "createdAt": "2026-10-18T10:00:00.000Z",
+        "updatedAt": "2026-11-04T11:07:35.367Z",
         "featured_homepage": true,
-        "poster": "/uploads/batches/batch-1792403187768-whatsapp-image-2026-10-17-at-11-31-01-am.jpeg",
-        "imageUrl": "/uploads/batches/batch-1792403187768-whatsapp-image-2026-10-17-at-11-31-01-am.jpeg"
+        "poster": "/images/academy/hair-cutting-masterclass-poster.jpg",
+        "imageUrl": "/images/academy/hair-cutting-masterclass-poster.jpg"
       }
     }
   },
@@ -260,7 +265,7 @@
     "endpoint": "/api/batches/advance-hair-cutting-22-oct",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 3,
+    "duration": 9,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -297,9 +302,9 @@
         "description": "One-day practical look & learn hair cutting seminar at SK Relax Beauty Academy, Satara. Learn 4 trending haircut techniques — Butterfly Cut, Long Layer, Face Framing, and Curtain Bangs with personal attention and expert guidance from Salma Attar.",
         "whatsappPreset": "Hello Salma Ma'am, I would like to book my seat for the One-Day Hair Cutting Seminar (22 Oct 2026) at SK Relax Academy Satara.",
         "createdAt": "2026-10-19T09:47:21.331Z",
-        "updatedAt": "2026-11-15T17:49:23.539Z",
-        "featuredHomepage": true,
-        "featured_homepage": true
+        "updatedAt": "2026-11-16T04:50:00.544Z",
+        "featuredHomepage": false,
+        "featured_homepage": false
       }
     }
   },
@@ -309,7 +314,7 @@
     "endpoint": "/api/batches/non-existent-batch-slug",
     "status": 404,
     "expectedStatus": 404,
-    "duration": 2,
+    "duration": 5,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -323,7 +328,7 @@
     "endpoint": "/api/batches",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 2,
+    "duration": 4,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -337,14 +342,14 @@
     "endpoint": "/api/batches",
     "status": 201,
     "expectedStatus": 201,
-    "duration": 38,
+    "duration": 83,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "data": {
-        "id": "test-audit-batch-1794804600346-1794804600346",
-        "slug": "test-audit-batch-1794804600346",
+        "id": "test-audit-batch-1794807685416-1794807685417",
+        "slug": "test-audit-batch-1794807685416",
         "title": "Audit Test Hair Masterclass",
         "category": "masterclass",
         "eventType": "multi-day",
@@ -367,18 +372,18 @@
         "description": "Temporary batch for automated API audit",
         "whatsappPreset": "Hello Salma Ma'am, I would like to enquire about Audit Test Hair Masterclass at SK Relax Academy Satara.",
         "featuredHomepage": false,
-        "createdAt": "2026-11-16T04:50:00.346Z",
-        "updatedAt": "2026-11-16T04:50:00.346Z"
+        "createdAt": "2026-11-16T05:41:25.417Z",
+        "updatedAt": "2026-11-16T05:41:25.417Z"
       }
     }
   },
   {
     "name": "Feature Batch without token (Security Check)",
     "method": "PUT",
-    "endpoint": "/api/batches/test-audit-batch-1794804600346-1794804600346/feature",
+    "endpoint": "/api/batches/test-audit-batch-1794807685416-1794807685417/feature",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 1,
+    "duration": 23,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -389,17 +394,17 @@
   {
     "name": "Feature Batch with Admin Token",
     "method": "PUT",
-    "endpoint": "/api/batches/test-audit-batch-1794804600346-1794804600346/feature",
+    "endpoint": "/api/batches/test-audit-batch-1794807685416-1794807685417/feature",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 33,
+    "duration": 100,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "data": {
-        "id": "test-audit-batch-1794804600346-1794804600346",
-        "slug": "test-audit-batch-1794804600346",
+        "id": "test-audit-batch-1794807685416-1794807685417",
+        "slug": "test-audit-batch-1794807685416",
         "title": "Audit Test Hair Masterclass",
         "category": "masterclass",
         "eventType": "multi-day",
@@ -422,8 +427,8 @@
         "description": "Temporary batch for automated API audit",
         "whatsappPreset": "Hello Salma Ma'am, I would like to enquire about Audit Test Hair Masterclass at SK Relax Academy Satara.",
         "featuredHomepage": true,
-        "createdAt": "2026-11-16T04:50:00.346Z",
-        "updatedAt": "2026-11-16T04:50:00.387Z",
+        "createdAt": "2026-11-16T05:41:25.417Z",
+        "updatedAt": "2026-11-16T05:41:25.538Z",
         "featured_homepage": true,
         "poster": "/images/academy/hair-cutting-masterclass-poster.jpg",
         "imageUrl": "/images/academy/hair-cutting-masterclass-poster.jpg"
@@ -434,10 +439,10 @@
   {
     "name": "Update Batch without token (Security Check)",
     "method": "PUT",
-    "endpoint": "/api/batches/test-audit-batch-1794804600346-1794804600346",
+    "endpoint": "/api/batches/test-audit-batch-1794807685416-1794807685417",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 3,
+    "duration": 15,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -448,17 +453,17 @@
   {
     "name": "Update Batch with Admin Token",
     "method": "PUT",
-    "endpoint": "/api/batches/test-audit-batch-1794804600346-1794804600346",
+    "endpoint": "/api/batches/test-audit-batch-1794807685416-1794807685417",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 77,
+    "duration": 125,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "data": {
-        "id": "test-audit-batch-1794804600346-1794804600346",
-        "slug": "test-audit-batch-1794804600346",
+        "id": "test-audit-batch-1794807685416-1794807685417",
+        "slug": "test-audit-batch-1794807685416",
         "title": "Audit Test Hair Masterclass - Updated",
         "category": "masterclass",
         "eventType": "multi-day",
@@ -481,8 +486,8 @@
         "description": "Temporary batch for automated API audit",
         "whatsappPreset": "Hello Salma Ma'am, I would like to enquire about Audit Test Hair Masterclass at SK Relax Academy Satara.",
         "featuredHomepage": true,
-        "createdAt": "2026-11-16T04:50:00.346Z",
-        "updatedAt": "2026-11-16T04:50:00.462Z",
+        "createdAt": "2026-11-16T05:41:25.417Z",
+        "updatedAt": "2026-11-16T05:41:25.659Z",
         "featured_homepage": true,
         "poster": "/images/academy/hair-cutting-masterclass-poster.jpg",
         "imageUrl": "/images/academy/hair-cutting-masterclass-poster.jpg"
@@ -492,10 +497,10 @@
   {
     "name": "Delete Batch without token (Security Check)",
     "method": "DELETE",
-    "endpoint": "/api/batches/test-audit-batch-1794804600346-1794804600346",
+    "endpoint": "/api/batches/test-audit-batch-1794807685416-1794807685417",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 1,
+    "duration": 15,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -506,10 +511,10 @@
   {
     "name": "Delete Batch with Admin Token",
     "method": "DELETE",
-    "endpoint": "/api/batches/test-audit-batch-1794804600346-1794804600346",
+    "endpoint": "/api/batches/test-audit-batch-1794807685416-1794807685417",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 39,
+    "duration": 50,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -523,7 +528,7 @@
     "endpoint": "/api/batches/hair-cutting-seminar-22-oct-2026/feature",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 49,
+    "duration": 79,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -560,7 +565,7 @@
         "description": "One-day practical look & learn hair cutting seminar at SK Relax Beauty Academy, Satara. Learn 4 trending haircut techniques — Butterfly Cut, Long Layer, Face Framing, and Curtain Bangs with personal attention and expert guidance from Salma Attar.",
         "whatsappPreset": "Hello Salma Ma'am, I would like to book my seat for the One-Day Hair Cutting Seminar (22 Oct 2026) at SK Relax Academy Satara.",
         "createdAt": "2026-10-19T09:47:21.331Z",
-        "updatedAt": "2026-11-16T04:50:00.544Z",
+        "updatedAt": "2026-11-16T05:41:25.844Z",
         "featuredHomepage": true,
         "featured_homepage": true,
         "poster": "/uploads/batches/batch-1792403187768-whatsapp-image-2026-10-17-at-11-31-01-am.jpeg",
@@ -575,7 +580,7 @@
     "endpoint": "/api/services",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 5,
+    "duration": 21,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -613,7 +618,7 @@
           "whatsappMessage": "Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your \"Split Ends Care & Micro-Dusting\" service. Please share details and available slots.",
           "whatsappNumber": "918459890270",
           "createdAt": "2026-10-20T14:52:36.767Z",
-          "updatedAt": "2026-11-15T17:49:23.713Z"
+          "updatedAt": "2026-11-16T04:50:00.696Z"
         },
         {
           "id": "dandruff-scalp-clarifying",
@@ -1658,7 +1663,7 @@
     "endpoint": "/api/services?category=hair-treatments",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 3,
+    "duration": 37,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -1696,7 +1701,7 @@
           "whatsappMessage": "Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your \"Split Ends Care & Micro-Dusting\" service. Please share details and available slots.",
           "whatsappNumber": "918459890270",
           "createdAt": "2026-10-20T14:52:36.767Z",
-          "updatedAt": "2026-11-15T17:49:23.713Z"
+          "updatedAt": "2026-11-16T04:50:00.696Z"
         },
         {
           "id": "dandruff-scalp-clarifying",
@@ -2016,7 +2021,7 @@
     "endpoint": "/api/services/split-ends-repair",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 2,
+    "duration": 12,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -2053,7 +2058,7 @@
         "whatsappMessage": "Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your \"Split Ends Care & Micro-Dusting\" service. Please share details and available slots.",
         "whatsappNumber": "918459890270",
         "createdAt": "2026-10-20T14:52:36.767Z",
-        "updatedAt": "2026-11-15T17:49:23.713Z"
+        "updatedAt": "2026-11-16T04:50:00.696Z"
       }
     }
   },
@@ -2063,7 +2068,7 @@
     "endpoint": "/api/services/non-existent-service-id",
     "status": 404,
     "expectedStatus": 404,
-    "duration": 2,
+    "duration": 10,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -2091,13 +2096,13 @@
     "endpoint": "/api/services",
     "status": 201,
     "expectedStatus": 201,
-    "duration": 42,
+    "duration": 110,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "data": {
-        "id": "service-audit-test-keratin-therapy-1794804600607",
+        "id": "service-audit-test-keratin-therapy-1794807685994",
         "slug": "audit-test-keratin-therapy",
         "title": "Audit Test Keratin Therapy",
         "category": "hair-treatments",
@@ -2123,18 +2128,18 @@
         "whatsappMessage": "Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your \"Audit Test Keratin Therapy\" service. Please share details and available slots.",
         "whatsappNumber": "918459890270",
         "confirmed": true,
-        "createdAt": "2026-11-16T04:50:00.607Z",
-        "updatedAt": "2026-11-16T04:50:00.607Z"
+        "createdAt": "2026-11-16T05:41:25.994Z",
+        "updatedAt": "2026-11-16T05:41:25.994Z"
       }
     }
   },
   {
     "name": "Update Service without token (Security Check)",
     "method": "PUT",
-    "endpoint": "/api/services/service-audit-test-keratin-therapy-1794804600607",
+    "endpoint": "/api/services/service-audit-test-keratin-therapy-1794807685994",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 3,
+    "duration": 27,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -2145,16 +2150,16 @@
   {
     "name": "Update Service with Admin Token",
     "method": "PUT",
-    "endpoint": "/api/services/service-audit-test-keratin-therapy-1794804600607",
+    "endpoint": "/api/services/service-audit-test-keratin-therapy-1794807685994",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 40,
+    "duration": 141,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "data": {
-        "id": "service-audit-test-keratin-therapy-1794804600607",
+        "id": "service-audit-test-keratin-therapy-1794807685994",
         "slug": "audit-test-keratin-therapy",
         "title": "Audit Test Keratin Therapy - Updated Title",
         "category": "hair-treatments",
@@ -2180,8 +2185,8 @@
         "whatsappMessage": "Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your \"Audit Test Keratin Therapy\" service. Please share details and available slots.",
         "whatsappNumber": "918459890270",
         "confirmed": true,
-        "createdAt": "2026-11-16T04:50:00.607Z",
-        "updatedAt": "2026-11-16T04:50:00.653Z"
+        "createdAt": "2026-11-16T05:41:25.994Z",
+        "updatedAt": "2026-11-16T05:41:26.157Z"
       }
     }
   },
@@ -2191,7 +2196,7 @@
     "endpoint": "/api/services/reorder",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 1,
+    "duration": 42,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -2205,14 +2210,14 @@
     "endpoint": "/api/services/reorder",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 40,
+    "duration": 138,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "data": [
         {
-          "id": "service-audit-test-keratin-therapy-1794804600607",
+          "id": "service-audit-test-keratin-therapy-1794807685994",
           "slug": "audit-test-keratin-therapy",
           "title": "Audit Test Keratin Therapy - Updated Title",
           "category": "hair-treatments",
@@ -2238,8 +2243,8 @@
           "whatsappMessage": "Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your \"Audit Test Keratin Therapy\" service. Please share details and available slots.",
           "whatsappNumber": "918459890270",
           "confirmed": true,
-          "createdAt": "2026-11-16T04:50:00.607Z",
-          "updatedAt": "2026-11-16T04:50:00.696Z"
+          "createdAt": "2026-11-16T05:41:25.994Z",
+          "updatedAt": "2026-11-16T05:41:26.362Z"
         },
         {
           "id": "split-ends-repair",
@@ -2273,7 +2278,7 @@
           "whatsappMessage": "Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your \"Split Ends Care & Micro-Dusting\" service. Please share details and available slots.",
           "whatsappNumber": "918459890270",
           "createdAt": "2026-10-20T14:52:36.767Z",
-          "updatedAt": "2026-11-16T04:50:00.696Z"
+          "updatedAt": "2026-11-16T05:41:26.361Z"
         },
         {
           "id": "dandruff-scalp-clarifying",
@@ -3315,10 +3320,10 @@
   {
     "name": "Delete Service without token (Security Check)",
     "method": "DELETE",
-    "endpoint": "/api/services/service-audit-test-keratin-therapy-1794804600607",
+    "endpoint": "/api/services/service-audit-test-keratin-therapy-1794807685994",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 2,
+    "duration": 20,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3329,17 +3334,17 @@
   {
     "name": "Delete Service with Admin Token",
     "method": "DELETE",
-    "endpoint": "/api/services/service-audit-test-keratin-therapy-1794804600607",
+    "endpoint": "/api/services/service-audit-test-keratin-therapy-1794807685994",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 44,
+    "duration": 177,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "message": "Service permanently deleted",
       "data": {
-        "id": "service-audit-test-keratin-therapy-1794804600607",
+        "id": "service-audit-test-keratin-therapy-1794807685994",
         "slug": "audit-test-keratin-therapy",
         "title": "Audit Test Keratin Therapy - Updated Title",
         "category": "hair-treatments",
@@ -3365,8 +3370,8 @@
         "whatsappMessage": "Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your \"Audit Test Keratin Therapy\" service. Please share details and available slots.",
         "whatsappNumber": "918459890270",
         "confirmed": true,
-        "createdAt": "2026-11-16T04:50:00.607Z",
-        "updatedAt": "2026-11-16T04:50:00.696Z"
+        "createdAt": "2026-11-16T05:41:25.994Z",
+        "updatedAt": "2026-11-16T05:41:26.362Z"
       }
     }
   },
@@ -3376,7 +3381,7 @@
     "endpoint": "/api/gallery",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 2,
+    "duration": 42,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3621,7 +3626,7 @@
     "endpoint": "/api/gallery?category=hair",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 2,
+    "duration": 31,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3698,7 +3703,7 @@
     "endpoint": "/api/gallery/gal-hair-1",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 2,
+    "duration": 305,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3721,7 +3726,7 @@
     "endpoint": "/api/gallery/non-existent-gallery-id",
     "status": 404,
     "expectedStatus": 404,
-    "duration": 1,
+    "duration": 14,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3735,7 +3740,7 @@
     "endpoint": "/api/gallery",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 1,
+    "duration": 3,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3749,14 +3754,14 @@
     "endpoint": "/api/gallery",
     "status": 201,
     "expectedStatus": 201,
-    "duration": 34,
+    "duration": 94,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "message": "Gallery item added successfully",
       "data": {
-        "id": "gal-bridal-1794804600796",
+        "id": "gal-bridal-1794807687047",
         "title": "Audit Test Glamour Transformation",
         "category": "bridal",
         "categoryLabel": "Bridal Artistry",
@@ -3764,17 +3769,17 @@
         "imagePosition": "center center",
         "alt": "Audit Test Glamour Transformation",
         "description": "Audit test transformation description",
-        "createdAt": "2026-11-16T04:50:00.796Z"
+        "createdAt": "2026-11-16T05:41:27.047Z"
       }
     }
   },
   {
     "name": "Update Gallery Item without token (Security Check)",
     "method": "PUT",
-    "endpoint": "/api/gallery/gal-bridal-1794804600796",
+    "endpoint": "/api/gallery/gal-bridal-1794807687047",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 2,
+    "duration": 79,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3785,17 +3790,17 @@
   {
     "name": "Update Gallery Item with Admin Token",
     "method": "PUT",
-    "endpoint": "/api/gallery/gal-bridal-1794804600796",
+    "endpoint": "/api/gallery/gal-bridal-1794807687047",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 45,
+    "duration": 155,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "message": "Gallery item updated successfully",
       "data": {
-        "id": "gal-bridal-1794804600796",
+        "id": "gal-bridal-1794807687047",
         "title": "Audit Test Glamour Transformation - Updated",
         "category": "bridal",
         "categoryLabel": "Bridal Artistry",
@@ -3803,19 +3808,19 @@
         "imagePosition": "center center",
         "alt": "Audit Test Glamour Transformation",
         "description": "Audit test transformation description",
-        "createdAt": "2026-11-16T04:50:00.796Z",
+        "createdAt": "2026-11-16T05:41:27.047Z",
         "tag": "Verified Audit",
-        "updatedAt": "2026-11-16T04:50:00.834Z"
+        "updatedAt": "2026-11-16T05:41:27.301Z"
       }
     }
   },
   {
     "name": "Delete Gallery Item without token (Security Check)",
     "method": "DELETE",
-    "endpoint": "/api/gallery/gal-bridal-1794804600796",
+    "endpoint": "/api/gallery/gal-bridal-1794807687047",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 2,
+    "duration": 48,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3826,18 +3831,18 @@
   {
     "name": "Delete Gallery Item with Admin Token",
     "method": "DELETE",
-    "endpoint": "/api/gallery/gal-bridal-1794804600796",
+    "endpoint": "/api/gallery/gal-bridal-1794807687047",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 40,
+    "duration": 128,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
       "message": "Gallery item and media deleted permanently",
-      "deletedId": "gal-bridal-1794804600796",
+      "deletedId": "gal-bridal-1794807687047",
       "deletedItem": {
-        "id": "gal-bridal-1794804600796",
+        "id": "gal-bridal-1794807687047",
         "title": "Audit Test Glamour Transformation - Updated",
         "category": "bridal",
         "categoryLabel": "Bridal Artistry",
@@ -3845,9 +3850,9 @@
         "imagePosition": "center center",
         "alt": "Audit Test Glamour Transformation",
         "description": "Audit test transformation description",
-        "createdAt": "2026-11-16T04:50:00.796Z",
+        "createdAt": "2026-11-16T05:41:27.047Z",
         "tag": "Verified Audit",
-        "updatedAt": "2026-11-16T04:50:00.834Z"
+        "updatedAt": "2026-11-16T05:41:27.301Z"
       },
       "deletedFiles": [],
       "preservedFiles": [
@@ -3864,7 +3869,7 @@
     "endpoint": "/api/upload",
     "status": 401,
     "expectedStatus": 401,
-    "duration": 3,
+    "duration": 33,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3878,7 +3883,7 @@
     "endpoint": "/api/upload",
     "status": 400,
     "expectedStatus": 400,
-    "duration": 2,
+    "duration": 80,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3892,7 +3897,7 @@
     "endpoint": "/api/upload",
     "status": 400,
     "expectedStatus": 400,
-    "duration": 2,
+    "duration": 28,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
@@ -3906,16 +3911,16 @@
     "endpoint": "/api/upload",
     "status": 200,
     "expectedStatus": 200,
-    "duration": 3,
+    "duration": 30,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {
       "success": true,
-      "url": "/uploads/services/service-1794804600928-89944d1a-audit-test-pixel.png",
-      "filename": "service-1794804600928-89944d1a-audit-test-pixel.png",
+      "url": "/uploads/services/service-1794807687708-f5ea395a-audit-test-pixel.png",
+      "filename": "service-1794807687708-f5ea395a-audit-test-pixel.png",
       "data": {
-        "url": "/uploads/services/service-1794804600928-89944d1a-audit-test-pixel.png",
-        "filename": "service-1794804600928-89944d1a-audit-test-pixel.png"
+        "url": "/uploads/services/service-1794807687708-f5ea395a-audit-test-pixel.png",
+        "filename": "service-1794807687708-f5ea395a-audit-test-pixel.png"
       }
     }
   },
@@ -3925,7 +3930,7 @@
     "endpoint": "/api/unknown-endpoint-xyz",
     "status": 404,
     "expectedStatus": 404,
-    "duration": 1,
+    "duration": 295,
     "passed": true,
     "cacheControl": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
     "data": {

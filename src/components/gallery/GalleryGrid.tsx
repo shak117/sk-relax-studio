@@ -73,7 +73,7 @@ export const GalleryGrid: React.FC<GalleryGridProps> = ({
           <div
             key={item.id}
             onClick={() => setSelectedItem(item)}
-            className="group relative cursor-pointer overflow-hidden rounded-sm bg-cream-200 border border-forest-900/10 shadow-soft hover:shadow-card transition-all duration-500"
+            className="group relative cursor-pointer overflow-hidden rounded-sm bg-cream-200 border border-forest-900/10 shadow-soft hover:shadow-card transition-all duration-500 max-w-md mx-auto sm:max-w-none w-full"
           >
             {/* Image */}
             <div className="aspect-[4/5] w-full overflow-hidden bg-forest-950 relative">

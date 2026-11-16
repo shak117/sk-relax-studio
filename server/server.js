@@ -8,6 +8,7 @@
  * and serves the production SPA from dist/ with SPA fallback.
  */
 
+import './utils/loadEnv.js';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';

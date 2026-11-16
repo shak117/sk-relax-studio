@@ -21,13 +21,13 @@
   },
   {
     "id": "gal-hair-3",
-    "title": "Face Framing Layers & Curtain Bangs",
+    "title": "Classic Feather Haircut",
     "category": "hair",
     "categoryLabel": "Hair Artistry",
-    "image": "/images/gallery/face-framing.jpg",
-    "alt": "Face framing layered styling accentuating jawline and cheekbones",
-    "description": "Angled perimeter slicing creating tailored movement around facial features.",
-    "tag": "Face Framing"
+    "image": "/images/gallery/feather-haircut.jpg",
+    "alt": "Classic feather cut with lightweight tapered ends",
+    "description": "Delicate feathered graduation designed for airy styling and everyday effortless wear.",
+    "tag": "Feather Cut"
   },
   {
     "id": "gal-hair-4",
@@ -41,13 +41,13 @@
   },
   {
     "id": "gal-hair-5",
-    "title": "Classic Feather Haircut",
+    "title": "Face Framing Precision Layers",
     "category": "hair",
     "categoryLabel": "Hair Artistry",
-    "image": "/images/gallery/feather-haircut.jpg",
-    "alt": "Classic feather cut with lightweight tapered ends",
-    "description": "Delicate feathered graduation designed for airy styling and everyday effortless wear.",
-    "tag": "Feather Cut"
+    "image": "/images/gallery/face-framing.jpg",
+    "alt": "Face framing layered styling accentuating jawline and cheekbones",
+    "description": "Angled perimeter slicing creating tailored movement around facial features.",
+    "tag": "Face Framing"
   },
   {
     "id": "gal-hair-6",

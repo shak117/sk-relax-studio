@@ -59,10 +59,10 @@ mkdir -p /var/www/sk-relax-studio/public/uploads/gallery
 chmod -R 775 /var/www/sk-relax-studio/server/data
 chmod -R 775 /var/www/sk-relax-studio/public/uploads
 
-# 8. Link Nginx Configuration
+# 8. Link Nginx Configuration (Bootstrap HTTP)
 echo "\n>>> 8. Configuring Nginx..."
-if [ -f /var/www/sk-relax-studio/deployment/nginx.conf ]; then
-    sudo cp /var/www/sk-relax-studio/deployment/nginx.conf /etc/nginx/sites-available/skrelaxbeauty.com
+if [ -f /var/www/sk-relax-studio/deployment/nginx-initial.conf ]; then
+    sudo cp /var/www/sk-relax-studio/deployment/nginx-initial.conf /etc/nginx/sites-available/skrelaxbeauty.com
     sudo ln -sf /etc/nginx/sites-available/skrelaxbeauty.com /etc/nginx/sites-enabled/
     sudo rm -f /etc/nginx/sites-enabled/default
     sudo nginx -t
