@@ -293,7 +293,7 @@ export const HeroVideo: React.FC<HeroVideoProps> = ({
 
         {/* 3. Supporting Description */}
         <p className="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-ivory-200/95 max-w-xl sm:max-w-2xl mx-auto font-sans font-light leading-relaxed drop-shadow-sm text-balance text-center">
-          Bespoke hair artistry, advanced skin treatments, and signature beauty experiences in Satara.
+          Experience the best salon care in Satara. Bespoke hair artistry, advanced skin aesthetics, bridal makeovers, and certified beauty academy training.
         </p>
 
         {/* 4. Action Buttons — Row on Desktop, Clean Wrapping on Mobile Screens */}

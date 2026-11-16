@@ -126,6 +126,20 @@
   animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Mobile Navigation Menu Lock & Floating Button Suppression */
+body.mobile-drawer-open {
+  overflow: hidden !important;
+  touch-action: none;
+  -ms-touch-action: none;
+}
+
+body.mobile-drawer-open aside[aria-label="WhatsApp quick contact"] {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
 /* Accessibility: Respect Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {

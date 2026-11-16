@@ -1,4 +1,15 @@
+# SK RELAX BEAUTY ACADEMY & SALON — ROBOTS.TXT
 User-agent: *
 Allow: /
+Allow: /assets/
+Allow: /images/
+Allow: /videos/
+Allow: /uploads/
 
+# Disallow Private Administrative Routes & Backend Endpoints
+Disallow: /admin/
+Disallow: /admin
+Disallow: /api/
+
+# Official Sitemap Location
 Sitemap: https://skrelaxbeauty.com/sitemap.xml

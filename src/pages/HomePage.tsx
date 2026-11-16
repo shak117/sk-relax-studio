@@ -33,6 +33,8 @@ import { SectionHeading } from '../components/ui/SectionHeading';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
 import { VideoPlayerModal } from '../components/ui/VideoPlayerModal';
+import { TransformationsSection } from '../components/home/TransformationsSection';
+import { ResultsSection } from '../components/home/ResultsSection';
 import { 
   LuxuryBotanicalShadow, 
   LuxuryCurvedLines, 
@@ -51,11 +53,29 @@ export const HomePage: React.FC = () => {
   } | null>(null);
 
   usePageSEO({
-    title: 'SK Relax Beauty Academy & Salon | Satara',
-    description: 'Explore SK Relax Beauty Academy & Salon in Satara. Discover salon services, professional hair styling, beauty education, and appointment enquiries.',
+    title: 'SK Relax Beauty Academy & Salon | Best Salon in Satara',
+    description: 'Discover SK Relax Beauty Academy & Salon in Satara for professional beauty, hair, bridal and salon services. Explore our services and book your appointment.',
     path: '/',
     schema: generateLocalBusinessSchema(),
   });
+
+  // Handle on-page smooth scrolling to hash anchors (e.g. #transformations, #results)
+  useEffect(() => {
+    const handleHash = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash) {
+        setTimeout(() => {
+          const el = document.getElementById(hash);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 250);
+      }
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   // Signature hair cuts from masterclass poster
   const signatureHaircuts = [
@@ -390,6 +410,12 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Real Transformations. Beautiful Results. Showcase */}
+      <TransformationsSection />
+
+      {/* See the Difference. Experience the Results. Documented Metrics */}
+      <ResultsSection />
 
       {/* Team Spotlight Section */}
       <section id="team-spotlight" className="relative py-12 sm:py-16 lg:py-20 bg-luxury-cream text-forest-900 border-b border-forest-900/10 overflow-hidden">

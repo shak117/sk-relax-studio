@@ -66,11 +66,11 @@ export const SERVICES: ServiceItem[] = [
     "isEducational": false,
     "badge": "",
     "status": "published",
-    "displayOrder": 1,
+    "displayOrder": 2,
     "whatsappMessage": "Hello SK Relax Beauty Academy & Salon, Satara. I would like to enquire about your \"Split Ends Care & Micro-Dusting\" service. Please share details and available slots.",
     "whatsappNumber": "918459890270",
     "createdAt": "2026-10-20T14:52:36.767Z",
-    "updatedAt": "2026-10-31T02:57:38.815Z"
+    "updatedAt": "2026-11-16T04:50:00.696Z"
   },
   {
     "id": "dandruff-scalp-clarifying",

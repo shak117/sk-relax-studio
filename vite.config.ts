@@ -6,6 +6,17 @@ import { batchApiPlugin } from './server/apiPlugin.js';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), batchApiPlugin() as PluginOption],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-icons': ['lucide-react']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600
+  },
   server: {
     port: 3000,
     open: true,

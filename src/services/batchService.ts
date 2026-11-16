@@ -34,6 +34,7 @@ export const FALLBACK_BATCHES: BatchItem[] = [
     ],
     description: 'One-day practical look & learn hair cutting seminar at SK Relax Beauty Academy, Satara. Learn 4 trending haircut techniques — Butterfly Cut, Long Layer, Face Framing, and Curtain Bangs with personal attention and expert guidance from Salma Attar.',
     whatsappPreset: "Hello Salma Ma'am, I would like to book my seat for the One-Day Hair Cutting Seminar (22 Oct 2026) at SK Relax Academy Satara.",
+    featuredHomepage: true,
     createdAt: '2026-10-19T09:47:21.331Z',
     updatedAt: '2026-10-19T18:30:00.000Z'
   },
@@ -73,7 +74,7 @@ export const FALLBACK_BATCHES: BatchItem[] = [
     ],
     description: 'Join Salma Attar for an intensive 3-day practical haircutting masterclass in Satara. Every enrolled student receives an individual mannequin dummy head for direct hands-on practice. Master modern layer cuts, the viral butterfly technique, and graduation geometry to boost your salon revenue.',
     whatsappPreset: "Hello Salma Ma'am, I would like to book my seat for the 3-Day Hair Cutting Masterclass (Nov 20–22, 2026) at SK Relax Academy in Satara.",
-    featuredHomepage: true,
+    featuredHomepage: false,
     createdAt: '2026-10-18T10:00:00.000Z',
     updatedAt: '2026-11-02T10:00:00.000Z'
   },

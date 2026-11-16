@@ -26,9 +26,12 @@ dist-ssr
 # Large archives and raw uncompressed frames
 *.zip
 
-# environmne tvariables
 # Environment variables and secrets
 .env
 .env.*
 !.env.example
+
+# Local Backups & Archives
+backups/
+archive/
 

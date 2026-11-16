@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnnouncementBar } from './components/layout/AnnouncementBar';
 import { Header } from './components/layout/Header';
@@ -8,7 +8,7 @@ import { ScrollToTop } from './components/ui/ScrollToTop';
 import { TrackingConsent } from './components/ui/TrackingConsent';
 import { initMetaPixel } from './services/analytics';
 
-// Pages
+// Public Pages
 import { HomePage } from './pages/HomePage';
 import { ServicesPage } from './pages/ServicesPage';
 import { BatchesPage } from './pages/BatchesPage';
@@ -20,10 +20,23 @@ import { GalleryPage } from './pages/GalleryPage';
 import { BookingPage } from './pages/BookingPage';
 import { ContactPage } from './pages/ContactPage';
 import { NotFoundPage } from './pages/NotFoundPage';
-import { AdminLoginPage } from './pages/admin/AdminLoginPage';
-import { AdminBatchesPage } from './pages/admin/AdminBatchesPage';
-import { AdminServicesPage } from './pages/admin/AdminServicesPage';
-import { AdminGalleryPage } from './pages/admin/AdminGalleryPage';
+
+// Lazy-loaded Admin CMS Pages (Code-split to reduce main public visitor bundle)
+const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage').then(m => ({ default: m.AdminLoginPage })));
+const AdminBatchesPage = lazy(() => import('./pages/admin/AdminBatchesPage').then(m => ({ default: m.AdminBatchesPage })));
+const AdminServicesPage = lazy(() => import('./pages/admin/AdminServicesPage').then(m => ({ default: m.AdminServicesPage })));
+const AdminGalleryPage = lazy(() => import('./pages/admin/AdminGalleryPage').then(m => ({ default: m.AdminGalleryPage })));
+
+function AdminLoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-cream-100 text-forest-950 font-sans">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-2 border-gold-400 border-t-forest-900 rounded-full animate-spin"></div>
+        <p className="text-xs uppercase tracking-widest text-forest-800">Loading SK Relax Admin...</p>
+      </div>
+    </div>
+  );
+}
 
 // Scroll to top helper on route change
 function ScrollToTopOnRoute() {
@@ -51,14 +64,16 @@ export function App() {
     return (
       <div className="min-h-screen bg-cream-100 selection:bg-gold-200 selection:text-forest-950">
         <ScrollToTopOnRoute />
-        <Routes>
-          <Route path="/admin/login" element={<AdminLoginPage />} />
-          <Route path="/admin/batches" element={<AdminBatchesPage />} />
-          <Route path="/admin/services" element={<AdminServicesPage />} />
-          <Route path="/admin/gallery" element={<AdminGalleryPage />} />
-          <Route path="/admin" element={<Navigate to="/admin/services" replace />} />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+        <Suspense fallback={<AdminLoadingFallback />}>
+          <Routes>
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/admin/batches" element={<AdminBatchesPage />} />
+            <Route path="/admin/services" element={<AdminServicesPage />} />
+            <Route path="/admin/gallery" element={<AdminGalleryPage />} />
+            <Route path="/admin" element={<Navigate to="/admin/services" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
       </div>
     );
   }

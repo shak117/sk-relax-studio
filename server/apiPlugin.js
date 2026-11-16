@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { atomicWriteJsonSync } from './utils/atomicWrite.js';
+import { checkRateLimit, recordFailedAttempt, clearFailedAttempts } from './utils/rateLimiter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,39 +67,8 @@ function verifyPassword(submitted) {
   }
 }
 
-// Simple in-memory rate limiter: track failed attempts per IP
-const loginAttempts = new Map(); // key: ip, value: { count, lockedUntil }
-const MAX_ATTEMPTS = 5;
-const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
-
-function checkRateLimit(ip) {
-  const now = Date.now();
-  const record = loginAttempts.get(ip);
-  if (!record) return { allowed: true };
-  if (record.lockedUntil && now < record.lockedUntil) {
-    const remaining = Math.ceil((record.lockedUntil - now) / 60000);
-    return { allowed: false, remaining };
-  }
-  // Lock expired — reset
-  if (record.lockedUntil && now >= record.lockedUntil) {
-    loginAttempts.delete(ip);
-  }
-  return { allowed: true };
-}
-
-function recordFailedAttempt(ip) {
-  const now = Date.now();
-  const record = loginAttempts.get(ip) || { count: 0, lockedUntil: null };
-  record.count += 1;
-  if (record.count >= MAX_ATTEMPTS) {
-    record.lockedUntil = now + LOCK_DURATION_MS;
-  }
-  loginAttempts.set(ip, record);
-}
-
-function clearFailedAttempts(ip) {
-  loginAttempts.delete(ip);
-}
+// Persistent login rate limiting & lockout management is imported from ./utils/rateLimiter.js
+// Policy: 5 failed attempts = 15-minute persistent lockout across server restarts.
 
 // Helper to ensure files and directories exist
 function ensureStorage() {
@@ -136,7 +107,7 @@ function readServices() {
 
 function writeServices(services) {
   ensureStorage();
-  fs.writeFileSync(SERVICES_FILE, JSON.stringify(services, null, 2), 'utf8');
+  atomicWriteJsonSync(SERVICES_FILE, services);
 
   // Keep src/data/servicesData.ts and public/api/services.json in sync
   try {
@@ -188,7 +159,7 @@ export const SERVICES: ServiceItem[] = ${JSON.stringify(published, null, 2)};
     // Also write a static JSON in public/api/services.json for static hosts / serverless fallback
     const publicApiDir = path.resolve(__dirname, '..', 'public', 'api');
     if (!fs.existsSync(publicApiDir)) fs.mkdirSync(publicApiDir, { recursive: true });
-    fs.writeFileSync(path.join(publicApiDir, 'services.json'), JSON.stringify({ success: true, data: published }, null, 2), 'utf8');
+    atomicWriteJsonSync(path.join(publicApiDir, 'services.json'), { success: true, data: published });
   } catch (err) {
     console.error('[writeServices] Error syncing static services files:', err.message);
   }
@@ -206,7 +177,16 @@ function readGallery() {
 
 function writeGallery(gallery) {
   ensureStorage();
-  fs.writeFileSync(GALLERY_FILE, JSON.stringify(gallery, null, 2), 'utf8');
+  atomicWriteJsonSync(GALLERY_FILE, gallery);
+
+  // Sync public static fallback
+  try {
+    const publicApiDir = path.resolve(__dirname, '..', 'public', 'api');
+    if (!fs.existsSync(publicApiDir)) fs.mkdirSync(publicApiDir, { recursive: true });
+    atomicWriteJsonSync(path.join(publicApiDir, 'gallery.json'), { success: true, data: gallery });
+  } catch (err) {
+    console.error('[writeGallery] Error syncing public gallery fallback:', err.message);
+  }
 }
 
 /**
@@ -480,143 +460,172 @@ function readBatches() {
 
 function writeBatches(batches) {
   ensureStorage();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(batches, null, 2), 'utf8');
+  atomicWriteJsonSync(DATA_FILE, batches);
+
+  // Sync public static fallback
+  try {
+    const publicApiDir = path.resolve(__dirname, '..', 'public', 'api');
+    if (!fs.existsSync(publicApiDir)) fs.mkdirSync(publicApiDir, { recursive: true });
+    atomicWriteJsonSync(path.join(publicApiDir, 'batches.json'), { success: true, data: batches });
+  } catch (err) {
+    console.error('[writeBatches] Error syncing public batches fallback:', err.message);
+  }
 }
 
-export function batchApiPlugin() {
-  return {
-    name: 'sk-relax-batch-api',
-    configureServer(server) {
-      handleMiddleware(server.middlewares);
-    },
-    configurePreviewServer(server) {
-      handleMiddleware(server.middlewares);
-    }
-  };
-}
+export const apiMiddlewareHandler = async (req, res, next = () => {}) => {
+  // 0. Publicly serve /uploads/ directly from disk with correct MIME types and full HTTP 206 Range support for video streaming
+  if (req.url && req.url.startsWith('/uploads/')) {
+    try {
+      const decodedUrl = decodeURIComponent(req.url.split('?')[0]);
+      const filePath = path.resolve(__dirname, '..', 'public', decodedUrl.replace(/^[\/\\]+/, ''));
+      const uploadsRoot = path.resolve(__dirname, '..', 'public', 'uploads');
+      if (filePath.startsWith(uploadsRoot) && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        const stat = fs.statSync(filePath);
+        const fileSize = stat.size;
+        const ext = path.extname(filePath).toLowerCase();
+        const mimes = {
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png',
+          '.webp': 'image/webp',
+          '.svg': 'image/svg+xml',
+          '.mp4': 'video/mp4',
+          '.webm': 'video/webm',
+          '.mov': 'video/quicktime',
+          '.m4v': 'video/mp4'
+        };
+        const contentType = mimes[ext] || 'application/octet-stream';
 
-function handleMiddleware(middlewares) {
-  middlewares.use(async (req, res, next) => {
-    // 0. Publicly serve /uploads/ directly from disk with correct MIME types and full HTTP 206 Range support for video streaming
-    if (req.url && req.url.startsWith('/uploads/')) {
-      try {
-        const decodedUrl = decodeURIComponent(req.url.split('?')[0]);
-        const filePath = path.resolve(__dirname, '..', 'public', decodedUrl.replace(/^\//, ''));
-        const uploadsRoot = path.resolve(__dirname, '..', 'public', 'uploads');
-        if (filePath.startsWith(uploadsRoot) && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-          const stat = fs.statSync(filePath);
-          const fileSize = stat.size;
-          const ext = path.extname(filePath).toLowerCase();
-          const mimes = {
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.webp': 'image/webp',
-            '.svg': 'image/svg+xml',
-            '.mp4': 'video/mp4',
-            '.webm': 'video/webm',
-            '.mov': 'video/quicktime',
-            '.m4v': 'video/mp4'
-          };
-          const contentType = mimes[ext] || 'application/octet-stream';
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Range, Accept, Content-Type');
 
-          res.setHeader('Content-Type', contentType);
-          res.setHeader('Accept-Ranges', 'bytes');
-          res.setHeader('Cache-Control', 'public, max-age=86400');
-          res.setHeader('Access-Control-Allow-Origin', '*');
-          res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-          res.setHeader('Access-Control-Allow-Headers', 'Range, Accept, Content-Type');
-
-          if (req.method === 'OPTIONS') {
-            res.statusCode = 204;
-            return res.end();
-          }
-
-          if (req.method === 'HEAD') {
-            res.setHeader('Content-Length', fileSize);
-            res.statusCode = 200;
-            return res.end();
-          }
-
-          const range = req.headers.range;
-          if (range) {
-            const parts = range.replace(/bytes=/, '').split('-');
-            const start = parseInt(parts[0], 10);
-            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-
-            if (isNaN(start) || start >= fileSize || (parts[1] && end < start)) {
-              res.setHeader('Content-Range', `bytes */${fileSize}`);
-              res.statusCode = 416; // Range Not Satisfiable
-              return res.end();
-            }
-
-            const clampedEnd = Math.min(end, fileSize - 1);
-            const chunkSize = clampedEnd - start + 1;
-
-            res.statusCode = 206; // Partial Content
-            res.setHeader('Content-Range', `bytes ${start}-${clampedEnd}/${fileSize}`);
-            res.setHeader('Content-Length', chunkSize);
-
-            const stream = fs.createReadStream(filePath, { start, end: clampedEnd });
-            return stream.pipe(res);
-          } else {
-            res.statusCode = 200;
-            res.setHeader('Content-Length', fileSize);
-            const stream = fs.createReadStream(filePath);
-            return stream.pipe(res);
-          }
+        if (req.method === 'OPTIONS') {
+          res.statusCode = 204;
+          return res.end();
         }
-      } catch (err) {
-        console.error('Error serving upload static file:', err);
+
+        if (req.method === 'HEAD') {
+          res.setHeader('Content-Length', fileSize);
+          res.statusCode = 200;
+          return res.end();
+        }
+
+        const range = req.headers.range;
+        if (range) {
+          const parts = range.replace(/bytes=/, '').split('-');
+          const start = parseInt(parts[0], 10);
+          const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+          if (isNaN(start) || start >= fileSize || (parts[1] && end < start)) {
+            res.setHeader('Content-Range', `bytes */${fileSize}`);
+            res.statusCode = 416; // Range Not Satisfiable
+            return res.end();
+          }
+
+          const clampedEnd = Math.min(end, fileSize - 1);
+          const chunkSize = clampedEnd - start + 1;
+
+          res.statusCode = 206; // Partial Content
+          res.setHeader('Content-Range', `bytes ${start}-${clampedEnd}/${fileSize}`);
+          res.setHeader('Content-Length', chunkSize);
+
+          const stream = fs.createReadStream(filePath, { start, end: clampedEnd });
+          return stream.pipe(res);
+        } else {
+          res.statusCode = 200;
+          res.setHeader('Content-Length', fileSize);
+          const stream = fs.createReadStream(filePath);
+          return stream.pipe(res);
+        }
       }
+    } catch (err) {
+      console.error('Error serving upload static file:', err);
     }
+  }
 
-    // Only handle /api routes
-    if (!req.url.startsWith('/api')) {
-      return next();
+  // Only handle /api routes
+  if (!req.url.startsWith('/api')) {
+    return next();
+  }
+
+  const url = new URL(req.url, 'http://localhost');
+  const pathname = url.pathname;
+  const method = req.method;
+
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
+  // Security Headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  // CORS Configuration: Restricted in production, flexible in development
+  const origin = req.headers['origin'];
+  const isProd = process.env.NODE_ENV === 'production';
+  const allowedOrigins = [
+    'https://skrelaxbeauty.com',
+    'https://www.skrelaxbeauty.com',
+    (process.env.VITE_SITE_URL || '').replace(/\/+$/, '')
+  ].filter(Boolean);
+
+  if (origin) {
+    if (!isProd || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+      res.setHeader('Access-Control-Allow-Origin', origin);
+    } else {
+      res.setHeader('Access-Control-Allow-Origin', allowedOrigins[0] || 'https://skrelaxbeauty.com');
     }
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
 
-    const url = new URL(req.url, 'http://localhost');
-    const pathname = url.pathname;
-    const method = req.method;
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  if (method === 'OPTIONS') {
+    res.statusCode = 204;
+    return res.end();
+  }
+
+  // Helper to send JSON with consistent Content-Type and status code
+  const sendJson = (statusCode, data) => {
+    if (res.writableEnded || res.headersSent) return;
+    res.statusCode = statusCode;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
+    res.end(JSON.stringify(data));
+  };
 
-    // CORS helper for development flexibility
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  // Helper to check authentication
+  const getAuthUser = () => {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
+    const token = authHeader.slice(7).trim();
+    return verifyToken(token);
+  };
 
-    if (method === 'OPTIONS') {
-      res.statusCode = 204;
-      return res.end();
+  try {
+    // Normalize pathname to strip trailing slashes (e.g. /api/admin/login/)
+    const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+
+    // 0. GET /api/health (System health & uptime monitor)
+    if (normalizedPath === '/api/health' && method === 'GET') {
+      return sendJson(200, {
+        status: 'ok',
+        service: 'SK Relax API Service',
+        timestamp: new Date().toISOString(),
+        uptime: Math.floor(process.uptime()),
+        nodeVersion: process.version
+      });
     }
-
-    // Helper to send JSON with consistent Content-Type and status code
-    const sendJson = (statusCode, data) => {
-      if (res.writableEnded || res.headersSent) return;
-      res.statusCode = statusCode;
-      res.setHeader('Content-Type', 'application/json; charset=utf-8');
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.end(JSON.stringify(data));
-    };
-
-    // Helper to check authentication
-    const getAuthUser = () => {
-      const authHeader = req.headers['authorization'];
-      if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-      const token = authHeader.slice(7).trim();
-      return verifyToken(token);
-    };
-
-    try {
-      // Normalize pathname to strip trailing slashes (e.g. /api/admin/login/)
-      const normalizedPath = pathname.replace(/\/+$/, '') || '/';
 
       // 1. POST /api/admin/login
       if (normalizedPath === '/api/admin/login' && method === 'POST') {
@@ -1633,13 +1642,27 @@ function handleMiddleware(middlewares) {
       if (!res.headersSent && !res.writableEnded) {
         return sendJson(500, {
           success: false,
-          message: 'Authentication service temporarily unavailable. Please try again.',
-          error: 'Authentication service temporarily unavailable. Please try again.'
+          message: 'Server internal error occurred. Please try again.',
+          error: 'Server internal error occurred. Please try again.'
         });
       }
       try {
         res.end();
       } catch {}
     }
-  });
+};
+
+/**
+ * Vite Plugin wrapper that attaches apiMiddlewareHandler to Vite's dev and preview servers.
+ */
+export function batchApiPlugin() {
+  return {
+    name: 'sk-relax-batch-api',
+    configureServer(server) {
+      server.middlewares.use(apiMiddlewareHandler);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use(apiMiddlewareHandler);
+    }
+  };
 }

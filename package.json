@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/sync-services-data.js && node scripts/generate-sitemap.js && tsc && vite build",
+    "start": "node server/server.js",
     "preview": "vite preview",
-    "test:services-sync": "node scripts/test-services-sync.js"
+    "test:services-sync": "node scripts/test-services-sync.js",
+    "test:api": "node scripts/audit-api-suite.js"
   },
   "dependencies": {
     "clsx": "^2.1.1",
