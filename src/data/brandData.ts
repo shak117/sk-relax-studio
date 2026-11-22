@@ -29,7 +29,8 @@ export const BRAND = {
   googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=6%2C%20Rajwada%20Cir%2C%20near%20IDBI%20Bank%2C%20Pratapganj%20Peth%2C%20Shaniwar%20Peth%2C%20Malhar%20Peth%2C%20Satara%2C%20Maharashtra",
   googleMapsEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3800.730335017282!2d73.9870817!3d17.6865239!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc239be08d96bbd%3A0x5f4ada5501d688cf!2sRajwada%2C%20Satara%2C%20Maharashtra%20415002!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin",
   developer: {
-    credit: "Designed & Developed by Cloud Technologies"
+    credit: "Designed & Developed by Cloud Technologies",
+    url: "https://cloud-technologiess-in.vercel.app/"
   }
 };
 

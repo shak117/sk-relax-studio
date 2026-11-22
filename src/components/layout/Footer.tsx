@@ -236,7 +236,15 @@ export const Footer: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-6 text-xs sm:text-sm px-12 sm:px-0 max-w-lg sm:max-w-none mx-auto">
             {/* Left side: Developer Credit */}
             <div className="text-center sm:text-left font-sans font-medium text-ivory-300">
-              Designed & Developed by Cloud Technologies
+              Designed &amp; Developed by{' '}
+              <a
+                href="https://cloud-technologiess-in.vercel.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ivory-200 hover:text-gold-300 hover:underline underline-offset-4 decoration-gold-400/60 transition-colors duration-200 cursor-pointer inline-block"
+              >
+                Cloud Technologies
+              </a>
             </div>
 
             {/* Right side: Salon Identity */}
