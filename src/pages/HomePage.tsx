@@ -29,6 +29,9 @@ import { STUDENT_FEEDBACK } from '../data/studentFeedbackData';
 import { HeroVideo } from '../components/hero/HeroVideo';
 import { ServiceCard } from '../components/services/ServiceCard';
 import { GalleryGrid } from '../components/gallery/GalleryGrid';
+import { Lightbox } from '../components/gallery/Lightbox';
+import { GALLERY_ITEMS } from '../data/galleryData';
+import { GalleryItem } from '../types';
 import { SectionHeading } from '../components/ui/SectionHeading';
 import { Button } from '../components/ui/Button';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
@@ -177,6 +180,9 @@ export const HomePage: React.FC = () => {
     };
   }, []);
 
+  // Modal slider state for Signature Haircuts showcase
+  const [selectedHaircutModal, setSelectedHaircutModal] = useState<GalleryItem | null>(null);
+
   return (
     <div className="space-y-0 relative">
       {/* Homepage Hero Section with Original Video Background & Skip Option */}
@@ -322,14 +328,31 @@ export const HomePage: React.FC = () => {
                 delay={idx * 80}
                 className={idx === 4 ? "col-span-2 sm:col-span-1 max-w-[280px] sm:max-w-none mx-auto sm:mx-0 w-full" : "w-full"}
               >
-                <div className="group relative bg-white rounded-sm overflow-hidden border border-forest-900/10 shadow-soft hover:shadow-card transition-all duration-300 flex flex-col h-full">
+                <div 
+                  onClick={() => setSelectedHaircutModal(GALLERY_ITEMS[idx] || null)}
+                  className="group relative bg-white rounded-sm overflow-hidden border border-forest-900/10 shadow-soft hover:shadow-card hover:border-gold-500/40 transition-all duration-300 flex flex-col h-full cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedHaircutModal(GALLERY_ITEMS[idx] || null);
+                    }
+                  }}
+                  aria-label={`View ${cut.name} details in slider`}
+                >
                   <div className="aspect-[3/4] w-full overflow-hidden bg-forest-950 relative">
                     <img
                       src={cut.image}
                       alt={cut.name}
                       loading="lazy"
-                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 select-none"
                     />
+                    <div className="absolute inset-0 bg-forest-950/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                      <span className="text-[10px] uppercase font-sans tracking-widest text-white bg-forest-900/85 px-2.5 py-1 rounded-sm border border-gold-400/50 shadow-md">
+                        View Look
+                      </span>
+                    </div>
                   </div>
                   <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
                     <div>
@@ -349,6 +372,7 @@ export const HomePage: React.FC = () => {
                         href={buildWhatsAppUrl(WhatsAppMessages.serviceEnquiry(cut.name))}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-forest-900 hover:text-emerald-700 font-medium font-sans uppercase tracking-wider"
                       >
                         <MessageCircle size={12} className="text-emerald-600" />
@@ -364,6 +388,14 @@ export const HomePage: React.FC = () => {
           <p className="mt-4 sm:mt-6 text-center text-xs text-forest-600 font-sans italic">
             * Technique examples inspired by our masterclass syllabus. Service availability and customization are tailored upon in-studio consultation.
           </p>
+
+          {/* Lightbox Slider Modal for Signature Haircuts */}
+          <Lightbox
+            item={selectedHaircutModal}
+            items={GALLERY_ITEMS.slice(0, 6)}
+            onClose={() => setSelectedHaircutModal(null)}
+            onNavigate={(i) => setSelectedHaircutModal(GALLERY_ITEMS.slice(0, 6)[i])}
+          />
         </div>
       </section>
 
