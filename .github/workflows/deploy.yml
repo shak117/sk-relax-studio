@@ -1,0 +1,195 @@
+name: SK RELAX Production Deployment CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Ensure only one deployment runs at a time
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  # =========================================================================
+  # JOB 1: Test & Build Frontend/Backend Artifacts
+  # =========================================================================
+  build-and-verify:
+    name: Build & Verify Artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies Cleanly
+        run: npm ci
+
+      - name: Verify TypeScript Compilation
+        run: npx tsc --noEmit
+
+      - name: Compile Production Build
+        run: npm run build
+        env:
+          VITE_SITE_URL: https://skrelaxbeautysalonandacademy.cloud
+
+      - name: Validate Build Output
+        run: |
+          if [ ! -f "dist/index.html" ]; then
+            echo "::error::Build verification failed! dist/index.html not found."
+            exit 1
+          fi
+          echo "Production build verified successfully. Artifact size: $(du -sh dist/ | cut -f1)"
+
+      - name: Archive Built Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-dist
+          path: dist/
+          retention-days: 1
+
+  # =========================================================================
+  # JOB 2: Deploy to Hostinger Ubuntu 26.04 LTS VPS
+  # =========================================================================
+  deploy:
+    name: Deploy to Production VPS
+    needs: build-and-verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Download Built Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: production-dist
+          path: dist/
+
+      - name: Setup SSH Agent & Known Hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT || 22 }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          # Scan and register host key to prevent MITM warnings
+          ssh-keyscan -p $VPS_PORT -H $VPS_HOST >> ~/.ssh/known_hosts 2>/dev/null
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy Code & Artifacts via Rsync
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT || 22 }}
+          TARGET_DIR: /var/www/sk-relax-studio
+        run: |
+          echo "Synchronizing project files to $VPS_USER@$VPS_HOST:$TARGET_DIR..."
+
+          # Safe rsync with explicit protection for production data & configuration
+          rsync -avz \
+            -e "ssh -p $VPS_PORT -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=yes" \
+            --exclude='.env' \
+            --exclude='server/data/' \
+            --exclude='public/uploads/' \
+            --exclude='node_modules/' \
+            --exclude='.git/' \
+            --exclude='*.log' \
+            --filter='P .env' \
+            --filter='P server/data/***' \
+            --filter='P public/uploads/***' \
+            ./ "$VPS_USER@$VPS_HOST:$TARGET_DIR/"
+
+          echo "File synchronization completed safely. Production data preserved."
+
+      - name: Install Dependencies & Reload PM2 Application
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT || 22 }}
+          TARGET_DIR: /var/www/sk-relax-studio
+        run: |
+          ssh -p $VPS_PORT -i ~/.ssh/id_ed25519 "$VPS_USER@$VPS_HOST" "bash -s" << 'EOF'
+            set -e
+            cd /var/www/sk-relax-studio
+
+            echo ">>> 1. Installing production dependencies..."
+            npm ci --omit=dev
+
+            echo ">>> 2. Ensuring correct directory permissions..."
+            chmod -R 775 server/data public/uploads 2>/dev/null || true
+
+            echo ">>> 3. Safely reloading PM2 process..."
+            if command -v pm2 &> /dev/null; then
+              pm2 reload ecosystem.config.cjs --update-env || pm2 reload sk-relax-api || pm2 start ecosystem.config.cjs
+              pm2 save
+            elif sudo command -v pm2 &> /dev/null; then
+              sudo pm2 reload ecosystem.config.cjs --update-env || sudo pm2 reload sk-relax-api || sudo pm2 start ecosystem.config.cjs
+              sudo pm2 save
+            fi
+
+            echo ">>> 4. Verifying local process status..."
+            pm2 status || sudo pm2 status
+          EOF
+
+      - name: Health Check & Verification
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT || 22 }}
+          DOMAIN: skrelaxbeautysalonandacademy.cloud
+        run: |
+          echo "Waiting 5 seconds for application warm-up..."
+          sleep 5
+
+          echo ">>> Testing internal local health endpoint..."
+          ssh -p $VPS_PORT -i ~/.ssh/id_ed25519 "$VPS_USER@$VPS_HOST" "bash -s" << 'EOF'
+            set -e
+            HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health || echo "000")
+            echo "Internal API Health Status: $HEALTH_STATUS"
+            if [ "$HEALTH_STATUS" -ne 200 ]; then
+              echo "::error::Internal health check failed with HTTP $HEALTH_STATUS"
+              pm2 logs sk-relax-api --lines 30 --nostream || sudo pm2 logs sk-relax-api --lines 30 --nostream
+              exit 1
+            fi
+            echo "Internal health check PASSED (HTTP 200)."
+          EOF
+
+          echo ">>> Testing public domain health endpoint..."
+          PUBLIC_STATUS=$(curl -s -k -o /dev/null -w "%{http_code}" "https://$DOMAIN/api/health" || echo "000")
+          echo "Public Domain ($DOMAIN) Health Status: $PUBLIC_STATUS"
+
+          if [ "$PUBLIC_STATUS" -eq 200 ]; then
+            echo "Public deployment verification SUCCEEDED (HTTP 200)."
+          else
+            echo "::warning::Public URL returned HTTP $PUBLIC_STATUS (DNS propagation or SSL might be pending). Internal check succeeded."
+          fi
+
+      - name: Deployment Failure Diagnostics
+        if: failure()
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT || 22 }}
+        run: |
+          echo "::error::Deployment failed! Gathering recent server logs for diagnostics..."
+          ssh -p $VPS_PORT -i ~/.ssh/id_ed25519 "$VPS_USER@$VPS_HOST" "bash -s" << 'EOF' || true
+            echo "=== PM2 STATUS ==="
+            pm2 status || sudo pm2 status || true
+            echo "=== PM2 RECENT ERROR LOGS ==="
+            tail -n 40 /var/log/pm2/sk-relax-error.log 2>/dev/null || pm2 logs sk-relax-api --err --lines 30 --nostream || true
+            echo "=== NGINX STATUS ==="
+            systemctl status nginx --no-pager -l || sudo systemctl status nginx --no-pager -l || true
+          EOF

@@ -22,7 +22,7 @@ const DIST_DIR = path.resolve(ROOT_DIR, 'dist');
 const PUBLIC_DIR = path.resolve(ROOT_DIR, 'public');
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = process.env.HOST || '127.0.0.1';
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',

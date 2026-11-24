@@ -2,7 +2,7 @@
 # =============================================================================
 # SK RELAX BEAUTY ACADEMY & SALON — HOSTINGER VPS INITIAL SETUP SCRIPT
 # Prepared by: Cloud Technologies
-# Target OS: Ubuntu 22.04 LTS / Ubuntu 24.04 LTS
+# Target OS: Ubuntu 26.04 LTS / Ubuntu 24.04 LTS / Ubuntu 22.04 LTS
 # =============================================================================
 
 set -e
@@ -28,9 +28,12 @@ sudo ufw allow 'Nginx Full'
 sudo ufw --force enable
 sudo ufw status verbose
 
-# 4. Install Node.js 20 LTS via NodeSource
-echo "\n>>> 4. Installing Node.js 20 LTS..."
-if ! command -v node &> /dev/null; then
+# 4. Install Node.js LTS via NodeSource (Supports Ubuntu 26.04 / 24.04 / 22.04)
+echo "\n>>> 4. Verifying / Installing Node.js LTS runtime..."
+if command -v node &> /dev/null && [ "$(node -v | cut -d'.' -f1 | tr -d 'v')" -ge 20 ]; then
+    echo "Compatible Node.js $(node -v) is already installed on this server."
+else
+    echo "Installing Node.js 20 LTS..."
     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
     sudo apt install -y nodejs
 fi

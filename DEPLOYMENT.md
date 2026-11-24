@@ -3,9 +3,9 @@
 
 **Prepared by:** Cloud Technologies  
 **Target Hardware:** Hostinger VPS KVM 2 (2 vCPU, 4 GB RAM, 50 GB NVMe SSD)  
-**Operating System:** Ubuntu 22.04 LTS  
+**Operating System:** Ubuntu 26.04 LTS / Ubuntu 24.04 LTS / Ubuntu 22.04 LTS  
 **Primary Domain:** `https://skrelaxbeauty.com` (with `www` redirect)  
-**Architecture:** Nginx 1.24+ (Reverse Proxy & Static SPA) + Node.js 20 LTS (PM2 Daemon)  
+**Architecture:** Nginx 1.24+ (Reverse Proxy & Static SPA) + Node.js 20/22 LTS (PM2 Daemon)  
 
 ---
 
@@ -242,3 +242,58 @@ pm2 restart sk-relax-api
 | Reload Nginx | `sudo systemctl reload nginx` |
 | Pull git updates & rebuild | `git pull && npm run build && pm2 restart sk-relax-api` |
 | Check API health | `curl https://skrelaxbeauty.com/api/health` |
+
+---
+
+## 6. Multi-Client Hosting Isolation (Hostinger KVM 2 VPS)
+
+When sharing this VPS across multiple Cloud Technologies client projects, SK RELAX is completely isolated:
+
+1. **Dedicated Loopback Port**:
+   * Default: `PORT=3000` (configurable in `.env` and `ecosystem.config.cjs` to e.g. `3001` or `3005`).
+   * Node process strictly binds to `127.0.0.1` so it is never exposed directly on public network interfaces.
+2. **Dedicated Nginx Virtual Host**:
+   * `/etc/nginx/sites-available/skrelaxbeauty.com` handles only requests for `skrelaxbeauty.com` and `www.skrelaxbeauty.com`.
+   * To prevent unmatched domain/IP traffic from falling through to any client, ensure `/etc/nginx/sites-available/00-default.conf` exists:
+     ```nginx
+     server {
+         listen 80 default_server;
+         listen [::]:80 default_server;
+         server_name _;
+         return 444;
+     }
+     ```
+3. **Filesystem & Data Storage Isolation**:
+   * Application: `/var/www/sk-relax-studio`
+   * Databases: `/var/www/sk-relax-studio/server/data/*.json` (completely self-contained, no shared database daemon)
+   * Media Uploads: `/var/www/sk-relax-studio/public/uploads`
+   * Dedicated Backups: `/var/backups/sk-relax/` (daily automated tar.gz rotation)
+   * Process Name & Logs: `sk-relax-api` -> `/var/log/pm2/sk-relax-*.log`
+4. **Independent Environment & Credentials**:
+   * Scoped to `/var/www/sk-relax-studio/.env` with `chmod 600`, inaccessible by other non-root system users.
+
+---
+
+## 7. Automated CI/CD Pipeline (GitHub Actions)
+
+Every push to the `main` branch automatically triggers `.github/workflows/deploy.yml`:
+
+1. **Build & Verify Job (GitHub Runner)**:
+   - Runs `npm ci` and `npx tsc --noEmit` to verify zero TypeScript errors.
+   - Executes `npm run build` to compile the Vite SPA into `dist/`.
+   - Verifies presence and integrity of `dist/index.html`.
+   - If anything fails, deployment halts immediately with zero impact on production.
+
+2. **Deploy Job (Hostinger VPS)**:
+   - Authenticates securely via dedicated Ed25519 SSH Key (`VPS_SSH_KEY`).
+   - Synchronizes application files using `rsync` with strict protect rules.
+   - **Preserves Production Data**: `.env`, `server/data/*.json`, and `public/uploads/*` are explicitly protected and never overwritten.
+   - Runs `npm ci --omit=dev` and reloads PM2 (`pm2 reload ecosystem.config.cjs --update-env`).
+   - Runs automated health check against `http://127.0.0.1:3000/api/health`.
+
+### Required GitHub Secrets
+Set these in GitHub Repository **Settings** > **Secrets and variables** > **Actions**:
+- `VPS_HOST`: `skrelaxbeautysalonandacademy.cloud` (or server IP)
+- `VPS_USER`: `deploy` (recommended dedicated non-root user)
+- `VPS_SSH_KEY`: Private Ed25519 SSH Key
+- `VPS_PORT`: `22` (or custom SSH port)

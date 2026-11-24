@@ -1,1 +1,7 @@
-{}
+{
+  "::1": {
+    "count": 3,
+    "lockedUntil": null,
+    "lastAttempt": 1795516269642
+  }
+}
