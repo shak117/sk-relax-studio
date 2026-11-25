@@ -278,22 +278,28 @@ When sharing this VPS across multiple Cloud Technologies client projects, SK REL
 
 Every push to the `main` branch automatically triggers `.github/workflows/deploy.yml`:
 
-1. **Build & Verify Job (GitHub Runner)**:
+1. **Build & Verify Job (GitHub Cloud Runner)**:
+   - Uses pinned actions (`actions/checkout`, `actions/setup-node`, `actions/upload-artifact`).
    - Runs `npm ci` and `npx tsc --noEmit` to verify zero TypeScript errors.
    - Executes `npm run build` to compile the Vite SPA into `dist/`.
    - Verifies presence and integrity of `dist/index.html`.
    - If anything fails, deployment halts immediately with zero impact on production.
 
-2. **Deploy Job (Hostinger VPS)**:
-   - Authenticates securely via dedicated Ed25519 SSH Key (`VPS_SSH_KEY`).
-   - Synchronizes application files using `rsync` with strict protect rules.
+2. **Deploy Job (Hostinger VPS via Secure Helper)**:
+   - Authenticates using pre-verified SSH known_hosts and dedicated Ed25519 key (`VPS_SSH_KEY`).
+   - Synchronizes application code and `dist/` using `rsync` with strict protect rules.
    - **Preserves Production Data**: `.env`, `server/data/*.json`, and `public/uploads/*` are explicitly protected and never overwritten.
-   - Runs `npm ci --omit=dev` and reloads PM2 (`pm2 reload ecosystem.config.cjs --update-env`).
-   - Runs automated health check against `http://127.0.0.1:3000/api/health`.
+   - Triggers the narrowly-scoped root deployment helper: `sudo /usr/local/bin/skrelax-deploy.sh`.
+   - Creates a pre-deployment release backup, updates dependencies (`npm ci --omit=dev`), and safely reloads root PM2 (`sk-relax-api`).
+   - Runs automated health check against `http://127.0.0.1:3000/api/health` with automatic rollback on failure.
+   - Verifies public domain availability at `https://skrelaxbeautysalonandacademy.cloud/api/health`.
 
-### Required GitHub Secrets
+### Required GitHub Secrets (SSH Credentials Only)
 Set these in GitHub Repository **Settings** > **Secrets and variables** > **Actions**:
-- `VPS_HOST`: `skrelaxbeautysalonandacademy.cloud` (or server IP)
-- `VPS_USER`: `deploy` (recommended dedicated non-root user)
-- `VPS_SSH_KEY`: Private Ed25519 SSH Key
-- `VPS_PORT`: `22` (or custom SSH port)
+- `VPS_SSH_KEY`: Private Ed25519 SSH Key (`~/.ssh/id_ed25519`)
+- `VPS_SSH_KNOWN_HOSTS`: Pre-verified known_hosts entry for `skrelaxbeautysalonandacademy.cloud`
+
+### Scoped Sudoers Rule (`/etc/sudoers.d/skrelax-deploy`)
+```sudoers
+deploy ALL=(root) NOPASSWD: /usr/local/bin/skrelax-deploy.sh, /usr/local/bin/skrelax-deploy.sh --pre-backup, /usr/local/bin/skrelax-deploy.sh --rollback
+```
