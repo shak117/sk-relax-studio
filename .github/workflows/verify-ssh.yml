@@ -1,0 +1,56 @@
+name: Verify VPS SSH Connectivity
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - ci/ssh-connectivity-check
+
+jobs:
+  verify-ssh:
+    name: Test SSH Key & Known Hosts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Configure Secure SSH Authentication & Pre-Verified Host Key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.VPS_SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::error::Secret VPS_SSH_KEY is empty or missing."
+            exit 1
+          fi
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -l -f ~/.ssh/id_ed25519 || {
+            echo "::error::VPS_SSH_KEY invalid format."
+            exit 1
+          }
+
+          if [ -z "$SSH_KNOWN_HOSTS" ]; then
+            echo "::error::Secret VPS_SSH_KNOWN_HOSTS is empty or missing."
+            exit 1
+          fi
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+          ssh-keygen -l -f ~/.ssh/known_hosts || {
+            echo "::error::VPS_SSH_KNOWN_HOSTS invalid entry."
+            exit 1
+          }
+
+      - name: Run Safe Read-Only Connectivity & Sudo Check
+        run: |
+          ssh -p 22 -i ~/.ssh/id_ed25519 \
+            -o StrictHostKeyChecking=yes \
+            -o IdentitiesOnly=yes \
+            -o PreferredAuthentications=publickey \
+            -o PasswordAuthentication=no \
+            -o BatchMode=yes \
+            deploy@skrelaxbeautysalonandacademy.cloud \
+            "whoami && id && hostname && sudo -n -l | grep skrelax-deploy"
